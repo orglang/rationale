@@ -55,10 +55,10 @@ The inspected process AST defines the following constructors and fields:
 | `RecvSpec` | `CommChnlPH`, `NewChnlPH`, `ContExp` | Receive and bind a channel, then continue |
 | `LabSpec` | `CommChnlPH`, `ValLabQN`, `ContExp` | Send/select a label; the AST also carries a continuation, though its use needs verification |
 | `CaseSpec` | `CommChnlPH`, `ContExps` | Offer branches indexed by labels |
-| `LinkSpec` | `ProcTermQN`, `X`, `Ys` | Link/forwarding-like construct; exact contract open |
+| `LinkSpec` | `ProcTermQN`, `X`, `Ys` | Recursive-call/link construct (working interpretation supplied for this draft); exact binding and argument contract still to verify |
 | `FwdSpec` | `CommChnlPH`, `ContChnlPH` | Forward between endpoints |
 | `CallSpec` | `CommChnlPH`, `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp` | Named process call; exact argument/result contract open |
-| `SpawnSpec` | `CommChnlPH`, `ProcTermQN`, `NewChnlPHs`, `ContExp` | Spawn-like construct; exact contract open |
+| `SpawnSpec` | `CommChnlPH`, `ProcTermQN`, `NewChnlPHs`, `ContExp` | Present in AST, but excluded from the current process-semantics scope pending pool-level analysis |
 | `AcqureSpec` | see source | Constructor spelling as present in code; contract open |
 | `AcceptSpec` | see source | Contract open |
 | `DetachSpec` | see source | Contract open |
@@ -117,7 +117,7 @@ At a high level, the inspected `Take` path is:
 5. Persist the resulting modification/effects.
 6. If a next expression is scheduled, continue from the updated reference and expression; otherwise return.
 
-The inspected `takeWith` contains execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. The current `LabSpec` AST includes `ContExp`, but its message adapter does not preserve that field; whether a label-selection continuation is semantically required remains open. It does not contain branches for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release`; those constructors therefore do not have an implementation in this dispatcher in the inspected version.
+The inspected `takeWith` contains execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. The current `LabSpec` AST includes `ContExp`, but its message adapter does not preserve that field; whether a label-selection continuation is semantically required remains open. It does not contain branches for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release`; those constructors therefore do not have an implementation in this dispatcher in the inspected version. For scope purposes, `Spawn` is deferred to the pool-level analysis rather than specified here. `Link` is treated as a candidate recursive-call mechanism, distinct from channel forwarding (`Fwd`); this interpretation is a design clarification to verify against the remaining source and tests.
 
 Communication is not necessarily completed in one pass. For example, when the counterpart of a `Close`/`Wait` or a send/receive interaction is not yet available, the execution path can register a subscription and return without completing that interaction. When the peer is found, the implementation updates exchange state, allocates channel identifiers, updates linear-variable records, and may schedule the continuation.
 
@@ -147,19 +147,20 @@ A formal reduction relation should distinguish at least:
 
 The current evidence supports treating execution as a stateful transition over an execution snapshot plus communication/exchange state. It does **not** yet justify importing a generic session-calculus semantics verbatim, nor asserting that each AST constructor has a complete reduction rule.
 
-The first fully formalized rules should be limited to constructors whose typing and execution branches have both been checked end-to-end. Rules for calls, spawning, linking, and resource-management constructs should remain explicitly unspecified until their intended and implemented contracts are reconciled.
+The first fully formalized rules should be limited to constructors whose typing and execution branches have both been checked end-to-end. Rules for calls and resource-management constructs should remain explicitly unspecified until their intended and implemented contracts are reconciled. `Spawn` is deferred to the pool-level analysis. `Link` should be investigated alongside recursive process definitions/calls, not conflated with `Fwd`.
 
 ## 9. Open questions for the next verification pass
 
 1. What is the precise relationship among `TermQN`, `ProcQN`, `ProcTermQN`, declaration references, and expression identity?
 2. Is the order of `AssetVars` significant for positional channel matching?
-3. What are the exact preconditions and effects of `Call` and `Spawn`, including the roles of `CommChnlPH`, `NewChnlPH`, `NewChnlPHs`, and `ContExp`?
-4. Are `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
-5. What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
-6. What are the full invariants for `ChnlBS`, provider/client orientation, and linear-context updates?
-7. Are the conversion asymmetries listed above reachable in the actual execution path, and which tests can establish their impact?
-8. What exact transition semantics do subscription/publication and exchange-turn records implement?
-9. Must all branches of a `Case` preserve equivalent linear contexts, and where is that enforced?
+3. What are the exact preconditions and effects of `Call`, including the roles of `CommChnlPH`, `NewChnlPH`, `ValChnlPHs`, and `ContExp`?
+4. How does `Link` refer to a recursive process definition, bind its `X`/`Ys` arguments, and interact with recursion/type checking?
+5. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
+6. What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
+7. What are the full invariants for `ChnlBS`, provider/client orientation, and linear-context updates?
+8. Are the conversion asymmetries listed above reachable in the actual execution path, and which tests can establish their impact?
+9. What exact transition semantics do subscription/publication and exchange-turn records implement?
+10. Must all branches of a `Case` preserve equivalent linear contexts, and where is that enforced?
 
 ## 10. Non-goals
 
