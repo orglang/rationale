@@ -199,12 +199,14 @@ Accordingly, the intended distinction is:
 
 The tail-call analogy means that `Link` does not schedule an ordinary continuation of the invoking process. It does not, by itself, establish that the old incarnation is immediately destroyed or specify what happens to its remaining state. The exact formal representation of client-channel redirection and whether the `Link` effect is atomic or decomposable into `Call` and `Fwd` remain open.
 
+The author has confirmed that the new provider must be session-type compatible with the clients redirected by `Link`. This requirement should be stated at the protocol state at which each client is redirected, not assumed to follow merely from matching the initial session types. A formal rule must ensure that the new provider can continue every affected client interaction according to that client's current protocol state. Whether this is expressed as equality of residual session types, a duality/compatibility relation, or another judgment depends on the language's session-type rules and remains to be formalized.
+
 ## 10. Open questions for the next verification pass
 
 1. What is the precise relationship among `TermQN`, `ProcQN`, `ProcTermQN`, declaration references, and expression identity?
 2. Is the order of `AssetVars` significant for positional channel matching?
 3. What is the intended semantic relationship between named-process invocation, process creation (`Spawn`), and the pool model, and which parts belong to each layer?
-4. How should `Link` formally represent replacing the old provider channel with the new provider channel in every client process previously connected to the old provider? Is this redirection atomic or equivalent to a composition involving `Call` and `Fwd`, and what happens to the old incarnation's remaining state?
+4. How should `Link` formally represent replacing the old provider channel with the new provider channel in every client process previously connected to the old provider? What session-type compatibility judgment ensures the new provider can continue each redirected client's current protocol state? Is redirection atomic or equivalent to a composition involving `Call` and `Fwd`, and what happens to the old incarnation's remaining state?
 5. What do identity-valued `X`/`Ys` refer to in the intended language semantics, independent of their implementation types, and where should name resolution, recursion checks, and type checks be enforced?
 6. The publication's named-process call form has no explicit continuation, while OrgLang's `CallSpec` includes `ContExp`. Is this continuation part of the intended call semantics, and if so, what does it represent and when does it run?
 7. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
