@@ -57,7 +57,7 @@ The inspected process AST defines the following constructors and fields:
 | `CaseSpec` | `CommChnlPH`, `ContExps` | Offer branches indexed by labels |
 | `LinkSpec` | `ProcTermQN`, `X`, `Ys` (`identity.ADT`) | Existing name for a construct under investigation. The current design direction is one named-process call construct for both recursive and non-recursive calls; whether `LinkSpec` should be renamed or unified with `CallSpec` remains open |
 | `FwdSpec` | `CommChnlPH`, `ContChnlPH` | Forward between endpoints |
-| `CallSpec` | `CommChnlPH`, `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp` | Candidate representation of a named-process call; exact contract and relationship to `LinkSpec` remain open pending the process/pool model |
+| `CallSpec` | `CommChnlPH`, `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp` | Candidate representation of a named-process call. Unlike the supplied publication's call form `a ← p b₁ … bₙ`, this AST carries a continuation and distinct channel placeholders; their semantic roles are not yet established |
 | `SpawnSpec` | `CommChnlPH`, `ProcTermQN`, `NewChnlPHs`, `ContExp` | Present in AST, but excluded from the current process-semantics scope pending pool-level analysis |
 | `AcqureSpec` | see source | Constructor spelling as present in code; contract open |
 | `AcceptSpec` | see source | Contract open |
@@ -178,12 +178,13 @@ A useful next investigation is to determine from intended language semantics whe
 3. What is the intended semantic relationship between named-process invocation, process creation (`Spawn`), and the pool model, and which parts belong to each layer?
 4. Should `Link` and `Call` be one language construct? The current design direction favors one named-process call for both recursive and non-recursive cases, with recursion arising from cyclic dependencies between process definitions; the final syntax and runtime contract remain open.
 5. What do identity-valued `X`/`Ys` refer to in the intended language semantics, independent of their implementation types, and where should name resolution, recursion checks, and type checks be enforced?
-6. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
+6. The publication's named-process call form has no explicit continuation, while OrgLang's `CallSpec` includes `ContExp`. Is this continuation part of the intended call semantics, and if so, what does it represent and when does it run?
+7. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
 7. What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
-8. What are the full invariants for `ChnlBS`, provider/client orientation, and linear-context updates?
-9. Are the conversion asymmetries listed above reachable in the actual execution path, and which tests can establish their impact?
-10. What exact transition semantics do subscription/publication and exchange-turn records implement?
-11. Must all branches of a `Case` preserve equivalent linear contexts, and where is that enforced?
+9. What are the full invariants for `ChnlBS`, provider/client orientation, and linear-context updates?
+10. Are the conversion asymmetries listed above reachable in the actual execution path, and which tests can establish their impact?
+11. What exact transition semantics do subscription/publication and exchange-turn records implement?
+12. Must all branches of a `Case` preserve equivalent linear contexts, and where is that enforced?
 
 ## 11. Non-goals
 
