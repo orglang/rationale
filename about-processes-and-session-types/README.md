@@ -165,7 +165,9 @@ OrgLang's intended call semantics should not be collapsed into the publication's
 
 Pool-level `Spawn` has a concrete, separate role in the current implementation: its specification carries a process-declaration reference and optional references to existing process incarnations (`ProcCompRefs`). The pool adapter converts those references at the API boundary. This supports keeping pool-level instantiation/injection distinct from process-level named invocation. It does not by itself establish that `Call` and `Spawn` have identical lifecycle semantics.
 
-The author has proposed the following **tentative mapping** for `LinkSpec`: `X` corresponds to the declaration's `LiabVar` (the provider endpoint), and `Ys` correspond to `AssetVars` (the client endpoints). This is consistent with the roles documented for `DecSpec`, but remains provisional pending confirmation. In particular, whether the order of `Ys` corresponds positionally to the order of `AssetVars`, and how these identity values are resolved to the invoking process's channels, remain open. The supplied publication uses call syntax `a ← p b₁ … bₙ`, where `a` and the `bᵢ` are symbols and `p` is a process name; this is a comparison point, not independent evidence for the OrgLang mapping.
+The author has clarified the intended mapping for `LinkSpec`: `X` corresponds to the declaration's `LiabVar` (the new process's provider endpoint), and `Ys[i]` corresponds positionally to `AssetVars[i]` (the new process's client endpoints). The invoking process supplies the actual channels by naming its own channel placeholders; those actual channels are then passed, connected, or injected into the new incarnation according to the declaration's provider/client roles. Thus the mapping is positional, and `Ys` preserves the order of `AssetVars`.
+
+There is also an important representation distinction: `symbol.ADT` represents a channel-placeholder name, while `identity.ADT` represents a channel identifier. Since `LinkSpec.X` and `LinkSpec.Ys` are currently typed as `identity.ADT`, this may be an implementation mismatch with the intended semantics. It is not yet proven to be a defect: we must check whether placeholder resolution is meant to happen before constructing `LinkSpec` or whether these fields should instead retain placeholder symbols. The supplied publication's call syntax `a ← p b₁ … bₙ` is a comparison point, not independent evidence for OrgLang's exact representation.
 
 ### Evidence note: pool spawning versus process-level invocation
 
@@ -237,7 +239,7 @@ For clarity, separate the proposed rule into preconditions, effects, and unresol
 1. The named process definition can be resolved.
 2. A fresh identifier is available for the new process incarnation.
 3. At the invocation point, the new process's provider channel has exactly the same session type as the old provider channel.
-4. The actual-to-formal channel mapping preserves the declaration's provider/client roles. Under the tentative mapping, `X` supplies `LiabVar` and `Ys` supply `AssetVars`; positional ordering and channel resolution still need confirmation.
+4. The actual-to-formal channel mapping preserves provider/client roles: `X` supplies the actual channel for `LiabVar`, and `Ys[i]` supplies the actual channel for `AssetVars[i]`. The invoking process identifies actual channels through its own placeholders; how placeholder names are resolved to channel identifiers is a separate representation question.
 
 **Effects**
 
@@ -256,7 +258,7 @@ This is a proposed abstract transition, not a claim that the current Go implemen
 2. Is the order of `AssetVars` significant for positional channel matching?
 3. What is the intended semantic relationship between named-process invocation, process creation (`Spawn`), and the pool model, and which parts belong to each layer?
 4. How should `Link` formally replace the old provider endpoint in the unique linear channel connection with the new provider endpoint? What compatibility judgment ensures the new provider can continue the client's current protocol state? Is the replacement atomic or equivalent to a composition involving `Call` and `Fwd`, and what happens to the old incarnation's remaining state?
-5. Does `LinkSpec.X` map positionally to `LiabVar` and `LinkSpec.Ys` to `AssetVars`, and how are these identity values resolved to channels? Where should name resolution, recursion checks, and type checks be enforced?
+5. At what stage are channel-placeholder names (`symbol.ADT`) resolved to channel identifiers (`identity.ADT`)? Are `LinkSpec.X` and `Ys` intentionally identifier-valued, or should the AST preserve placeholders until invocation? Where should name resolution, recursion checks, and type checks be enforced?
 6. The publication's named-process call form has no explicit continuation, while OrgLang's `CallSpec` includes `ContExp`. Is this continuation part of the intended call semantics, and if so, what does it represent and when does it run?
 7. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
 8. What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
