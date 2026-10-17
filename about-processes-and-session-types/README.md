@@ -248,7 +248,7 @@ For clarity, separate the proposed rule into preconditions, effects, and unresol
 1. The named process definition can be resolved.
 2. A fresh identifier is available for the new process incarnation.
 3. At the invocation point, the new process's provider channel has exactly the same session type as the old provider channel.
-4. The actual-to-formal channel mapping preserves provider/client roles: `X` supplies the actual channel for `LiabVar`, and `Ys[i]` supplies the actual channel for `AssetVars[i]`. The invoking process identifies actual channels through its own placeholders; how placeholder names are resolved to channel identifiers is a separate representation question.
+4. The actual-to-formal channel mapping preserves provider/client roles: `X` names the invoking process's placeholder for the actual channel corresponding to `LiabVar`, and `Ys[i]` names the placeholder corresponding to `AssetVars[i]`. The order of `Ys` matches the order of `AssetVars`.
 
 **Effects**
 
@@ -267,7 +267,7 @@ This is a proposed abstract transition, not a claim that the current Go implemen
 2. Is the order of `AssetVars` significant for positional channel matching?
 3. What is the intended semantic relationship between named-process invocation, process creation (`Spawn`), and the pool model, and which parts belong to each layer?
 4. How should `Link` formally replace the old provider endpoint in the unique linear channel connection with the new provider endpoint? What compatibility judgment ensures the new provider can continue the client's current protocol state? Is the replacement atomic or equivalent to a composition involving `Call` and `Fwd`, and what happens to the old incarnation's remaining state?
-5. At what stage are channel-placeholder names (`symbol.ADT`) resolved to channel identifiers (`identity.ADT`)? Are `LinkSpec.X` and `Ys` intentionally identifier-valued, or should the AST preserve placeholders until invocation? Where should name resolution, recursion checks, and type checks be enforced?
+5. Where should name resolution, recursion checks, and type checks be enforced? The language-level meaning of `LinkSpec.X` and `Ys` is settled: they name placeholders in the invoking process; the Go field-type discrepancy is an implementation issue.
 6. The publication's named-process call form has no explicit continuation, while OrgLang's `CallSpec` includes `ContExp`. Is this continuation part of the intended call semantics, and if so, what does it represent and when does it run?
 7. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
 8. What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
@@ -289,13 +289,13 @@ The language author has confirmed the following intended call semantics:
 - Invoking a named process creates a **new process incarnation** connected to the invoking process through channels. Invocation is not merely textual substitution/unfolding inside the existing incarnation.
 - The new incarnation begins executing independently of the invoking process.
 - The invoking process may continue along `ContExp`.
-- The call's channel arguments connect the new incarnation to the invoking process according to the call/declaration contract. The exact positional mapping and typing premises remain to be formalized.
+- The call's channel arguments connect the new incarnation to the invoking process according to the call/declaration contract. The positional mapping is established: `X` corresponds to `LiabVar`, and `Ys[i]` corresponds to `AssetVars[i]`.
 
 This settles the intended control-flow direction at a conceptual level. It does not yet specify the full transition relation, scheduling guarantees, failure behavior, or how channel arguments correspond to `LiabVar` and `AssetVars`.
 
 Keep the following boundaries explicit:
 - **Established design direction:** `Call` creates a new incarnation; it begins executing independently; the invoking process may continue via `ContExp`; channels connect the two. `Link` differs from `Call` in that its AST has no `ContExp`.
 - **Still open:** the precise control-flow rule for `Link`, including what happens to the invoking process when no continuation is present.
-- **Still open:** exact channel/parameter mapping, typing premises, scheduling and persistence details, and failure/lifecycle rules.
+- **Still open:** remaining typing premises beyond provider session-type equality, scheduling and persistence details, and failure/lifecycle rules.
 - **Separate operation:** pool-level `Spawn` remains distinct from process-level named invocation.
 - **Implementation evidence only:** existing Go structures and pool APIs may inform implementation choices but do not determine the intended semantics by themselves.
