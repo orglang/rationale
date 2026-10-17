@@ -185,3 +185,15 @@ A useful next investigation is to determine from intended language semantics whe
 
 This draft does not define pool or transaction semantics, resource-allocation policy, fairness, deadlock freedom, or a complete metatheory (such as preservation/progress). Those require a separate pass over the pool/transaction implementation and rationale.
 
+
+
+## Author clarification: invocation creates a new process incarnation
+
+The current design direction, confirmed by the language author, is that invoking a named process creates a **new process incarnation** connected to the invoking process through channels. Invocation is therefore not merely textual substitution/unfolding of the definition into the existing incarnation.
+
+This settles the conceptual direction for the call model, but it does **not** yet settle the lifecycle of the invoking/older incarnation. In particular, do not infer that it terminates, is discarded, blocks, suspends, or continues independently. The lifecycle and control-flow consequences remain open semantic questions and should be resolved from the language formalism and the author's publication excerpts.
+
+Keep this distinction explicit in future analysis:
+- **Established design direction:** invocation creates a new incarnation and connects it through channels.
+- **Still open:** what happens to the older incarnation after invocation, including whether and how control returns or continues.
+- **Implementation evidence only:** existing Go structures and pool APIs may inform implementation choices but do not determine the intended semantics by themselves.
