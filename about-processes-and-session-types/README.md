@@ -228,6 +228,35 @@ This supports interpreting `Fwd` as a polarity-sensitive operation that connects
 
 The author has clarified the exact typing condition for `Link`: the new process's provider channel, declared in `Dec`, must have exactly the same session type as the invoking process's provider channel at the moment `Link` is invoked. This is equality of the current residual session type, not merely compatibility of the initial declared types. If the old provider channel has residual type S at the transition point, the new provider channel must also have type S, allowing the existing client to continue the same protocol without changing its expected session type.
 
+### Combined preliminary operational rule for `Link`
+
+The following rule combines the confirmed design constraints. It is a schematic rule for the rationale, not a claim that the current Go implementation already realizes this transition atomically.
+
+Let (p_o) be the invoking/old incarnation, (s_o) its provider channel, (c) the unique client connected to (s_o), and (S) the residual session type of (s_o) at the moment `Link` is invoked. Let (D(p_n)=P_n) be the new process definition, whose declaration specifies provider channel (s_n). Let (i_n) be a fresh incarnation identifier.
+
+[
+\frac{
+D(p_n)=P_n
+\qquad
+i_n=\operatorname{fresh}()
+\qquad
+\operatorname{stype}(s_o)=S
+\qquad
+\operatorname{stype}_{D(p_n)}(s_n)=S
+\qquad
+\operatorname{client}(s_o)=c
+}{
+\langle \operatorname{Link}(p_n,\ldots), C\rangle
+\longrightarrow
+\langle C', i_n\mapsto P_n, \operatorname{client}(s_n)=c\rangle
+}
+]
+
+Here (C') denotes the configuration after replacing the old provider endpoint in the unique client/provider connection with the new provider endpoint. The old connection must cease to be an independent live connection, so the one-provider/one-client invariant holds in the resulting configuration. The new incarnation begins executing, and no ordinary continuation of the invoking process is scheduled.
+
+The rule deliberately abstracts over the exact AST arguments and substitution of declaration parameters, which still need to be mapped from `LinkSpec`'s `X` and `Ys`. It also does not assert that the old incarnation's storage is immediately destroyed: the established requirement is transfer of control and provider-channel handoff, while resource cleanup/lifecycle remains a separate question. The analogy to `Call + Fwd` is explanatory; this rule states `Link` as one abstract transition until a decomposition is proved correct.
+
+
 ## 10. Open questions for the next verification pass
 
 1. What is the precise relationship among `TermQN`, `ProcQN`, `ProcTermQN`, declaration references, and expression identity?
