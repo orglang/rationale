@@ -230,32 +230,22 @@ The author has clarified the exact typing condition for `Link`: the new process'
 
 ### Combined preliminary operational rule for `Link`
 
-The following rule combines the confirmed design constraints. It is a schematic rule for the rationale, not a claim that the current Go implementation already realizes this transition atomically.
+In plain language, the transition has four requirements:
 
-Let (p_o) be the invoking/old incarnation, (s_o) its provider channel, (c) the unique client connected to (s_o), and (S) the residual session type of (s_o) at the moment `Link` is invoked. Let (D(p_n)=P_n) be the new process definition, whose declaration specifies provider channel (s_n). Let (i_n) be a fresh incarnation identifier.
+1. Find the named process definition and create a fresh incarnation of it.
+2. Require the new process's provider channel to have exactly the same session type as the old provider channel has at the moment `Link` is invoked.
+3. Reconnect the unique client of the old provider channel to the new provider channel. The resulting connection must still have exactly one provider and one client.
+4. Transfer control to the new incarnation; do not schedule an ordinary continuation for the invoking process.
+
+The central typing condition is:
 
 [
-\frac{
-D(p_n)=P_n
-\qquad
-i_n=\operatorname{fresh}()
-\qquad
-\operatorname{stype}(s_o)=S
-\qquad
-\operatorname{stype}_{D(p_n)}(s_n)=S
-\qquad
-\operatorname{client}(s_o)=c
-}{
-\langle \operatorname{Link}(p_n,\ldots), C\rangle
-\longrightarrow
-\langle C', i_n\mapsto P_n, \operatorname{client}(s_n)=c\rangle
-}
+\text{type of new provider channel}
+=
+\text{current type of old provider channel}
 ]
 
-Here (C') denotes the configuration after replacing the old provider endpoint in the unique client/provider connection with the new provider endpoint. The old connection must cease to be an independent live connection, so the one-provider/one-client invariant holds in the resulting configuration. The new incarnation begins executing, and no ordinary continuation of the invoking process is scheduled.
-
-The rule deliberately abstracts over the exact AST arguments and substitution of declaration parameters, which still need to be mapped from `LinkSpec`'s `X` and `Ys`. It also does not assert that the old incarnation's storage is immediately destroyed: the established requirement is transfer of control and provider-channel handoff, while resource cleanup/lifecycle remains a separate question. The analogy to `Call + Fwd` is explanatory; this rule states `Link` as one abstract transition until a decomposition is proved correct.
-
+This is a schematic description of the intended abstract transition, not a claim that the current Go implementation performs it atomically. The exact mapping from `LinkSpec` fields `X` and `Ys` to declaration parameters still needs to be established. The rule also does not imply that the old incarnation's stored state is immediately destroyed: resource cleanup and lifecycle are separate questions. The analogy to `Call + Fwd` is explanatory; `Link` remains one abstract transition unless a correct decomposition is established.
 
 ## 10. Open questions for the next verification pass
 
