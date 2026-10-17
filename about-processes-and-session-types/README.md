@@ -237,13 +237,7 @@ In plain language, the transition has four requirements:
 3. Reconnect the unique client of the old provider channel to the new provider channel. The resulting connection must still have exactly one provider and one client.
 4. Transfer control to the new incarnation; do not schedule an ordinary continuation for the invoking process.
 
-The central typing condition is:
-
-[
-\text{type of new provider channel}
-=
-\text{current type of old provider channel}
-]
+**Typing condition:** at the moment of invocation, the new provider channel and the old provider channel must have exactly the same session type.
 
 This is a schematic description of the intended abstract transition, not a claim that the current Go implementation performs it atomically. The exact mapping from `LinkSpec` fields `X` and `Ys` to declaration parameters still needs to be established. The rule also does not imply that the old incarnation's stored state is immediately destroyed: resource cleanup and lifecycle are separate questions. The analogy to `Call + Fwd` is explanatory; `Link` remains one abstract transition unless a correct decomposition is established.
 
@@ -256,7 +250,7 @@ This is a schematic description of the intended abstract transition, not a claim
 5. What do identity-valued `X`/`Ys` refer to in the intended language semantics, independent of their implementation types, and where should name resolution, recursion checks, and type checks be enforced?
 6. The publication's named-process call form has no explicit continuation, while OrgLang's `CallSpec` includes `ContExp`. Is this continuation part of the intended call semantics, and if so, what does it represent and when does it run?
 7. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
-7. What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
+8. What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
 9. What are the full invariants for `ChnlBS`, provider/client orientation, and linear-context updates?
 10. Are the conversion asymmetries listed above reachable in the actual execution path, and which tests can establish their impact?
 11. What exact transition semantics do subscription/publication and exchange-turn records implement?
