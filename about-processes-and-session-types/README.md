@@ -198,11 +198,17 @@ This draft does not define pool or transaction semantics, resource-allocation po
 
 ## Author clarification: invocation creates a new process incarnation
 
-The current design direction, confirmed by the language author, is that invoking a named process creates a **new process incarnation** connected to the invoking process through channels. Invocation is therefore not merely textual substitution/unfolding of the definition into the existing incarnation.
+The language author has confirmed the following intended call semantics:
 
-This settles the conceptual direction for the call model, but it does **not** yet settle the lifecycle of the invoking/older incarnation. In particular, do not infer that it terminates, is discarded, blocks, suspends, or continues independently. The lifecycle and control-flow consequences remain open semantic questions and should be resolved from the language formalism and the author's publication excerpts.
+- Invoking a named process creates a **new process incarnation** connected to the invoking process through channels. Invocation is not merely textual substitution/unfolding inside the existing incarnation.
+- The new incarnation begins executing independently of the invoking process.
+- The invoking process may continue along `ContExp`.
+- The call's channel arguments connect the new incarnation to the invoking process according to the call/declaration contract. The exact positional mapping and typing premises remain to be formalized.
 
-Keep this distinction explicit in future analysis:
-- **Established design direction:** invocation creates a new incarnation and connects it through channels.
-- **Still open:** what happens to the older incarnation after invocation, including whether and how control returns or continues.
+This settles the intended control-flow direction at a conceptual level. It does not yet specify the full transition relation, scheduling guarantees, failure behavior, or how channel arguments correspond to `LiabVar` and `AssetVars`.
+
+Keep the following boundaries explicit:
+- **Established design direction:** call creates a new incarnation; it begins executing independently; the invoking process may continue via `ContExp`; channels connect the two.
+- **Still open:** exact channel/parameter mapping, typing premises, scheduling and persistence details, and failure/lifecycle rules.
+- **Separate operation:** pool-level `Spawn` remains distinct from process-level named invocation.
 - **Implementation evidence only:** existing Go structures and pool APIs may inform implementation choices but do not determine the intended semantics by themselves.
