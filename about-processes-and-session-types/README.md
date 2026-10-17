@@ -175,6 +175,27 @@ By contrast, the process-level `Call` scenario uses a process name, a binding pl
 
 The intended direction is that process-level invocation creates a new incarnation connected to the invoking process through channels. For `Call`, the new incarnation begins executing independently and the invoking process may continue via `ContExp`. `Link` has no `ContExp`, so its control-flow rule must differ or obtain continuation behavior through some other explicit mechanism; the absence of this field alone does not establish that the invoking process terminates. Current pool API fields are clues about implementation boundaries, not a basis for deciding that question.
 
+### Preliminary transition-rule sketches
+
+These sketches capture the intended distinction, but are not yet a complete formal semantics.
+
+Let D(p) = P mean that the definition environment maps process name p to body P with formal channel parameters x. Let a be the actual channel arguments, K be the continuation expression, and i be a fresh process-incarnation identifier.
+
+For Call, the intended transition has two effects: add a new independently executing incarnation with the instantiated body P[a/x], and let the invoking process continue with K. Schematically:
+
+    D(p) = P     i = fresh()
+    ------------------------------------------------
+    <Call(p, a, K), C> -> <C with i mapped to P[a/x], K>
+
+The configuration notation is schematic: the exact representation of an added incarnation and its channel bindings remains to be defined. This rule expresses the agreed design intent, not current Go runtime behavior.
+
+For Link, do not silently use an empty continuation or assume that the invoking process terminates. Since its AST has no ContExp, the rule must state what happens to the invoking process and how the new incarnation is connected. Two interpretations remain to be distinguished:
+
+- **Tail-transfer interpretation:** Link initiates the named process and does not schedule a continuation for the invoking process.
+- **Composition/connection interpretation:** Link establishes a process/channel relationship whose control-flow effect is specified elsewhere.
+
+The absence of ContExp means Link cannot be represented as exactly the same syntax and transition as Call with an ordinary continuation field. It does not, by itself, choose between these interpretations. Settle this point before defining preservation or progress properties.
+
 ## 10. Open questions for the next verification pass
 
 1. What is the precise relationship among `TermQN`, `ProcQN`, `ProcTermQN`, declaration references, and expression identity?
