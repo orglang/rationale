@@ -321,3 +321,67 @@ Keep the following boundaries explicit:
 - **Still open:** remaining typing premises beyond provider session-type equality, scheduling and persistence details, and failure/lifecycle rules.
 - **Separate operation:** pool-level `Spawn` remains distinct from process-level named invocation.
 - **Implementation evidence only:** existing Go structures and pool APIs may inform implementation choices but do not determine the intended semantics by themselves.
+
+
+## 12. Shared abstract configuration for process transitions
+
+The following notation provides a common frame for the intended `Call` and `Link` rules and, later, ordinary communication rules. It is a language-level model, not a claim that the current Go snapshot stores these objects in exactly this form.
+
+### 12.1 Names and environments
+
+Let:
+
+- \(p\) range over process-incarnation identifiers;
+- \(c\) range over channel identifiers;
+- \(x,y\) range over channel-placeholder names;
+- \(P,Q\) range over process expressions;
+- \(D\) range over process declarations and definitions.
+
+A **placeholder environment** \(\rho_p\) maps each channel placeholder visible in incarnation \(p\) to the channel identifier it currently denotes. Resolution is written \(\rho_p(x)=c\). Thus a placeholder is a name used by an expression, while a channel identifier names the runtime channel. This distinction is especially important for \(Link\): resolve \(X\) and each \(Y_i\) in the invoking incarnation's environment before instantiating the target process.
+
+A **definition environment** \(\Sigma\) maps a process name to its declaration/definition information. A transition that invokes a named process is enabled only when the required definition is available in \(\Sigma\). This notation does not prescribe a storage or lookup API.
+
+### 12.2 Process configurations
+
+Write an abstract configuration as
+
+\[
+\mathcal{C} = (\Sigma,\; \mathcal{P},\; \mathcal{K},\; \mathcal{L})
+\]
+
+where:
+
+- \(\Sigma\) is the definition environment;
+- \(\mathcal{P}\) maps each live process-incarnation identifier to its current expression and placeholder environment;
+- \(\mathcal{K}\) records the channel endpoints and their provider/client ownership;
+- \(\mathcal{L}\) records the current session type of each channel endpoint (or, equivalently, the current residual session type associated with each channel under the chosen endpoint convention).
+
+The exact representation of endpoint records is intentionally abstract. In particular, this tuple is not asserted to be identical to the implementation's `ExecSnap`, `LinearVars`, exchange-turn, or persistence records.
+
+A process entry may be written \(\mathcal{P}(p)=(P,\rho_p)\). A fresh incarnation identifier \(p'\) must not already occur in the domain of \(\mathcal{P}\).
+
+### 12.3 Linear channel context
+
+For a channel \(c\), write \(\operatorname{prov}(c)=p\) when incarnation \(p\) owns its provider endpoint, and \(\operatorname{cli}(c)=q\) when incarnation \(q\) owns its client endpoint. The linearity invariant is:
+
+- each live channel has exactly one provider endpoint and exactly one client endpoint;
+- provider and client ownership are not duplicated by substitution or process instantiation;
+- each process incarnation has exactly one provider channel of its own, while it may own client endpoints for other channels.
+
+The last point describes process roles, not a restriction that a process may participate in only one channel. A process can have its own provider channel and multiple client-side channels.
+
+Let \(\operatorname{rtype}(c)\) denote the current residual session type on the provider side of \(c\), using the same endpoint-orientation convention consistently throughout a derivation. The \(Link\) premise is equality of residual types at the transition point, not merely equality of the initial types declared for the channels.
+
+### 12.4 Instantiation and ownership transfer
+
+If a target declaration has provider placeholder \(x_0\) and client placeholders \(y_1,\ldots,y_n\), and the caller resolves actual placeholders to channels \(c_0,c_1,\ldots,c_n\), instantiation builds the target environment by mapping \(x_0\mapsto c_0\) and \(y_i\mapsto c_i\) in declaration order. This positional mapping is established for \(Link\); the exact field-by-field mapping for \(CallSpec\) remains unspecified until its contract is stated independently.
+
+For \(Link\), ownership transfer changes which process incarnation provides \(c_0\), but does not create a replacement channel or reconnect its client. Abstractly, if \(\operatorname{prov}(c_0)=p\) before the transition, then after the transition \(\operatorname{prov}(c_0)=p'\), while \(\operatorname{cli}(c_0)\) remains unchanged. The transition is permitted only if the target provider endpoint's declared/current session type equals the current residual session type of \(c_0\), and the linearity invariant remains true.
+
+For \(Call\), a fresh incarnation is added with the instantiated channel environment and begins executing; the invoking incarnation remains present and proceeds with its \(ContExp\). This shared configuration makes the key distinction explicit: \(Call\) adds an incarnation and preserves caller continuation, whereas \(Link\) transfers provider ownership and control without an ordinary caller continuation.
+
+### 12.5 Transition notation and limits
+
+Write \(\mathcal{C}\longrightarrow\mathcal{C}'\) for one abstract language transition. A rule must state its enabling premises, the process/channel components it changes, and the invariants that must hold afterward. Communication rules will additionally need to distinguish a ready action from a suspended action waiting for its peer; this notation alone does not define subscription/publication scheduling.
+
+This configuration is deliberately minimal. It does not yet define channel allocation, message values, persistence, failure, fairness, or reclamation of a linked-away incarnation. Those details should be added only when supported by the intended language contract or a focused implementation trace.
