@@ -121,7 +121,7 @@ At a high level, the inspected `Take` path is:
 5. Persist the resulting modification/effects.
 6. If a next expression is scheduled, continue from the updated reference and expression; otherwise return.
 
-The inspected `takeWith` contains execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. The current `LabSpec` AST includes `ContExp`, but its message adapter does not preserve that field; whether a label-selection continuation is semantically required remains open. It does not contain branches for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release`; those constructors have no execution branch in this dispatcher in the inspected version. This is a statement about the inspected implementation, not by itself a conclusion that the language design is defective. `Spawn` and the call mechanism are interdependent because both may rely on the unresolved model of process creation and pools. Consequently, no complete operational rule for `Call` or `Spawn` is specified here. The current design direction is a single named-process call construct for recursive and non-recursive calls; recursion would arise from cyclic dependencies among process definitions rather than requiring a separate recursive-call construct. This is provisional and does not settle how process creation works. Channel forwarding (`Fwd`) remains a distinct operation.
+The inspected `takeWith` contains execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. The current `LabSpec` AST includes `ContExp`, but its message adapter does not preserve that field; whether a label-selection continuation is semantically required remains open. It does not contain branches for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release`; those constructors have no execution branch in this dispatcher in the inspected version. This is a statement about the inspected implementation, not by itself a conclusion that the language design is defective. `Spawn` and the call mechanism are interdependent because both may rely on the unresolved model of process creation and pools. Consequently, no complete operational rule for `Call` or `Spawn` is specified here. Recursion may arise from cyclic dependencies among process definitions rather than requiring a separate recursive-call construct. This does not imply that `Link` and `Call` should be unified: `Call` has an explicit `ContExp`, whereas `Link` does not, and their operational rules must account for that distinction. Channel forwarding (`Fwd`) remains a distinct operation.
 
 Communication is not necessarily completed in one pass. For example, when the counterpart of a `Close`/`Wait` or a send/receive interaction is not yet available, the execution path can register a subscription and return without completing that interaction. When the peer is found, the implementation updates exchange state, allocates channel identifiers, updates linear-variable records, and may schedule the continuation.
 
@@ -155,7 +155,7 @@ The first fully formalized rules should be limited to constructors whose typing 
 
 ## 9. Preliminary design direction: named-process calls
 
-The current design direction is to use one language construct for invoking a named process, whether the invocation participates in recursion or not. Recursion would be a property of the dependency graph among process definitions (for example, a cycle in the references), rather than a separate call syntax solely for recursive cases. This is a design hypothesis, not a finalized grammar or operational semantics.
+`Link` and `Call` both refer to named-process behavior, but they are not interchangeable syntax: `CallSpec` has a `ContExp` field, while `LinkSpec` has no continuation expression. This difference must be preserved in the language model unless a formal rule establishes an equivalent continuation mechanism for `Link`. Recursion may still be a property of the dependency graph among process definitions rather than a separate recursive-only construct; that question is distinct from the `Link`/`Call` continuation distinction.
 
 This choice avoids making call behavior depend on whether the source expression happens to occur inside a definition. Context may still constrain whether a call is well-typed or executable, but the construct should not acquire unrelated meanings merely from its syntactic location unless the language rationale requires that distinction.
 
@@ -180,7 +180,7 @@ The intended direction is that process-level invocation creates a new incarnatio
 1. What is the precise relationship among `TermQN`, `ProcQN`, `ProcTermQN`, declaration references, and expression identity?
 2. Is the order of `AssetVars` significant for positional channel matching?
 3. What is the intended semantic relationship between named-process invocation, process creation (`Spawn`), and the pool model, and which parts belong to each layer?
-4. Should `Link` and `Call` be one language construct? The current design direction favors one named-process call for both recursive and non-recursive cases, with recursion arising from cyclic dependencies between process definitions; the final syntax and runtime contract remain open.
+4. How do the operational rules for `Link` and `Call` differ beyond their syntax? `Call` carries `ContExp`, while `Link` does not; the control-flow consequence of that absence must be stated without assuming that the invoking process terminates.
 5. What do identity-valued `X`/`Ys` refer to in the intended language semantics, independent of their implementation types, and where should name resolution, recursion checks, and type checks be enforced?
 6. The publication's named-process call form has no explicit continuation, while OrgLang's `CallSpec` includes `ContExp`. Is this continuation part of the intended call semantics, and if so, what does it represent and when does it run?
 7. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
@@ -208,7 +208,8 @@ The language author has confirmed the following intended call semantics:
 This settles the intended control-flow direction at a conceptual level. It does not yet specify the full transition relation, scheduling guarantees, failure behavior, or how channel arguments correspond to `LiabVar` and `AssetVars`.
 
 Keep the following boundaries explicit:
-- **Established design direction:** call creates a new incarnation; it begins executing independently; the invoking process may continue via `ContExp`; channels connect the two.
+- **Established design direction:** `Call` creates a new incarnation; it begins executing independently; the invoking process may continue via `ContExp`; channels connect the two. `Link` differs from `Call` in that its AST has no `ContExp`.
+- **Still open:** the precise control-flow rule for `Link`, including what happens to the invoking process when no continuation is present.
 - **Still open:** exact channel/parameter mapping, typing premises, scheduling and persistence details, and failure/lifecycle rules.
 - **Separate operation:** pool-level `Spawn` remains distinct from process-level named invocation.
 - **Implementation evidence only:** existing Go structures and pool APIs may inform implementation choices but do not determine the intended semantics by themselves.
