@@ -177,29 +177,52 @@ By contrast, the process-level `Call` scenario uses a process name, a binding pl
 
 The intended direction is that process-level invocation creates a new incarnation connected to the invoking process through channels. For `Call`, the new incarnation begins executing independently and the invoking process may continue via `ContExp`. `Link` has no `ContExp`, so its control-flow rule must differ or obtain continuation behavior through some other explicit mechanism; the absence of this field alone does not establish that the invoking process terminates. Current pool API fields are clues about implementation boundaries, not a basis for deciding that question.
 
-### Preliminary transition-rule sketches
+### Preliminary operational rules for `Call` and `Link`
 
-These sketches capture the intended distinction, but are not yet a complete formal semantics.
+These rules state the intended language-level distinction. They are not claims about the completeness of the current Go implementation.
 
-Let D(p) = P mean that the definition environment maps process name p to body P with formal channel parameters x. Let a be the actual channel arguments, K be the continuation expression, and i be a fresh process-incarnation identifier.
+#### `Call`
 
-For Call, the intended transition has two effects: add a new independently executing incarnation with the instantiated body P[a/x], and let the invoking process continue with K. Schematically:
+A call creates a fresh process incarnation and starts its body independently. The invoking process continues through `ContExp`.
 
-    D(p) = P     i = fresh()
-    ------------------------------------------------
-    <Call(p, a, K), C> -> <C with i mapped to P[a/x], K>
+**Preconditions**
 
-The configuration notation is schematic: the exact representation of an added incarnation and its channel bindings remains to be defined. This rule expresses the agreed design intent, not current Go runtime behavior.
+- The named process definition is available.
+- A fresh process-incarnation identifier can be chosen.
+- The call's actual channel arguments can be matched to the declaration's formal channel parameters, preserving provider/client roles and the declaration's parameter order.
 
-The language author has clarified the intended role of `Link`: it transfers control and, in a sense, behaves like a tail call. Every process has exactly one provider channel. Because channels are linear, every channel has exactly one provider and exactly one client. The clarified interpretation is that the invoking process passes its existing provider channel `X` into the new incarnation as `LiabVar`. The client remains connected to that same channel; the provider-side ownership moves to the new incarnation, so no client reconnection or channel replacement is required.
+**Transition**
 
-Accordingly, the intended distinction is:
+1. Instantiate the callee body by substituting the actual channels for the corresponding formal channel placeholders.
+2. Add a fresh process incarnation running that instantiated body.
+3. Continue the invoking process with `ContExp`.
 
-- **Call:** starts a new process incarnation and allows the invoking process to continue through `ContExp`.
-- **Link:** starts/transfers control to a new incarnation without an explicit continuation; the existing provider channel is passed to the new incarnation, preserving its client connection and the one-provider/one-client linearity invariant.
-- **Fwd:** remains a distinct channel operation. Its analogy helps explain the channel-redirection effect, but `Link` also creates a process incarnation and transfers control.
+The exact field-by-field mapping from `CallSpec` to declaration parameters is not established here; it should not be inferred solely from field names. The key semantic point is that the callee's execution and the caller's continuation both remain active after the call transition.
 
-The tail-call analogy means that `Link` does not schedule an ordinary continuation of the invoking process. It does not, by itself, establish that the old incarnation is immediately destroyed or specify what happens to its remaining state. The exact formal representation of provider-side ownership transfer and what happens to the old incarnation's remaining state remain open.
+#### `Link`
+
+`Link` creates a fresh incarnation but transfers control to it without an ordinary caller continuation.
+
+**Preconditions**
+
+- The named process definition is available, and a fresh process incarnation can be created.
+- Resolve `X` and `Ys` in the invoking process's placeholder environment. `X` supplies the existing provider channel for the new process's `LiabVar`; `Ys[i]` supplies the channel for `AssetVars[i]`, in declaration order.
+- The new process's provider channel has exactly the same **current residual session type** as the invoking process's provider channel.
+
+**Transition**
+
+1. Instantiate and start a fresh incarnation of the named process with those channel parameters.
+2. Transfer provider-side ownership of the existing channel named by `X` to the new incarnation. The channel itself and its unique client's connection to it remain unchanged.
+3. Preserve linearity: each channel has exactly one provider and exactly one client.
+4. Transfer control to the new incarnation; the invoking incarnation has no ordinary `ContExp` to run.
+
+The client can continue the same protocol on the same channel because the new incarnation takes over providing it with the same residual session type. This rule does not specify when the old incarnation's remaining state is reclaimed, or define failure and scheduling behavior.
+
+#### Summary
+
+- **Call:** create and run a new incarnation; the caller continues with `ContExp`.
+- **Link:** create and run a new incarnation; transfer the existing provider channel and control to it; no ordinary caller continuation.
+- **Fwd:** remains a distinct forwarding operation. The analogy `Link ≈ Call + Fwd` is explanatory only and is not asserted as an equivalence.
 
 ### Publication rules for forwarding
 
