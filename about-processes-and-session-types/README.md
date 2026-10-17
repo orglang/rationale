@@ -189,19 +189,22 @@ For Call, the intended transition has two effects: add a new independently execu
 
 The configuration notation is schematic: the exact representation of an added incarnation and its channel bindings remains to be defined. This rule expresses the agreed design intent, not current Go runtime behavior.
 
-For Link, do not silently use an empty continuation or assume that the invoking process terminates. Since its AST has no ContExp, the rule must state what happens to the invoking process and how the new incarnation is connected. Two interpretations remain to be distinguished:
+The language author has clarified the intended role of Link: it both transfers control and, in a sense, behaves like a tail call. It is similar in effect to Call plus Fwd, because the new process's channel begins to be proxied through the old process's channel. Treat this as a semantic analogy, not yet a proven equation such as Link = Call; Fwd: the exact channel mapping and atomicity of the operation still need formalization.
 
-- **Tail-transfer interpretation:** Link initiates the named process and does not schedule a continuation for the invoking process.
-- **Composition/connection interpretation:** Link establishes a process/channel relationship whose control-flow effect is specified elsewhere.
+Accordingly, the intended distinction is:
 
-The absence of ContExp means Link cannot be represented as exactly the same syntax and transition as Call with an ordinary continuation field. It does not, by itself, choose between these interpretations. Settle this point before defining preservation or progress properties.
+- **Call:** starts a new process incarnation and allows the invoking process to continue through ContExp.
+- **Link:** starts/transfers control to a new incarnation without an explicit continuation, while proxying the new process's channel through the old process's channel.
+- **Fwd:** remains a distinct channel operation whose exact relation to Link's proxying effect must be specified.
+
+The tail-call analogy means that Link does not schedule an ordinary continuation of the invoking process. It does not, by itself, establish that the old incarnation is immediately destroyed or specify what happens to its remaining state. Those lifecycle details, together with the exact channel mapping and whether the Link effect is atomic or decomposable into Call and Fwd, remain open.
 
 ## 10. Open questions for the next verification pass
 
 1. What is the precise relationship among `TermQN`, `ProcQN`, `ProcTermQN`, declaration references, and expression identity?
 2. Is the order of `AssetVars` significant for positional channel matching?
 3. What is the intended semantic relationship between named-process invocation, process creation (`Spawn`), and the pool model, and which parts belong to each layer?
-4. How do the operational rules for `Link` and `Call` differ beyond their syntax? `Call` carries `ContExp`, while `Link` does not; the control-flow consequence of that absence must be stated without assuming that the invoking process terminates.
+4. What is the precise operational rule for `Link`'s tail-transfer and channel-proxying effect? Is it atomic, or formally equivalent to a composition of `Call` and `Fwd`; what happens to the old incarnation's remaining state?
 5. What do identity-valued `X`/`Ys` refer to in the intended language semantics, independent of their implementation types, and where should name resolution, recursion checks, and type checks be enforced?
 6. The publication's named-process call form has no explicit continuation, while OrgLang's `CallSpec` includes `ContExp`. Is this continuation part of the intended call semantics, and if so, what does it represent and when does it run?
 7. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
