@@ -161,7 +161,7 @@ The formal rule and the author's statement that invocation creates a new process
 
 Pool-level `Spawn` has a concrete, separate role in the current implementation: its specification carries a process-declaration reference and optional references to existing process incarnations (`ProcCompRefs`). The pool adapter converts those references at the API boundary. This supports keeping pool-level instantiation/injection distinct from process-level named invocation. It does not by itself establish that `Call` and `Spawn` have identical lifecycle semantics.
 
-The meanings of `LinkSpec.X` and `LinkSpec.Ys` are also open. Their intended meanings must be established from language semantics, not inferred from the Go implementation types (`identity.ADT` versus `symbol.ADT`). In particular, this draft does not assume that they are channel arguments.
+The meanings of `LinkSpec.X` and `LinkSpec.Ys` are not yet confirmed. The supplied publication uses call syntax `a ← p b₁ … bₙ`, where `a` and the `bᵢ` are symbols and `p` is a process name; in its message-passing interpretation, symbols denote channels. This gives a candidate comparison for OrgLang's named-process constructs, but does not by itself establish that `LinkSpec.X` corresponds to `a`, or that `LinkSpec.Ys` correspond to the `bᵢ`. Their intended meanings must be confirmed from OrgLang's language design, not inferred from Go implementation types (`identity.ADT` versus `symbol.ADT`).
 
 ### Evidence note: pool spawning versus process-level invocation
 
