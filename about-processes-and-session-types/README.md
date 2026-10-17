@@ -230,16 +230,25 @@ The author has clarified the exact typing condition for `Link`: the new process'
 
 ### Combined preliminary operational rule for `Link`
 
-In plain language, the transition has four requirements:
+For clarity, separate the proposed rule into preconditions, effects, and unresolved details.
 
-1. Find the named process definition and create a fresh incarnation of it.
-2. Require the new process's provider channel to have exactly the same session type as the old provider channel has at the moment `Link` is invoked.
-3. Reconnect the unique client of the old provider channel to the new provider channel. The resulting connection must still have exactly one provider and one client.
-4. Transfer control to the new incarnation; do not schedule an ordinary continuation for the invoking process.
+**Preconditions**
+
+1. The named process definition can be resolved.
+2. A fresh identifier is available for the new process incarnation.
+3. At the invocation point, the new process's provider channel has exactly the same session type as the old provider channel.
+4. The actual-to-formal channel mapping is known and preserves the declaration's provider/client roles. The intended mapping from `LinkSpec.X` and `LinkSpec.Ys` has not yet been established, so this premise cannot yet be checked from the current evidence.
+
+**Effects**
+
+1. Create the new process incarnation and start its body.
+2. Reconnect the unique client formerly connected to the old provider endpoint to the new provider endpoint.
+3. Preserve the invariant that each channel has exactly one provider and one client.
+4. Transfer control to the new incarnation without scheduling an ordinary continuation for the invoking process.
 
 **Typing condition:** at the moment of invocation, the new provider channel and the old provider channel must have exactly the same session type.
 
-This is a schematic description of the intended abstract transition, not a claim that the current Go implementation performs it atomically. The exact mapping from `LinkSpec` fields `X` and `Ys` to declaration parameters still needs to be established. The rule also does not imply that the old incarnation's stored state is immediately destroyed: resource cleanup and lifecycle are separate questions. The analogy to `Call + Fwd` is explanatory; `Link` remains one abstract transition unless a correct decomposition is established.
+This is a proposed abstract transition, not a claim that the current Go implementation performs it atomically. It also does not imply that the old incarnation's stored state is immediately destroyed: resource cleanup and lifecycle are separate questions. The analogy to `Call + Fwd` is explanatory; `Link` remains one abstract transition unless a correct decomposition is established.
 
 ## 10. Open questions for the next verification pass
 
