@@ -55,9 +55,9 @@ The inspected process AST defines the following constructors and fields:
 | `RecvSpec` | `CommChnlPH`, `NewChnlPH`, `ContExp` | Receive and bind a channel, then continue |
 | `LabSpec` | `CommChnlPH`, `ValLabQN`, `ContExp` | Send/select a label; the AST also carries a continuation, though its use needs verification |
 | `CaseSpec` | `CommChnlPH`, `ContExps` | Offer branches indexed by labels |
-| `LinkSpec` | `ProcTermQN`, `X`, `Ys` (`identity.ADT`) | Intended as a recursive-call/link construct per current design guidance; code calls it `ExpName`, but the runtime contract is not implemented in the inspected executor |
+| `LinkSpec` | `ProcTermQN`, `X`, `Ys` (`identity.ADT`) | Existing name for a construct under investigation. The current design direction is one named-process call construct for both recursive and non-recursive calls; whether `LinkSpec` should be renamed or unified with `CallSpec` remains open |
 | `FwdSpec` | `CommChnlPH`, `ContChnlPH` | Forward between endpoints |
-| `CallSpec` | `CommChnlPH`, `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp` | Named process call; exact argument/result contract open |
+| `CallSpec` | `CommChnlPH`, `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp` | Candidate representation of a named-process call; exact contract and relationship to `LinkSpec` remain open pending the process/pool model |
 | `SpawnSpec` | `CommChnlPH`, `ProcTermQN`, `NewChnlPHs`, `ContExp` | Present in AST, but excluded from the current process-semantics scope pending pool-level analysis |
 | `AcqureSpec` | see source | Constructor spelling as present in code; contract open |
 | `AcceptSpec` | see source | Contract open |
@@ -117,7 +117,7 @@ At a high level, the inspected `Take` path is:
 5. Persist the resulting modification/effects.
 6. If a next expression is scheduled, continue from the updated reference and expression; otherwise return.
 
-The inspected `takeWith` contains execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. The current `LabSpec` AST includes `ContExp`, but its message adapter does not preserve that field; whether a label-selection continuation is semantically required remains open. It does not contain branches for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release`; those constructors therefore do not have an implementation in this dispatcher in the inspected version. For scope purposes, `Spawn` is deferred to the pool-level analysis rather than specified here. `Link` is intended to denote recursive calls according to the design clarification, but this is not yet an executable rule in the inspected dispatcher. It is distinct from channel forwarding (`Fwd`).
+The inspected `takeWith` contains execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. The current `LabSpec` AST includes `ContExp`, but its message adapter does not preserve that field; whether a label-selection continuation is semantically required remains open. It does not contain branches for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release`; those constructors have no execution branch in this dispatcher in the inspected version. This is a statement about the inspected implementation, not by itself a conclusion that the language design is defective. `Spawn` and the call mechanism are interdependent because both may rely on the unresolved model of process creation and pools. Consequently, no complete operational rule for `Call` or `Spawn` is specified here. The current design direction is a single named-process call construct for recursive and non-recursive calls; recursion would arise from cyclic dependencies among process definitions rather than requiring a separate recursive-call construct. This is provisional and does not settle how process creation works. Channel forwarding (`Fwd`) remains a distinct operation.
 
 Communication is not necessarily completed in one pass. For example, when the counterpart of a `Close`/`Wait` or a send/receive interaction is not yet available, the execution path can register a subscription and return without completing that interaction. When the peer is found, the implementation updates exchange state, allocates channel identifiers, updates linear-variable records, and may schedule the continuation.
 
@@ -125,7 +125,7 @@ This is an implementation-level description. The exact transition relation, mess
 
 ## 7. Representation and serialization caveats
 
-The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. In the inspected version, `MsgFromExpSpec` has no `Link` branch; `MsgToExpSpec` has a `Call` branch, but reconstructs `CallSpec` without `CommChnlPH` and `ContExp`. The executor likewise has no `Call` or `Link` branch. An end-to-end test in `test/e2e/pool_test.go` constructs a process `Call`, but it only checks that `Take` returns no error and leaves the result as a TODO; it does not establish a successful call transition. This is a concrete AST/test/adapter/executor mismatch to resolve. The adapter also contains these apparent asymmetries:
+The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. In the inspected version, `MsgFromExpSpec` has no `Link` branch; `MsgToExpSpec` has a `Call` branch, but reconstructs `CallSpec` without `CommChnlPH` and `ContExp`. The executor has no `Call` or `Link` branch, and an end-to-end test in `test/e2e/pool_test.go` does not establish a successful call transition. These observations describe the current implementation and evidence limits; they do not establish that `Call` is independently implementable or that the missing branches are defects, because call semantics may depend on the unresolved `Spawn`/pool model. The adapter also contains these apparent asymmetries:
 
 - `MsgToExpSpec` reconstructs `CallSpec` without `CommChnlPH` and `ContExp`, although those fields exist in the AST constructor. In the current AST, `LabSpec` also has a `ContExp` field; the message conversion reconstructs `LabSpec` without it.
 - In case-expression conversions, label data appears to be read from a fixed `Lab` field rather than the current branch entry. This occurs in the message-to-AST conversion and in the stored-data-to-AST conversions for both specs and records.
@@ -149,20 +149,31 @@ The current evidence supports treating execution as a stateful transition over a
 
 The first fully formalized rules should be limited to constructors whose typing and execution branches have both been checked end-to-end. Rules for calls and resource-management constructs should remain explicitly unspecified until their intended and implemented contracts are reconciled. `Spawn` is deferred to the pool-level analysis. `Link` should be investigated alongside recursive process definitions/calls, not conflated with `Fwd`.
 
-## 9. Open questions for the next verification pass
+## 9. Preliminary design direction: named-process calls
+
+The current design direction is to use one language construct for invoking a named process, whether the invocation participates in recursion or not. Recursion would be a property of the dependency graph among process definitions (for example, a cycle in the references), rather than a separate call syntax solely for recursive cases. This is a design hypothesis, not a finalized grammar or operational semantics.
+
+This choice avoids making call behavior depend on whether the source expression happens to occur inside a definition. Context may still constrain whether a call is well-typed or executable, but the construct should not acquire unrelated meanings merely from its syntactic location unless the language rationale requires that distinction.
+
+The distinction between invoking a named process and creating a new process must remain explicit. `Spawn`, `Call`, and pool behavior appear related, but their precise relationship is unresolved. The operational contract for calls should therefore not be fixed independently of the process-lifecycle/pool model.
+
+The meanings of `LinkSpec.X` and `LinkSpec.Ys` are also open. Their intended meanings must be established from language semantics, not inferred from the Go implementation types (`identity.ADT` versus `symbol.ADT`). In particular, this draft does not assume that they are channel arguments.
+
+## 10. Open questions for the next verification pass
 
 1. What is the precise relationship among `TermQN`, `ProcQN`, `ProcTermQN`, declaration references, and expression identity?
 2. Is the order of `AssetVars` significant for positional channel matching?
-3. What should the runtime semantics of `Call` be, given that its AST fields, adapter conversion, executor, and current end-to-end test do not align?
-4. How does recursive `Link` resolve `ProcTermQN`, what do identity-valued `X`/`Ys` refer to, and where should recursion/type checking be enforced?
-5. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
-6. What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
-7. What are the full invariants for `ChnlBS`, provider/client orientation, and linear-context updates?
-8. Are the conversion asymmetries listed above reachable in the actual execution path, and which tests can establish their impact?
-9. What exact transition semantics do subscription/publication and exchange-turn records implement?
-10. Must all branches of a `Case` preserve equivalent linear contexts, and where is that enforced?
+3. What is the intended semantic relationship between named-process invocation, process creation (`Spawn`), and the pool model, and which parts belong to each layer?
+4. Should `Link` and `Call` be one language construct? The current design direction favors one named-process call for both recursive and non-recursive cases, with recursion arising from cyclic dependencies between process definitions; the final syntax and runtime contract remain open.
+5. What do identity-valued `X`/`Ys` refer to in the intended language semantics, independent of their implementation types, and where should name resolution, recursion checks, and type checks be enforced?
+6. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
+7. What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
+8. What are the full invariants for `ChnlBS`, provider/client orientation, and linear-context updates?
+9. Are the conversion asymmetries listed above reachable in the actual execution path, and which tests can establish their impact?
+10. What exact transition semantics do subscription/publication and exchange-turn records implement?
+11. Must all branches of a `Case` preserve equivalent linear contexts, and where is that enforced?
 
-## 10. Non-goals
+## 11. Non-goals
 
 This draft does not define pool or transaction semantics, resource-allocation policy, fairness, deadlock freedom, or a complete metatheory (such as preservation/progress). Those require a separate pass over the pool/transaction implementation and rationale.
 
