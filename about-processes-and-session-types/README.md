@@ -189,12 +189,12 @@ For Call, the intended transition has two effects: add a new independently execu
 
 The configuration notation is schematic: the exact representation of an added incarnation and its channel bindings remains to be defined. This rule expresses the agreed design intent, not current Go runtime behavior.
 
-The language author has clarified the intended role of `Link`: it transfers control and, in a sense, behaves like a tail call. Every process has exactly one provider channel. On `Link`, the provider channel of the new process is proxied in place of the provider channel of the old process for every client process that was previously connected to the old provider. Thus, the effect is not merely a connection between two provider channels: existing client connections are redirected to the new provider channel.
+The language author has clarified the intended role of `Link`: it transfers control and, in a sense, behaves like a tail call. Every process has exactly one provider channel. Because channels are linear, every channel has exactly one provider and exactly one client. Therefore, `Link` does not redirect one provider channel to multiple clients. Instead, it replaces the provider endpoint in the unique existing provider/client connection: the client previously connected to the old provider becomes connected to the new process's provider channel. The formal transition must account for the old connection so that no channel is left with multiple providers or multiple clients.
 
 Accordingly, the intended distinction is:
 
 - **Call:** starts a new process incarnation and allows the invoking process to continue through `ContExp`.
-- **Link:** starts/transfers control to a new incarnation without an explicit continuation; the new incarnation's provider channel replaces the old incarnation's provider channel in all processes that were clients of the old provider.
+- **Link:** starts/transfers control to a new incarnation without an explicit continuation; the new incarnation's provider channel replaces the old provider endpoint in the unique client connection of that channel, preserving the one-provider/one-client linearity invariant.
 - **Fwd:** remains a distinct channel operation. Its analogy helps explain the channel-redirection effect, but `Link` also creates a process incarnation and transfers control.
 
 The tail-call analogy means that `Link` does not schedule an ordinary continuation of the invoking process. It does not, by itself, establish that the old incarnation is immediately destroyed or specify what happens to its remaining state. The exact formal representation of client-channel redirection and whether the `Link` effect is atomic or decomposable into `Call` and `Fwd` remain open.
@@ -206,7 +206,7 @@ The author has confirmed that the new provider must be session-type compatible w
 1. What is the precise relationship among `TermQN`, `ProcQN`, `ProcTermQN`, declaration references, and expression identity?
 2. Is the order of `AssetVars` significant for positional channel matching?
 3. What is the intended semantic relationship between named-process invocation, process creation (`Spawn`), and the pool model, and which parts belong to each layer?
-4. How should `Link` formally represent replacing the old provider channel with the new provider channel in every client process previously connected to the old provider? What session-type compatibility judgment ensures the new provider can continue each redirected client's current protocol state? Is redirection atomic or equivalent to a composition involving `Call` and `Fwd`, and what happens to the old incarnation's remaining state?
+4. How should `Link` formally replace the old provider endpoint in the unique linear channel connection with the new provider endpoint? What compatibility judgment ensures the new provider can continue the client's current protocol state? Is the replacement atomic or equivalent to a composition involving `Call` and `Fwd`, and what happens to the old incarnation's remaining state?
 5. What do identity-valued `X`/`Ys` refer to in the intended language semantics, independent of their implementation types, and where should name resolution, recursion checks, and type checks be enforced?
 6. The publication's named-process call form has no explicit continuation, while OrgLang's `CallSpec` includes `ContExp`. Is this continuation part of the intended call semantics, and if so, what does it represent and when does it run?
 7. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
