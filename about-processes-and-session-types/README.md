@@ -30,11 +30,11 @@ A process declaration is represented by `DecSpec` with fields:
 - `LiabVar`: the endpoint on which the process acts as provider;
 - `AssetVars`: endpoints on which it acts as client.
 
-These provider/client descriptions come from comments in `proc/termdec/core/core.go`. Whether and where the order of `AssetVars` is semantically significant still requires verification.
+These provider/client descriptions come from comments in `proc/termdec/core/core.go`. For `Link`, the author confirms that `Ys[i]` maps to `AssetVars[i]` in declaration order.
 
 A process definition is represented by `DefSpec{ProcQN, ProcES}`; `DefRec` contains a `Ref`. The inspected `Create`/ `Retrieve` implementation in `proc/termdef/core/core.go` appears to be a stub, so this representation alone does not establish the persistence contract.
 
-Keep these names distinct until their relationships are demonstrated by code. In particular, `LinkSpec.X` and `LinkSpec.Ys` are `identity.ADT` values, not channel placeholders (`symbol.ADT`), so they should not be documented as channel arguments without further evidence:
+Keep these names distinct until their relationships are demonstrated by code. In particular, `LinkSpec.X` and `LinkSpec.Ys` are `identity.ADT` values, not channel placeholders (`symbol.ADT`), The author has clarified their intended language-level meaning as caller-side channel placeholders; the Go field types are an implementation discrepancy, not the semantic definition:
 
 - `TermQN`: qualified name associated with a declaration;
 - `ProcQN`: qualified name associated with a definition;
@@ -239,34 +239,33 @@ The inspected process AST and execution snapshot expose a concrete distinction:
 This is a concrete representation mismatch **if** `LinkSpec.X` and `Ys` are supposed to carry caller-side placeholder names at the AST/expression-spec stage. A possible alternative is that the design intends these fields to carry already-resolved channel IDs and resolve them through another mapping, but no such path has been established in the inspected code. The evidence therefore supports flagging the current type choice as a likely implementation inconsistency with the stated intent, not yet declaring the correct fix. A focused follow-up should decide whether the AST fields should be `symbol.ADT`/`[]symbol.ADT`, then trace serialization and resolution before changing `go-engine` (which is out of scope for this rationale-only work).
 The author has clarified the exact typing condition for `Link`: the new process's provider channel, declared in `Dec`, must have exactly the same session type as the invoking process's provider channel at the moment `Link` is invoked. This is equality of the current residual session type, not merely compatibility of the initial declared types. If the old provider channel has residual type S at the transition point, the new provider channel must also have type S, allowing the existing client to continue the same protocol without changing its expected session type.
 
-### Combined preliminary operational rule for `Link`
+### Preliminary operational rule for `Link`
 
-For clarity, separate the proposed rule into preconditions, effects, and unresolved details.
+This is the intended abstract language-level rule. It describes process/channel behavior, not the Go representation or a required implementation strategy.
 
 **Preconditions**
 
-1. The named process definition can be resolved.
-2. A fresh identifier is available for the new process incarnation.
-3. At the invocation point, the new process's provider channel has exactly the same session type as the old provider channel.
-4. The actual-to-formal channel mapping preserves provider/client roles: `X` names the invoking process's placeholder for the actual channel corresponding to `LiabVar`, and `Ys[i]` names the placeholder corresponding to `AssetVars[i]`. The order of `Ys` matches the order of `AssetVars`.
+- The named process definition is available, and a fresh process incarnation can be created.
+- Resolve `X` and `Ys` in the invoking process's placeholder environment. `X` supplies the actual channel for the new process's `LiabVar`; `Ys[i]` supplies the actual channel for `AssetVars[i]`, in declaration order.
+- The new process's provider channel has exactly the same **current residual session type** as the invoking process's provider channel.
 
-**Effects**
+**Transition**
 
-1. Create the new process incarnation and start its body.
-2. Reconnect the unique client formerly connected to the old provider endpoint to the new provider endpoint.
-3. Preserve the invariant that each channel has exactly one provider and one client.
-4. Transfer control to the new incarnation without scheduling an ordinary continuation for the invoking process.
+- Create and start a fresh incarnation of the named process, instantiating its channel parameters from those actual channels.
+- Replace the old provider endpoint in the existing linear connection with the new incarnation's provider endpoint. Its unique client is now connected to the new provider.
+- Preserve linearity: each channel has exactly one provider and exactly one client.
+- Transfer control to the new incarnation. There is no ordinary continuation of the invoking incarnation; `Link` has no `ContExp`.
 
-**Typing condition:** at the moment of invocation, the new provider channel and the old provider channel must have exactly the same session type.
+**Result and limits**
 
-This is a proposed abstract transition, not a claim that the current Go implementation performs it atomically. It also does not imply that the old incarnation's stored state is immediately destroyed: resource cleanup and lifecycle are separate questions. The analogy to `Call + Fwd` is explanatory; `Link` remains one abstract transition unless a correct decomposition is established.
+The existing client can continue the same protocol because the provider's residual session type is unchanged. This rule does not specify when the old incarnation's stored state is reclaimed, nor does it define failure or scheduling behavior. The analogy `Link ≈ Call + Fwd` is explanatory only; the rule does not require that decomposition.
 
 ## 10. Open questions for the next verification pass
 
 1. What is the precise relationship among `TermQN`, `ProcQN`, `ProcTermQN`, declaration references, and expression identity?
-2. Is the order of `AssetVars` significant for positional channel matching?
+2. (Resolved for `Link`.) `Ys[i]` corresponds to `AssetVars[i]` in declaration order.
 3. What is the intended semantic relationship between named-process invocation, process creation (`Spawn`), and the pool model, and which parts belong to each layer?
-4. How should `Link` formally replace the old provider endpoint in the unique linear channel connection with the new provider endpoint? What compatibility judgment ensures the new provider can continue the client's current protocol state? Is the replacement atomic or equivalent to a composition involving `Call` and `Fwd`, and what happens to the old incarnation's remaining state?
+4. (Partly resolved.) The intended `Link` transition is stated in the rule above. Remaining open: lifecycle of the old incarnation's state, and any failure/scheduling guarantees beyond the abstract transition.
 5. Where should name resolution, recursion checks, and type checks be enforced? The language-level meaning of `LinkSpec.X` and `Ys` is settled: they name placeholders in the invoking process; the Go field-type discrepancy is an implementation issue.
 6. The publication's named-process call form has no explicit continuation, while OrgLang's `CallSpec` includes `ContExp`. Is this continuation part of the intended call semantics, and if so, what does it represent and when does it run?
 7. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
@@ -291,11 +290,11 @@ The language author has confirmed the following intended call semantics:
 - The invoking process may continue along `ContExp`.
 - The call's channel arguments connect the new incarnation to the invoking process according to the call/declaration contract. The positional mapping is established: `X` corresponds to `LiabVar`, and `Ys[i]` corresponds to `AssetVars[i]`.
 
-This settles the intended control-flow direction at a conceptual level. It does not yet specify the full transition relation, scheduling guarantees, failure behavior, or how channel arguments correspond to `LiabVar` and `AssetVars`.
+This settles the intended control-flow direction and positional channel mapping at a conceptual level. It does not specify scheduling guarantees, failure behavior, or lifecycle details.
 
 Keep the following boundaries explicit:
 - **Established design direction:** `Call` creates a new incarnation; it begins executing independently; the invoking process may continue via `ContExp`; channels connect the two. `Link` differs from `Call` in that its AST has no `ContExp`.
-- **Still open:** the precise control-flow rule for `Link`, including what happens to the invoking process when no continuation is present.
+- **Established at the abstract level:** `Link` transfers control to a new incarnation and does not schedule an ordinary continuation for the invoking process.
 - **Still open:** remaining typing premises beyond provider session-type equality, scheduling and persistence details, and failure/lifecycle rules.
 - **Separate operation:** pool-level `Spawn` remains distinct from process-level named invocation.
 - **Implementation evidence only:** existing Go structures and pool APIs may inform implementation choices but do not determine the intended semantics by themselves.
