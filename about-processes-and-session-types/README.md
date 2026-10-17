@@ -214,6 +214,18 @@ Keep the publication's rules as source evidence rather than silently treating th
 
 For OrgLang `Link`, this suggests that its channel-proxying effect may be understood through the forwarding behavior represented by `pub`/`sub`, while `Link` additionally creates a new process incarnation and transfers control. These rules alone do not prove that OrgLang `Link` is formally equivalent to `Call` followed by `Fwd`, or that `Fwd` itself mutates channel identity; that equivalence requires the surrounding semantics and linearity invariants.
 
+### Comparison with OrgLang `pub`/`sub` and `Fwd`
+
+In the inspected `orglang/go-engine` source, the process communication-turn representation aligns with the author's mapping: `PubRec` stores a `ValExp` (the publication/message action), while `SubRec` stores a `ContExp` (the subscription/service continuation). The process executor's `FwdSpec` branch reads the forwarding endpoint's current session-type polarity and examines the next communication turn on that channel.
+
+The inspected implementation behaves schematically as follows:
+
+- With positive polarity, a waiting `SubRec` is redirected to the forwarding expression's communication channel; a pending `PubRec` is redirected to its continuation channel; if no turn exists, the forwarder records a `PubRec` carrying a `FwdRec`.
+- With negative polarity, the redirection targets are reversed for the existing `SubRec`/`PubRec` cases; if no turn exists, the forwarder records a `SubRec` carrying a `FwdRec`.
+- The branches update linear-variable bindings and schedule the affected peer's continuation where applicable. Some channel-side fields remain marked `TODO` in the implementation, so these observations are not a complete correctness proof.
+
+This supports interpreting `Fwd` as a polarity-sensitive operation that connects the pending publication/subscription protocol action across two endpoints, rather than as a generic global replacement of channel identifiers. It is a useful implementation comparison for `Link`'s provider-channel handoff, but does not yet establish that the whole `Link` transition can be implemented by simply composing the existing `Call` and `Fwd` branches. In particular, `Link` must create the new incarnation, transfer control, preserve the one-provider/one-client invariant, and ensure compatibility with the client's current residual session type.
+
 The author has confirmed that the new provider must be session-type compatible with the clients redirected by `Link`. This requirement should be stated at the protocol state at which each client is redirected, not assumed to follow merely from matching the initial session types. A formal rule must ensure that the new provider can continue every affected client interaction according to that client's current protocol state. Whether this is expressed as equality of residual session types, a duality/compatibility relation, or another judgment depends on the language's session-type rules and remains to be formalized.
 
 ## 10. Open questions for the next verification pass
