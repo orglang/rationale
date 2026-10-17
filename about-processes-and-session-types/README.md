@@ -55,7 +55,7 @@ The inspected process AST defines the following constructors and fields:
 | `RecvSpec` | `CommChnlPH`, `NewChnlPH`, `ContExp` | Receive and bind a channel, then continue |
 | `LabSpec` | `CommChnlPH`, `ValLabQN`, `ContExp` | Send/select a label; the AST also carries a continuation, though its use needs verification |
 | `CaseSpec` | `CommChnlPH`, `ContExps` | Offer branches indexed by labels |
-| `LinkSpec` | `ProcTermQN`, `X`, `Ys` (`identity.ADT`) | Existing name for a construct under investigation. The current design direction is one named-process call construct for both recursive and non-recursive calls; whether `LinkSpec` should be renamed or unified with `CallSpec` remains open |
+| `LinkSpec` | `ProcTermQN`, `X`, `Ys` (`identity.ADT`) | Named-process construct with no `ContExp`. This distinguishes it from `CallSpec`; do not unify the syntax without accounting for the different continuation/control-flow behavior |
 | `FwdSpec` | `CommChnlPH`, `ContChnlPH` | Forward between endpoints |
 | `CallSpec` | `CommChnlPH`, `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp` | Candidate representation of a named-process call. Unlike the supplied publication's call form `a ← p b₁ … bₙ`, this AST carries a continuation and distinct channel placeholders; their semantic roles are not yet established |
 | `SpawnSpec` | `CommChnlPH`, `ProcTermQN`, `NewChnlPHs`, `ContExp` | Present in AST, but excluded from the current process-semantics scope pending pool-level analysis |
@@ -173,7 +173,7 @@ The inspected pool expression API has a `Spawn` form whose implementation-level 
 
 By contrast, the process-level `Call` scenario uses a process name, a binding placeholder, channel placeholders, and a continuation. However, that scenario is not invoked by `TestPool`, its expected-result assertion is a TODO, and it creates the callee declaration without creating a corresponding process definition. It cannot establish the semantics of a complete call. The process definition API's inspected `Create` and `Retrieve` methods are stubs, which further limits conclusions from this path.
 
-The intended direction is that process-level invocation creates a new incarnation connected to the invoking process through channels. The remaining semantic question is what happens to the invoking incarnation and its control flow. Current pool API fields are clues about implementation boundaries, not a basis for deciding that question.
+The intended direction is that process-level invocation creates a new incarnation connected to the invoking process through channels. For `Call`, the new incarnation begins executing independently and the invoking process may continue via `ContExp`. `Link` has no `ContExp`, so its control-flow rule must differ or obtain continuation behavior through some other explicit mechanism; the absence of this field alone does not establish that the invoking process terminates. Current pool API fields are clues about implementation boundaries, not a basis for deciding that question.
 
 ## 10. Open questions for the next verification pass
 
