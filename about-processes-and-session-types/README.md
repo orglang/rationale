@@ -191,15 +191,15 @@ For Call, the intended transition has two effects: add a new independently execu
 
 The configuration notation is schematic: the exact representation of an added incarnation and its channel bindings remains to be defined. This rule expresses the agreed design intent, not current Go runtime behavior.
 
-The language author has clarified the intended role of `Link`: it transfers control and, in a sense, behaves like a tail call. Every process has exactly one provider channel. Because channels are linear, every channel has exactly one provider and exactly one client. Therefore, `Link` does not redirect one provider channel to multiple clients. Instead, it replaces the provider endpoint in the unique existing provider/client connection: the client previously connected to the old provider becomes connected to the new process's provider channel. The formal transition must account for the old connection so that no channel is left with multiple providers or multiple clients.
+The language author has clarified the intended role of `Link`: it transfers control and, in a sense, behaves like a tail call. Every process has exactly one provider channel. Because channels are linear, every channel has exactly one provider and exactly one client. The clarified interpretation is that the invoking process passes its existing provider channel `X` into the new incarnation as `LiabVar`. The client remains connected to that same channel; the provider-side ownership moves to the new incarnation, so no client reconnection or channel replacement is required.
 
 Accordingly, the intended distinction is:
 
 - **Call:** starts a new process incarnation and allows the invoking process to continue through `ContExp`.
-- **Link:** starts/transfers control to a new incarnation without an explicit continuation; the new incarnation's provider channel replaces the old provider endpoint in the unique client connection of that channel, preserving the one-provider/one-client linearity invariant.
+- **Link:** starts/transfers control to a new incarnation without an explicit continuation; the existing provider channel is passed to the new incarnation, preserving its client connection and the one-provider/one-client linearity invariant.
 - **Fwd:** remains a distinct channel operation. Its analogy helps explain the channel-redirection effect, but `Link` also creates a process incarnation and transfers control.
 
-The tail-call analogy means that `Link` does not schedule an ordinary continuation of the invoking process. It does not, by itself, establish that the old incarnation is immediately destroyed or specify what happens to its remaining state. The exact formal representation of client-channel redirection and whether the `Link` effect is atomic or decomposable into `Call` and `Fwd` remain open.
+The tail-call analogy means that `Link` does not schedule an ordinary continuation of the invoking process. It does not, by itself, establish that the old incarnation is immediately destroyed or specify what happens to its remaining state. The exact formal representation of provider-side ownership transfer and what happens to the old incarnation's remaining state remain open.
 
 ### Publication rules for forwarding
 
@@ -252,13 +252,13 @@ This is the intended abstract language-level rule. It describes process/channel 
 **Transition**
 
 - Create and start a fresh incarnation of the named process, instantiating its channel parameters from those actual channels.
-- Replace the old provider endpoint in the existing linear connection with the new incarnation's provider endpoint. Its unique client is now connected to the new provider.
+- Transfer the existing provider channel named by `X` into the new incarnation as its `LiabVar`; the channel and its existing client connection remain unchanged. No client reconnection is required.
 - Preserve linearity: each channel has exactly one provider and exactly one client.
 - Transfer control to the new incarnation. There is no ordinary continuation of the invoking incarnation; `Link` has no `ContExp`.
 
 **Result and limits**
 
-The existing client can continue the same protocol because the provider's residual session type is unchanged. This rule does not specify when the old incarnation's stored state is reclaimed, nor does it define failure or scheduling behavior. The analogy `Link ≈ Call + Fwd` is explanatory only; the rule does not require that decomposition.
+The existing client can continue the same protocol on the same channel because the new incarnation takes over providing that channel, with the same residual session type. This rule does not specify when the old incarnation's stored state is reclaimed, nor does it define failure or scheduling behavior. The analogy `Link ≈ Call + Fwd` is explanatory only; the rule does not require that decomposition.
 
 ## 10. Open questions for the next verification pass
 
