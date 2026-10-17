@@ -34,7 +34,7 @@ These provider/client descriptions come from comments in `proc/termdec/core/core
 
 A process definition is represented by `DefSpec{ProcQN, ProcES}`; `DefRec` contains a `Ref`. The inspected `Create`/ `Retrieve` implementation in `proc/termdef/core/core.go` appears to be a stub, so this representation alone does not establish the persistence contract.
 
-Keep these names distinct until their relationships are demonstrated by code:
+Keep these names distinct until their relationships are demonstrated by code. In particular, `LinkSpec.X` and `LinkSpec.Ys` are `identity.ADT` values, not channel placeholders (`symbol.ADT`), so they should not be documented as channel arguments without further evidence:
 
 - `TermQN`: qualified name associated with a declaration;
 - `ProcQN`: qualified name associated with a definition;
@@ -55,7 +55,7 @@ The inspected process AST defines the following constructors and fields:
 | `RecvSpec` | `CommChnlPH`, `NewChnlPH`, `ContExp` | Receive and bind a channel, then continue |
 | `LabSpec` | `CommChnlPH`, `ValLabQN`, `ContExp` | Send/select a label; the AST also carries a continuation, though its use needs verification |
 | `CaseSpec` | `CommChnlPH`, `ContExps` | Offer branches indexed by labels |
-| `LinkSpec` | `ProcTermQN`, `X`, `Ys` | Recursive-call/link construct (working interpretation supplied for this draft); exact binding and argument contract still to verify |
+| `LinkSpec` | `ProcTermQN`, `X`, `Ys` (`identity.ADT`) | Intended as a recursive-call/link construct per current design guidance; code calls it `ExpName`, but the runtime contract is not implemented in the inspected executor |
 | `FwdSpec` | `CommChnlPH`, `ContChnlPH` | Forward between endpoints |
 | `CallSpec` | `CommChnlPH`, `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp` | Named process call; exact argument/result contract open |
 | `SpawnSpec` | `CommChnlPH`, `ProcTermQN`, `NewChnlPHs`, `ContExp` | Present in AST, but excluded from the current process-semantics scope pending pool-level analysis |
@@ -117,7 +117,7 @@ At a high level, the inspected `Take` path is:
 5. Persist the resulting modification/effects.
 6. If a next expression is scheduled, continue from the updated reference and expression; otherwise return.
 
-The inspected `takeWith` contains execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. The current `LabSpec` AST includes `ContExp`, but its message adapter does not preserve that field; whether a label-selection continuation is semantically required remains open. It does not contain branches for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release`; those constructors therefore do not have an implementation in this dispatcher in the inspected version. For scope purposes, `Spawn` is deferred to the pool-level analysis rather than specified here. `Link` is treated as a candidate recursive-call mechanism, distinct from channel forwarding (`Fwd`); this interpretation is a design clarification to verify against the remaining source and tests.
+The inspected `takeWith` contains execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. The current `LabSpec` AST includes `ContExp`, but its message adapter does not preserve that field; whether a label-selection continuation is semantically required remains open. It does not contain branches for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release`; those constructors therefore do not have an implementation in this dispatcher in the inspected version. For scope purposes, `Spawn` is deferred to the pool-level analysis rather than specified here. `Link` is intended to denote recursive calls according to the design clarification, but this is not yet an executable rule in the inspected dispatcher. It is distinct from channel forwarding (`Fwd`).
 
 Communication is not necessarily completed in one pass. For example, when the counterpart of a `Close`/`Wait` or a send/receive interaction is not yet available, the execution path can register a subscription and return without completing that interaction. When the peer is found, the implementation updates exchange state, allocates channel identifiers, updates linear-variable records, and may schedule the continuation.
 
@@ -125,7 +125,7 @@ This is an implementation-level description. The exact transition relation, mess
 
 ## 7. Representation and serialization caveats
 
-The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. The currently inspected code contains several apparent asymmetries:
+The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. In the inspected version, `MsgFromExpSpec` has no `Link` branch; `MsgToExpSpec` has a `Call` branch, but reconstructs `CallSpec` without `CommChnlPH` and `ContExp`. The executor likewise has no `Call` or `Link` branch. An end-to-end test in `test/e2e/pool_test.go` constructs a process `Call`, but it only checks that `Take` returns no error and leaves the result as a TODO; it does not establish a successful call transition. This is a concrete AST/test/adapter/executor mismatch to resolve. The adapter also contains these apparent asymmetries:
 
 - `MsgToExpSpec` reconstructs `CallSpec` without `CommChnlPH` and `ContExp`, although those fields exist in the AST constructor. In the current AST, `LabSpec` also has a `ContExp` field; the message conversion reconstructs `LabSpec` without it.
 - In case-expression conversions, label data appears to be read from a fixed `Lab` field rather than the current branch entry. This occurs in the message-to-AST conversion and in the stored-data-to-AST conversions for both specs and records.
@@ -153,8 +153,8 @@ The first fully formalized rules should be limited to constructors whose typing 
 
 1. What is the precise relationship among `TermQN`, `ProcQN`, `ProcTermQN`, declaration references, and expression identity?
 2. Is the order of `AssetVars` significant for positional channel matching?
-3. What are the exact preconditions and effects of `Call`, including the roles of `CommChnlPH`, `NewChnlPH`, `ValChnlPHs`, and `ContExp`?
-4. How does `Link` refer to a recursive process definition, bind its `X`/`Ys` arguments, and interact with recursion/type checking?
+3. What should the runtime semantics of `Call` be, given that its AST fields, adapter conversion, executor, and current end-to-end test do not align?
+4. How does recursive `Link` resolve `ProcTermQN`, what do identity-valued `X`/`Ys` refer to, and where should recursion/type checking be enforced?
 5. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
 6. What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
 7. What are the full invariants for `ChnlBS`, provider/client orientation, and linear-context updates?
