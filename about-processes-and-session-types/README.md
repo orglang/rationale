@@ -53,7 +53,7 @@ The inspected process AST defines the following constructors and fields:
 | `WaitSpec` | `ContChnlPH`, `ContExp` | Wait on an endpoint, then continue |
 | `SendSpec` | `CommChnlPH`, `ValChnlPH` | Send a channel/value over a communication endpoint |
 | `RecvSpec` | `CommChnlPH`, `NewChnlPH`, `ContExp` | Receive and bind a channel, then continue |
-| `LabSpec` | `CommChnlPH`, `ValLabQN` | Send/select a label |
+| `LabSpec` | `CommChnlPH`, `ValLabQN`, `ContExp` | Send/select a label; the AST also carries a continuation, though its use needs verification |
 | `CaseSpec` | `CommChnlPH`, `ContExps` | Offer branches indexed by labels |
 | `LinkSpec` | `ProcTermQN`, `X`, `Ys` | Link/forwarding-like construct; exact contract open |
 | `FwdSpec` | `CommChnlPH`, `ContChnlPH` | Forward between endpoints |
@@ -117,7 +117,7 @@ At a high level, the inspected `Take` path is:
 5. Persist the resulting modification/effects.
 6. If a next expression is scheduled, continue from the updated reference and expression; otherwise return.
 
-The inspected `takeWith` contains execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. It does not contain branches for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release`; those constructors therefore do not have an implementation in this dispatcher in the inspected version.
+The inspected `takeWith` contains execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. The current `LabSpec` AST includes `ContExp`, but its message adapter does not preserve that field; whether a label-selection continuation is semantically required remains open. It does not contain branches for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release`; those constructors therefore do not have an implementation in this dispatcher in the inspected version.
 
 Communication is not necessarily completed in one pass. For example, when the counterpart of a `Close`/`Wait` or a send/receive interaction is not yet available, the execution path can register a subscription and return without completing that interaction. When the peer is found, the implementation updates exchange state, allocates channel identifiers, updates linear-variable records, and may schedule the continuation.
 
@@ -127,11 +127,11 @@ This is an implementation-level description. The exact transition relation, mess
 
 The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. The currently inspected code contains several apparent asymmetries:
 
-- `MsgToExpSpec` reconstructs `CallSpec` without `CommChnlPH` and `ContExp`, although those fields exist in the AST constructor.
-- In case-expression conversions, label data appears to be read from a fixed `Lab` field rather than the current branch entry.
+- `MsgToExpSpec` reconstructs `CallSpec` without `CommChnlPH` and `ContExp`, although those fields exist in the AST constructor. In the current AST, `LabSpec` also has a `ContExp` field; the message conversion reconstructs `LabSpec` without it.
+- In case-expression conversions, label data appears to be read from a fixed `Lab` field rather than the current branch entry. This occurs in the message-to-AST conversion and in the stored-data-to-AST conversions for both specs and records.
 - The send record conversion stores both continuation-channel and value-channel identifiers in one direction, but appears to restore only one in the reverse direction.
 - The receive record conversion appears not to preserve `ContChnlID` symmetrically.
-- Some receive conversions appear to write the communication-channel placeholder into the field that the reverse conversion reads as the newly bound channel.
+- Some receive conversions appear to write the communication-channel placeholder into the field that the reverse conversion reads as the newly bound channel. Specifically, `dataFromExpSpec` assigns `RecvSpecDS.Y` from `CommChnlPH`, although `dataToExpSpec` reads `Y` into `NewChnlPH`.
 
 These are source-level discrepancies to validate with focused tests and call-path analysis. Their observable runtime impact is not established by this document.
 
