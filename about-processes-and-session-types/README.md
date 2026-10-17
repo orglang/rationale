@@ -199,6 +199,21 @@ Accordingly, the intended distinction is:
 
 The tail-call analogy means that `Link` does not schedule an ordinary continuation of the invoking process. It does not, by itself, establish that the old incarnation is immediately destroyed or specify what happens to its remaining state. The exact formal representation of client-channel redirection and whether the `Link` effect is atomic or decomposable into `Call` and `Fwd` remain open.
 
+### Publication rules for forwarding
+
+The author supplied these forwarding rules from the session-types publication:
+
+```text
+proc(d⁺ m ← c⁺ m) → !⁺mmsg(d⁺m, c⁺m)   id: forward+
+proc(d⁻ m ← c⁻ m) → !⁻msrv(d⁻m, c⁻m)   id: forward−
+```
+
+In OrgLang, the publication's `msg` and `srv` actions map to `pub` and `sub`, respectively. This gives a concrete cross-language correspondence for interpreting the forwarding rules: the positive rule's message action corresponds to `pub`, and the negative rule's service action corresponds to `sub`.
+
+Keep the publication's rules as source evidence rather than silently treating them as OrgLang rules. The exact meanings of the polarity markers and indexed symbols should be read from the surrounding publication definitions before deriving a stronger claim about endpoint replacement or channel rewiring.
+
+For OrgLang `Link`, this suggests that its channel-proxying effect may be understood through the forwarding behavior represented by `pub`/`sub`, while `Link` additionally creates a new process incarnation and transfers control. These rules alone do not prove that OrgLang `Link` is formally equivalent to `Call` followed by `Fwd`, or that `Fwd` itself mutates channel identity; that equivalence requires the surrounding semantics and linearity invariants.
+
 The author has confirmed that the new provider must be session-type compatible with the clients redirected by `Link`. This requirement should be stated at the protocol state at which each client is redirected, not assumed to follow merely from matching the initial session types. A formal rule must ensure that the new provider can continue every affected client interaction according to that client's current protocol state. Whether this is expressed as equality of residual session types, a duality/compatibility relation, or another judgment depends on the language's session-type rules and remains to be formalized.
 
 ## 10. Open questions for the next verification pass
