@@ -14,7 +14,7 @@ The primary implementation locations inspected for this draft are:
 - `proc/termexp/adapter/tc.go`
 - `proc/termexp/core/ds.go`
 
-This is a description of the process/session-type layer. Pool and transaction semantics are out of scope.
+This is a description of the process/session-type layer. Pool and transaction semantics are not formalized here, but pool-level process creation is inspected where necessary to understand the boundary between invocation and spawning.
 
 The terms **confirmed**, **tentative**, and **open** are used as follows:
 
@@ -125,7 +125,7 @@ This is an implementation-level description. The exact transition relation, mess
 
 ## 7. Representation and serialization caveats
 
-The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. In the inspected version, `MsgFromExpSpec` has no `Link` branch; `MsgToExpSpec` has a `Call` branch, but reconstructs `CallSpec` without `CommChnlPH` and `ContExp`. The executor has no `Call` or `Link` branch, and an end-to-end test in `test/e2e/pool_test.go` does not establish a successful call transition. These observations describe the current implementation and evidence limits; they do not establish that `Call` is independently implementable or that the missing branches are defects, because call semantics may depend on the unresolved `Spawn`/pool model. The adapter also contains these apparent asymmetries:
+The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. In the inspected version, `MsgFromExpSpec` has no `Link` branch; `MsgToExpSpec` has a `Call` branch, but reconstructs `CallSpec` without `CommChnlPH` and `ContExp`. The executor has no `Call` or `Link` branch. The `call` scenario in `test/e2e/pool_test.go` constructs a caller and a call expression, but the top-level `TestPool` does not run it (the subtest is commented out); the scenario also leaves its result assertion as a TODO and creates the callee declaration without defining a callee body. It therefore does not establish a successful call transition, even if run separately. These observations describe the current implementation and evidence limits; they do not establish that `Call` is independently implementable or that the missing branches are defects, because call semantics may depend on the unresolved `Spawn`/pool model. The adapter also contains these apparent asymmetries:
 
 - `MsgToExpSpec` reconstructs `CallSpec` without `CommChnlPH` and `ContExp`, although those fields exist in the AST constructor. In the current AST, `LabSpec` also has a `ContExp` field; the message conversion reconstructs `LabSpec` without it.
 - In case-expression conversions, label data appears to be read from a fixed `Lab` field rather than the current branch entry. This occurs in the message-to-AST conversion and in the stored-data-to-AST conversions for both specs and records.
@@ -155,9 +155,17 @@ The current design direction is to use one language construct for invoking a nam
 
 This choice avoids making call behavior depend on whether the source expression happens to occur inside a definition. Context may still constrain whether a call is well-typed or executable, but the construct should not acquire unrelated meanings merely from its syntactic location unless the language rationale requires that distinction.
 
-The distinction between invoking a named process and creating a new process must remain explicit. `Spawn`, `Call`, and pool behavior appear related, but their precise relationship is unresolved. The operational contract for calls should therefore not be fixed independently of the process-lifecycle/pool model.
+The distinction between invoking a named process and creating a new process must remain explicit. Pool-level evidence gives `Spawn` a concrete, separate role in the current implementation: its specification carries a process-declaration reference and optional references to existing process incarnations (`ProcCompRefs`). The pool adapter converts those references at the API boundary. This supports treating instantiation/injection as a pool-level concern distinct from a process expression's named invocation, but it does not settle whether process-level `Call` should reuse an existing incarnation, create an incarnation, or perform some other transition. The operational contract for calls should therefore not be fixed independently of the process-lifecycle/pool model.
 
 The meanings of `LinkSpec.X` and `LinkSpec.Ys` are also open. Their intended meanings must be established from language semantics, not inferred from the Go implementation types (`identity.ADT` versus `symbol.ADT`). In particular, this draft does not assume that they are channel arguments.
+
+### Evidence note: pool spawning versus process-level invocation
+
+The inspected pool expression API has a `Spawn` form whose implementation-level specification carries a process declaration reference (`ProcTermRef`) and optional references to process incarnations (`ProcCompRefs`). The `test/e2e/pool_test.go` scenarios use pool-level `Spawn` to instantiate a declared process and, in some cases, supply existing process incarnations as dependencies. This is evidence for a distinct pool-level instantiation operation in the current implementation, not yet a normative language rule.
+
+By contrast, the process-level `Call` scenario uses a process name, a binding placeholder, channel placeholders, and a continuation. However, that scenario is not invoked by `TestPool`, its expected-result assertion is a TODO, and it creates the callee declaration without creating a corresponding process definition. It cannot establish the semantics of a complete call. The process definition API's inspected `Create` and `Retrieve` methods are stubs, which further limits conclusions from this path.
+
+A useful next investigation is to determine from intended language semantics whether process-level invocation is substitution/unfolding within an existing incarnation, an operation that allocates a new incarnation, or a separate concept. Current pool API fields are clues about implementation boundaries, not a basis for deciding that semantic question.
 
 ## 10. Open questions for the next verification pass
 
