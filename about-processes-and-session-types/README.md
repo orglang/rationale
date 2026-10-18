@@ -85,7 +85,7 @@ A session type describes what may happen next at one end of a channel (Section 2
 
 A protocol can also pass a channel between processes. The sender gives the other process a channel it can use to communicate; the receiver gains access to that channel for the rest of its process. The implementation names the relevant session-type forms `Tensor` and `Lolli`. At a high level, these are the two complementary forms used to describe channel transfer together with the protocol that remains after the transfer. The names alone do not tell the reader which endpoint performs which action: Section 9 records the observed polarity assignments and checker coverage, while Section 10 describes the typing interface. The exact direction mapping remains deliberately unstated here.
 
-Protocols may also allow a choice between labelled alternatives: the implementation uses `Plus` and `With` for the two complementary type forms associated with such choices. `One` represents a finished protocol. The implementation contains `Up` and `Down` too, but their meaning in OrgLang is still being investigated; see Section 9 for observed checker coverage and Section 14 for open questions. The name `Link` is overloaded: **type-level `Link`** refers to another type definition, while **process-expression `Link`** hands off provider responsibility for a channel (Section 7).
+Protocols may also allow a choice between labelled alternatives: the implementation uses `Plus` and `With` for the two complementary type forms associated with such choices. `One` represents a finished protocol. The implementation contains `Up` and `Down` too, but their meaning in OrgLang is still being investigated; see Section 9 for observed checker coverage and Section 14 for open questions. The name `Link` is overloaded: **type-level `Link`** is a session-type constructor referring to another type definition; **process-expression `Link`** is the process operation that hands off provider responsibility for a channel (Section 7).
 
 This introduction explains why these forms are useful; it is not a complete theory of session types. Part III contains the constructor inventory, observed polarity assignments, checker coverage, and open questions.
 
@@ -252,7 +252,7 @@ The process session-type AST contains these constructors:
 | `DownSpec` | `Cont` | zero / neutral |
 | `LinkSpec` | `TypeQN` | zero / neutral |
 
-The polarity assignments above reflect the inspected implementation in `proc/typeexp/core/core.go`; they should not be read as a complete typing definition. Here, **polarity** is the implementation's positive/negative/neutral classification of a session type. It is relevant to how the implementation handles a protocol action, but the table alone does not explain or prove all operational cases.
+The polarity assignments above are **Observed** in `proc/typeexp/core/core.go`. They classify session types as positive, negative, or neutral; they do not define all operational cases.
 
 At the AST level, process `Plus`/`With` choices are represented as label-indexed alternatives. The exact normalization and lookup rules for type references, and how `Up`/`Down` are unfolded, remain to be confirmed.
 
@@ -273,14 +273,14 @@ The table records which session-type constructor the inspected checker expects f
 
 | Process operator | Provider-side expectation | Client-side expectation | Evidence status |
 |---|---|---|---|
-| `Send` | `Tensor` | `Lolli` | observed in checker branches |
-| `Recv` | `Lolli` | `Tensor` | observed in checker branches |
-| `Lab` | `Plus` | `With` | observed in checker branches |
-| `Case` | `With` | `Plus` | observed in checker branches |
-| `Close` / `Wait` | `One` on the corresponding endpoint side | `One` on the corresponding endpoint side | exact side-specific conditions should be rechecked |
-| `Fwd` | compatibility/polarity checks exist | full symmetric behavior not established | partial |
+| `Send` | `Tensor` | `Lolli` | Observed |
+| `Recv` | `Lolli` | `Tensor` | Observed |
+| `Lab` | `Plus` | `With` | Observed |
+| `Case` | `With` | `Plus` | Observed |
+| `Close` / `Wait` | `One` on the corresponding endpoint side | `One` on the corresponding endpoint side | Open |
+| `Fwd` | compatibility/polarity checks exist | full symmetric behavior not established | Partial |
 
-This table is intentionally not a formal typing judgment. It leaves out the exact conditions that must hold before a rule applies, how channel variables are divided between subexpressions (often called *context splitting*), and how names are substituted or checked for freshness.
+This table records checker observations, not complete typing rules. Exact side conditions, context splitting, substitution, and freshness conditions remain outside its scope.
 
 The inspected checker explicitly handles `One`, `Tensor`, `Lolli`, `Plus`, and `With`. Its default branch appears to panic for `Link`, `Up`, and `Down`, which means those forms are not handled at that point in the code. Whether normal execution resolves or unfolds these constructors before this code is reached is an open question, not yet a confirmed runtime bug.
 
@@ -318,7 +318,7 @@ These are source-level discrepancies to validate with focused tests and call-pat
 
 ### Evidence limits
 
-AST presence alone does not establish runtime support; publication rules do not automatically define OrgLang semantics; and an inspected code path does not establish end-to-end behavior unless typing, adapters, scheduling, and execution are checked together. The operation-specific questions are listed in Section 14.
+Apply the evidence policy in Section 1 throughout: AST presence alone does not establish runtime support, publication rules do not automatically define OrgLang semantics, and a single code path does not establish end-to-end behavior without checking typing, adapters, scheduling, and execution together. The operation-specific questions are listed in Section 14.
 
 A formal reduction relation should distinguish at least:
 
@@ -336,11 +336,11 @@ The first fully formalized implementation-level rules should be limited to const
 
 This subsection records implementation findings for `Call`, `Link`, and process creation. Section 12 lists conversion discrepancies; Section 14 is the canonical list of unresolved questions.
 
-The inspected `takeWith` dispatcher has execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. It has no branch for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release` in the inspected version. This is a finding about the current dispatcher, not by itself a conclusion that the language design is defective.
+**Observed:** the inspected `takeWith` dispatcher has execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. It has no branch for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release` in the inspected version. This describes the current dispatcher, not the language design.
 
 The inspected `call` scenario in `test/e2e/pool_test.go` is inconclusive: the top-level `TestPool` does not run the subtest, its result assertion is a TODO, and the callee declaration has no corresponding process body. The process-definition persistence methods inspected so far also appear to be stubs. Thus the repository evidence does not demonstrate a successful `Call` transition. See Section 14 for the unresolved argument-mapping question.
 
-For `Link`, `X` and `Ys` are intended as caller-side channel placeholders, but the AST types them as `identity.ADT` channel identifiers rather than `symbol.ADT` placeholder names. No complete adapter or executor path was found. `Call` has an explicit `ContExp`; `Link` does not, so their control-flow contracts differ. See Section 14 for the remaining `Link` lifecycle and representation questions.
+**Observed:** for process-expression `Link`, `X` and `Ys` are intended as caller-side channel placeholders, but the AST types them as `identity.ADT` channel identifiers rather than `symbol.ADT` placeholder names. No complete adapter or executor path was found. `Call` has an explicit `ContExp`; `Link` does not. See Section 14 for the open lifecycle and representation questions.
 
 The pool API has a `Spawn` operation that carries a process declaration reference and optional references to existing process incarnations. This implementation-level API name is not evidence that OrgLang exposes a user-written `Spawn` operation. The repository contains three distinct `Spawn` representations; they should not be treated as one implementation:
 
