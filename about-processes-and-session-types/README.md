@@ -393,15 +393,17 @@ A formal reduction rule should be added after the relevant typing, executor, ada
 
 ## 14. Open questions for the next verification pass
 
+The list is ordered by investigation priority, not by semantic importance.
+
 1. **Call:** What is the role and ordering of additional channel arguments, and how do they map to formal channel parameters? What is the role of `NewChnlPH`—is its channel allocated, supplied by the caller, or injected by the runtime? Where are name resolution, recursion checks, and type checks enforced?
 2. **Link:** Where should `X` / `Ys` be resolved, and what lifecycle, failure, and scheduling guarantees apply when provider responsibility transfers?
 3. **Fwd:** What are the exact transition rules for positive, negative, and neutral polarity, including pending turns and continuation state?
-4. **Process creation:** What is the intended relationship among process-level invocation, pool-level `Spawn`, and the pool model? What is the role of recursion through process definitions?
-5. **Type constructors:** Are type-level `Link`, `Up`, and `Down` resolved before the observed checker cases?
-6. **Other constructors:** What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
-7. **Linear context:** What are the invariants for `ChnlBS`, provider/client orientation, and updates across operations? Must all `Case` branches preserve equivalent linear contexts?
-8. **Representation and execution:** Are the conversion asymmetries in Section 12 reachable, and what tests establish their impact?
-9. **Publication/subscription state:** What transition semantics do publication, subscription, and exchange-turn records implement?
+4. **Representation and execution:** Are the conversion asymmetries in Section 12 reachable, and what focused tests establish their impact? Check the relevant adapter, executor, and scheduling paths together.
+5. **Type constructors and checker coverage:** Are type-level `Link`, `Up`, and `Down` resolved before the observed checker cases? What tests establish the intended coverage?
+6. **Linear context:** What are the invariants for `ChnlBS`, provider/client orientation, and updates across operations? Must all `Case` branches preserve equivalent linear contexts?
+7. **Publication/subscription state:** What transition semantics do publication, subscription, and exchange-turn records implement?
+8. **Process creation:** What is the intended relationship among process-level invocation, pool-level `Spawn`, and the pool model? What is the role of recursion through process definitions?
+9. **Other constructors:** What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
 
 ## 15. Non-goals
 
