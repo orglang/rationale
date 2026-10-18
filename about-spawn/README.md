@@ -55,13 +55,13 @@ This document does not restate those contracts. Use Section 2 above for the supp
 
 The pool's public channel has a transaction type of the form `Up` followed by some continuation that ultimately ends in `Down`. **Agreed working interpretation:** access through the pool's public channel gives the client a private channel for the duration of the critical section. Exclusivity is scoped to this private channel and the interaction conducted through it; it does not, by itself, imply a global lock that prevents all other clients from interacting with the pool. Reaching `Down` marks the end of this protocol-bounded critical section, and the client can no longer continue the interaction along that channel continuation after that point. This must be understood in light of channel identity: each interaction generates a new channel identifier for continuing the interaction, and this succession of identifiers is reflected in the channel's type. Thus, in one sense, the channel is continually changing; unavailability after `Down` does not by itself specify whether some underlying channel resource is closed, returned to the pool, or otherwise handled. Further guarantees should be derived from the exact `Up` / continuation / `Down` semantics, not assumed from the analogy alone.
 
-This pool-level protocol is conceptually distinct from the process's provider channel and from the argument channels passed to `Call`. The provider channel is the sole channel associated with the new process incarnation for communication with its client; the current model introduces no separate callee-private communication channel.
+This pool-level protocol is conceptually distinct from the process's provider channel and from the client channels passed to `Call`. The provider channel is the sole channel associated with the new process incarnation for communication with its client; the current model introduces no separate callee-private communication channel.
 
 ## 5. Explicitly deferred topics
 
 The following topics are outside the current phase and should not be mixed into the decisions above:
 
-- failures and abnormal termination, including their effect on callers or held argument channels;
+- failures and abnormal termination, including their effect on callers or held client channels;
 - cancellation or permanently unserviceable calls;
 - pool negotiation, transaction initiation, and resource reservation, except where needed to clarify how a process incarnation is associated with the pool responsible for servicing it;
 - implementation structures, call paths, and mappings between AST/API representations.
