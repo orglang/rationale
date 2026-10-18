@@ -62,7 +62,7 @@ The motivation is semantic stability: channel type or protocol state may change,
 
 ### 3.3 Result of a serviced call
 
-**Agreed working rule:** the relevant endpoint is designated in the call itself by a channel placeholder. Once the new incarnation and its provider channel have been created, the caller waits for a message containing that provider channel and resumes its continuation (`ContExp`) upon receiving it. This is not a conventional return value from `Call`; it is delivery of the channel associated with the placeholder.
+**Agreed working rule:** the relevant endpoint is designated in the call itself by a channel placeholder. Once the new incarnation and its provider channel have been created, the engine sends the caller a message containing that provider channel. The caller resumes its continuation (`ContExp`) upon receiving the message. The engine is responsible for this delivery because it creates the incarnation and provider channel; the selected pool services the channel but does not create it or deliver it to the caller. This is not a conventional return value from `Call`; it is delivery of the channel associated with the placeholder.
 
 The placeholder is a name in the call's semantic environment, not the channel or endpoint resource itself. The exact message mechanism and binding details are outside this phase.
 
