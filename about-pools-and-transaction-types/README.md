@@ -90,7 +90,7 @@ These must not be collapsed into one generic “transaction ID.” In `pool/comp
 The research document proposes that a pool uses transaction identifiers to communicate and that a transaction type constrains which values/actions are permitted over that relation. It gives the typing shape
 
 [
-y_1:B_1,ldots,y_n:B_n dash P :: `z : A`
+`y₁ : B₁, …, yₙ : Bₙ ⊢ P :: (z : A)`
 ]
 
 and explains it as pool term `P` using transactions `yᵢ` with types `Bᵢ` and providing transaction (z) with type (A). This is **Specified in the research document** (as a statement made by that document), but its status as a normative OrgLang typing judgement is **Open**.
@@ -132,7 +132,7 @@ The existing transaction research document gives the following value forms. The 
 | `choice`c` { l }` | A choice-marked value carrying `c` and label (l) | **Specified** in research document |
 | `coop`c` { w·q }` | A cooperation-marked value carrying `c` and a weighted named process (q) | **Specified** in research document |
 | `isol`c` { w·q }` | An isolation-marked value carrying `c` and a weighted named process (q) | **Specified** in research document |
-| `spawn`c` { q(a,b_1,b_2,ldots) }` | A spawn-marked value carrying `c`, a named process, and identifiers/arguments | **Specified** in research document |
+| `spawn(c) { q(a, b₁, b₂, …) }` | A spawn-marked value carrying `c`, a named process, and identifiers/arguments | **Specified** in research document |
 
 The notation distinguishes **placeholders** such as `x, y, z` from **identifiers** such as `a, b, c`. The research document says placeholders acquire meaning through substitution and that identifiers are substituted in their place. This is a useful proposed distinction, but the sources inspected do not fully specify identifier allocation, freshness, scope, lifetime, aliasing, or the exact representation of a placeholder at runtime. These details remain **Open**.
 
@@ -145,7 +145,7 @@ The research document describes continuations as branches waiting for values. It
 and a labelled choice continuation with one branch `Pⱼ` per label `j`. It defines an application operation (V 	riangleright K), which matches a value against a continuation and substitutes an identifier for the corresponding placeholder. For example, the document proposes:
 
 [
-mathrm{grant}`c` 	riangleright (mathrm{grant}`x`Rightarrow P)
+`grant(c) ▷ (grant(x) ⇒ P) ≜ P[c/x]`
 ;	riangleq; P[c/x]
 ]
 
@@ -221,7 +221,7 @@ The pool execution code maintains execution references, variable records, commun
 
 This supports a limited statement: the implementation has a protocol-like pool communication mechanism with persisted state and continuations. It does **not** establish that the full research grammar is implemented, or that the communication operation has the same semantics as (V▷ K).
 
-The same file defines `Spawn(spec compstep.StepSpec)`, which allocates a process execution reference and inserts a process execution record inside an explicit database transaction. In the inspected function body, the supplied `StepSpec` is logged but its `PoolExp` is not interpreted there. This is evidence of a process-creation path, but not evidence that the `spawn`c`{q(...)}) value reduction is implemented end to end.
+This is evidence of a process-creation path, but not evidence that the `spawn(c) { q(...) }` value reduction is implemented end to end.
 
 ### Atomicity, rollback, isolation, and partial effects
 
