@@ -100,21 +100,19 @@ The next useful question is whether process semantics needs to name, pass, or in
 
 The following topics are outside the current phase and should not be mixed into the decisions above:
 
+- failures and abnormal termination, including their effect on callers or held argument channels;
 - cancellation or permanently unserviceable calls;
-- failure policy and the eventual fate of held argument channels in such cases;
-- pool negotiation, transaction initiation, and resource reservation;
+- pool negotiation, transaction initiation, and resource reservation, except where needed to clarify how a process incarnation is associated with the pool responsible for servicing it;
 - implementation structures, call paths, and mappings between AST/API representations.
 
-They can be revisited after the core successful-call semantics is clearer.
+Failure behavior is not being considered at this stage. It can be revisited after the successful-call semantics is clearer.
 
 The current contract makes no progress guarantee for pending calls: it does not promise that every pending call will eventually be serviced, nor impose a time bound on service. This is an omission of a guarantee at the current stage, not a claim that calls are intended to remain pending indefinitely.
 
 ## 6. Next semantic questions
 
-In order of dependency:
+The next question is how a new process incarnation is associated with the pool responsible for servicing it. The working hypothesis is that the process must be bound to a pool in some way for servicing to be defined, but the nature and timing of that association are open. This is distinct from interacting with the pool through its public transaction channel, which has been agreed to be unrelated to `Call` itself.
 
-1. **Private-channel timing:** determine whether the private communication channel needs to exist or be observable before the callee is ready.
-2. **Observable result of a serviced call:** specify what the caller receives or can use after successful service, without conflating this with a pool API return value.
-3. **Revisit only if warranted:** reconsider a separate `Spawn` operation only if later semantic evidence establishes a role that is not already covered by `Call` and its servicing transition.
+Once the pool-association question is clearer, return to the open question of when the callee's private communication channel is allocated. The observable result of a serviced call is already constrained by the channel-placeholder rule in §3.3. A separate `Spawn` operation should be reconsidered only if later semantic evidence establishes a role not covered by `Call` and its servicing transition.
 
 Implementation study is a later phase, after the semantic model is sufficiently stable.
