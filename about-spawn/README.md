@@ -75,7 +75,7 @@ This model is provisional except where the following choices have been explicitl
 
 **Agreed.** Every successfully serviced call creates a fresh process incarnation. Reusing an existing incarnation would change identity and shared-state semantics and therefore requires a separate, explicit rule; it is not implicit in `Call`.
 
-**Important consequence.** Fresh incarnation per successful call does not, by itself, decide when its communication channel is allocated, nor does it settle whether a caller can attempt channel interaction while the call is pending.
+**Important consequence.** Fresh incarnation per successful call does not, by itself, decide when its communication channel is allocated, nor does it settle whether a caller can attempt channel interaction while the call is pending. It also does not settle when the caller's argument channels are transferred or reserved.
 
 ## Central unresolved question: call waiting versus channel waiting
 
@@ -101,6 +101,18 @@ The engine keeps the call pending without creating the callee's private communic
 
 These are design alternatives, not claims about current OrgLang behavior. A hybrid is possible, but it would need to explain why channel identity exists before service and what guarantees that identity provides.
 
+### A related question: what happens to the caller's argument channels while pending?
+
+The channel allocated for communication with the callee is not the only relevant channel. The `Call` contract also maps existing channels to the callee's declared channel parameters. The rationale describes these mapped channels as transferred to the new incarnation, but it does not clearly establish whether that transfer happens when the call is initiated or only when it is successfully serviced.
+
+If servicing may take a long time, this timing matters:
+
+- **Transfer/reserve at initiation:** the caller may lose the ability to use those channels while the request is pending, even though no callee incarnation exists yet. This needs a rule for ownership and for what happens if the pending call never succeeds.
+- **Transfer at successful service:** the caller retains those channels while waiting; ownership changes only when the new incarnation is created and the call completes. This gives a simpler pending state, but requires the engine to ensure that the channels are still available and valid when service occurs.
+- **Reservation without transfer:** the caller may retain nominal ownership but be prohibited from using the channels while they are committed to the pending call. This is a distinct semantic choice and should not be conflated with either transfer or unrestricted retention.
+
+These are alternatives to investigate, not decisions. The semantics should distinguish channel ownership, permission to use a channel, and reservation for a pending call; those concepts may have different timing.
+
 ### Decision status: intentionally unresolved
 
 **Open.** No choice has been made between early channel allocation and allocation at successful service. This is not yet a decision that needs to be forced: both designs can preserve the agreed rule that the call completes only after a fresh incarnation exists, its required channels are bound, and it is ready to execute.
@@ -124,7 +136,7 @@ The question is therefore not simply whether the process blocks, but **what oper
 
 In order of dependency:
 
-1. **Meaning of the communication channel before service:** establish whether process semantics needs the channel to exist or be observable before the callee is ready. Only then choose early allocation or allocation as part of successful service; keep the agreed call-completion boundary unchanged.
+1. **Channel state during a pending call:** determine both when the callee's private communication channel is allocated and what happens to the caller's argument channels. In particular, distinguish ownership transfer, reservation, and permission to use channels while service is pending. Keep the agreed call-completion boundary unchanged.
 2. **Pending-call lifecycle:** define what keeps a pending call alive, and whether it can be cancelled or fail permanently.
 3. **Unavailable service:** decide whether the engine only waits for conditions to change or may initiate a transaction; this may belong to pool semantics, but the call contract must state what the caller observes.
 4. **Communication before callee startup:** if a channel can exist before the callee, define whether interaction blocks, buffers, or is disallowed.
