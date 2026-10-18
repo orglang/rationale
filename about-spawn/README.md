@@ -3,6 +3,8 @@
 
 > **Status: preliminary semantic research.** This document records the current evidence, agreed working rules, and unresolved choices. It is not yet a normative specification.
 
+> **Canonical intended semantics:** the language-level contracts for `Call` and `Link` are summarized in [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-operations). This document retains the supporting rationale, detailed working rules, evidence links, and unresolved pool-boundary questions.
+
 ## 1. Purpose and scope
 
 Establish the semantics of process invocation and incarnation creation before studying implementation code. This phase uses the existing OrgLang rationale and [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85), including its comments. Implementation structures and call paths are out of scope.
