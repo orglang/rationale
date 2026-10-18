@@ -235,14 +235,16 @@ That rule does not explicitly describe what happens to a calling process: it doe
 
 ### The publication's cut rule: allocate a channel and spawn
 
-The supplied publication also gives this rule:
+The publication gives this rule:
 
     proc(x ← P ; Q) 7→ proc([a/x]P), proc([a/x]Q) (a fresh)
     cut: allocate channel & spawn
 
-In plain language, the rule replaces one process configuration with two process configurations. It chooses a fresh channel name `a` and substitutes that same name for `x` in both `P` and `Q`. So both resulting processes refer to the same newly allocated channel, rather than to two separate channels. The rule's label describes the combined action as channel allocation and spawning.
+Table 4.2 explains the term `x ← P ; Q` in plain language: allocate a new channel `a`, spawn a process running `P[a/x]`, and continue the original process as `Q[a/x]`. The two processes may communicate using the same fresh channel `a`.
 
-This is the reading supported directly by the notation. It does not, by itself, specify how the channel's provider and client sides are assigned, how OrgLang's `SpawnSpec` corresponds to `P` and `Q`, or how process-pool lifecycle and scheduling work. Those questions remain open, especially because the two inspected implementation attempts are incomplete. Treat this as the publication's rule, not yet as a complete OrgLang `Spawn` semantics.
+So `P` is the body of the process being spawned, while `Q` is the continuation of the original process. The rule combines channel allocation and process spawning; it does not describe two arbitrary processes or two equivalent continuations.
+
+This clarifies the publication's intended meaning, but it does not yet tell us exactly how OrgLang's `SpawnSpec` represents `P` and `Q`, how the channel is represented in OrgLang, or how process-pool lifecycle and scheduling work. Those questions remain open, especially because the inspected implementation attempts are incomplete. Treat this as the publication's semantics, not yet as a complete OrgLang `Spawn` semantics.
 
 The author also supplied these publication forwarding rules:
 
