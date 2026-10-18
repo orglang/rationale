@@ -34,8 +34,6 @@ Imagine two processes that communicate over one channel:
 
 This is a **conceptual trace**, not literal OrgLang source code. It illustrates the central idea: a channel is not just a wire carrying arbitrary messages. Its session type describes which interaction is allowed next. After each step, the protocol advances to a new residual session type. After the request has been sent and received, for example, the remaining protocol describes the response phase rather than the request phase.
 
-The same view helps distinguish operations. Sending or receiving advances an existing interaction; `Call` starts another process while the caller can continue; `Link` transfers control to a new process incarnation on the caller's existing provider channel; and `Fwd` connects interactions across channels. These operations should not be treated as interchangeable.
-
 ## 4. Process declarations and definitions
 
 A process declaration describes the channels a process uses: one provider channel and its client-side channels. A process definition associates a name with the expression that implements the process. Keeping the declaration separate from the definition matters: knowing the declared channels does not by itself establish that a process body exists or can be loaded at runtime.
@@ -67,87 +65,61 @@ This is only an orientation, not a complete typing definition. Detailed construc
 
 ## 7. Intended semantics of named-process operations
 
-This section states the intended OrgLang behavior independently of Go structures. The rules are preliminary: they record the design clarified so far, while leaving unresolved details explicit.
+**This is the canonical statement of the intended language-level behavior.** The comparison with the publication and the implementation notes below provide evidence and caveats; they should not be read as alternative definitions of these operations.
 
-### Call
+### `Call`
 
-**In simple terms:** `Call` invokes a named process. The caller supplies channel placeholders or arguments according to the named process's declaration, so the new incarnation can interact with its environment through those channels. In our current working model of OrgLang, the invoked process starts executing independently, while the caller continues after the `Call` expression.
+**Before:** the caller is executing a process expression containing `Call`, with its current channel environment and a continuation `ContExp`.
 
-This is the current intended language-level behavior, not a description of its implementation. It is consistent with the publication's named-process call `a ← p b`, but the exact mapping and ordering of OrgLang channel arguments remain unspecified. In particular, this definition does not assume that `Call` is implemented using `Spawn`.
+**Intended transition:** resolve the named process and the channel placeholders supplied to it, then start a fresh incarnation of that process using the channels specified by the process interface.
 
-### Link
+**After:** the new incarnation can execute independently. The original caller remains active and continues with `ContExp`. Existing channels supplied as arguments are the channels referred to by those arguments; this description does not imply that new channels are automatically allocated or that a channel is replaced.
 
-**In simple terms:** `Link` starts a fresh incarnation of a named process and transfers control to it, without an ordinary continuation in the invoking process. The invoking process supplies `X` as its existing provider channel; the new incarnation takes over providing that same channel. The channel and its client connection stay the same.
+**Still unspecified:** the exact mapping and ordering between OrgLang's channel-argument fields and the target declaration's formal channels. This is the intended OrgLang contract, not a behavior proven by the current executor or by the publication's call rule. It does not assume that `Call` is implemented using `Spawn`.
 
-This is the intended language-level transition; it does not assume that `Link` is implemented using `Spawn`. Although `Link` has some similarities to a tail call and to `Call` combined with forwarding, neither equivalence has been established.
+### `Link`
 
-**Preconditions and transition:**
+**Before:** the invoking process is providing a service on channel `X`, with caller-side placeholders `X` and `Ys` resolved in its channel environment.
 
-1. The named process definition is available, and a fresh incarnation can be created.
-2. Resolve the caller-supplied placeholders in the invoking process's placeholder environment. X supplies the existing provider channel for the target process's LiabVar; each Ys[i] supplies the channel for AssetVars[i], in declaration order.
-3. At the point Link is invoked, the target process's provider channel must have exactly the same **current residual session type** as the existing channel supplied by X.
-4. Start the fresh incarnation with those channels, transferring provider-side ownership of the existing channel to it. The channel itself and its existing client's connection remain unchanged.
-5. Transfer control to the new incarnation. There is no ordinary caller continuation.
+**Preconditions:** the target process definition is available and a fresh incarnation can be created. The channel supplied by `X` must have the same **current residual session type** as the target process's provider channel—not merely the same initial declared type.
 
-The transition preserves linearity: every channel has exactly one provider and one client. This rule does not specify when the old incarnation's remaining state is reclaimed, or define scheduling and failure behavior.
+**Intended transition:** start a fresh incarnation of the named process, mapping `X` to its `LiabVar` and `Ys[i]` to `AssetVars[i]` in declaration order. Transfer provider-side responsibility for the existing channel `X` to the new incarnation.
 
-### `Fwd`: intended meaning
+**After:** the channel itself and its existing client connection remain unchanged; the new incarnation provides that same channel. Control transfers to the new incarnation, and the old incarnation has no ordinary continuation.
 
-In simple terms, `Fwd` connects the interaction on one channel to the interaction on another. It lets a participant waiting on one channel continue through the other channel, so communication can proceed between the parties without treating forwarding as a global renaming of channel identifiers. The exact operational steps depend on the polarity of the forwarding operation.
+**Still unspecified:** when the old incarnation's remaining state is reclaimed, and how scheduling or failures are handled. This contract does not assume that `Link` is implemented using `Spawn`.
 
-The publication's example illustrates the idea: one process sends a unit value on channel `c`, while another is waiting on channel `d`. A forwarding operation relating `d` and `c` allows that waiting interaction to reach the message on `c`, after which the receiving process continues. This is the intended reading of the example, not yet a claim that every execution order is correctly handled by the OrgLang implementation.
+### `Fwd`
 
-### Comparing `Call`, `Link`, and `Fwd`
+**Purpose:** connect the interaction on one existing channel to the interaction on another. Forwarding is an interaction between channel endpoints, not a global renaming of channel identifiers and not, by itself, a named-process invocation.
 
-A short comparison helps keep the three ideas separate:
+**Operational intuition:** in the publication's example, a sender has a unit message pending on `c`, a receiver is waiting on `d`, and forwarding connects the waiting interaction on `d` to `c`. The waiting interaction can then receive the message on `c` and continue.
 
-| Operation | What changes? | Does the invoking process continue normally? | What happens to channels? |
+**Still unspecified:** a complete OrgLang transition rule covering both polarities, all pending-turn cases, and the resulting continuation state. The publication example illustrates the intended idea, but the inspected executor contains TODOs and has not been shown to implement every case correctly.
+
+### Summary
+
+| Operation | Process state after the operation | Channel identity and connection | Caller continuation |
 |---|---|---|---|
-| `Call` | A fresh incarnation of a named process starts. | Yes, according to the current intended OrgLang model. | The caller supplies channels according to the process interface; the exact argument mapping remains open. |
-| `Link` | A fresh incarnation takes over providing the caller's existing provider channel, and control transfers to it. | No ordinary continuation is specified. | The provider channel and its client connection stay the same; provider-side responsibility transfers. |
-| `Fwd` | Interaction on one channel is connected to interaction on another. | This is not defined as a named-process call or a continuation transfer. | It relates two existing channel interactions; it is not a global rename of channel identifiers. |
+| `Call` | A fresh named-process incarnation starts independently. | Supplied channels are passed according to the process interface; exact argument mapping remains open. | Continues with `ContExp`. |
+| `Link` | A fresh named-process incarnation takes over provider responsibility. | Existing provider channel `X` and its client connection stay the same. | No ordinary continuation. |
+| `Fwd` | No named-process incarnation is implied by the operation itself. | Relates two existing channel interactions; no global rename is implied. | Not specified as a named-process continuation transfer. |
 
-For example, if a process needs a helper to perform work and then continue, that is the intended shape of `Call`. If a process has reached a point where another process should take over its provider-side conversation, that is the intended shape of `Link`. If two channel interactions need to be connected so a message or service can pass between them, that is the role of `Fwd`.
-
-These are language-level descriptions. The implementation evidence later in the document does not yet establish complete execution paths for all three operations.
-
-A schematic view (not OrgLang source syntax):
-
-```text
-Call:  caller ── invokes ──> fresh process
-       caller ── continues through its continuation
-
-Link:  old provider ── same channel ──> new process takes over
-       control transfers; no ordinary caller continuation
-
-Fwd:   interaction on channel A ── forwarded to ──> interaction on channel B
-       no named-process invocation is implied
-```
-
-The arrows summarize the intended distinctions only. They do not specify scheduling order, internal data structures, or a proven implementation strategy.
-
-### User-facing operations and internal process creation
-
-- **Call:** invokes a named process; in the current OrgLang model, the caller continues after the call.
-- **Link:** starts a fresh incarnation and transfers provider ownership of an existing channel and control to it.
-- **Fwd:** remains a separate forwarding operation. The analogy Link ≈ Call + Fwd is an intuition only, not an established equivalence.
-- **Spawn:** treat this as a possible internal process-creation mechanism, not as a user-facing OrgLang operation. Whether, and how, `Call` or `Link` use that mechanism remains unverified. The publication's `cut` rule describes allocate-and-spawn behavior; it does not imply that OrgLang programmers can write `Spawn` directly.
+The table is the short reference. The detailed claims above are intended semantics; the later sections distinguish what the publication supports and what the current implementation actually demonstrates.
 
 ## Part II. Comparison with the publication
 
 ## 8. Comparison with the supplied publication
 
-The supplied publication gives the call rule:
+The supplied publication gives the named-process call rule:
 
     proc(a ← p b) → proc(P[a/x, b/y])
 
-when the definition x ← p y = P is present in the definition environment. Here p names the process definition, and a, b, x, and y are channel names/placeholders in the call and definition. The rule substitutes actual channel names for the corresponding formal names and replaces the call term with the instantiated body in the publication's abstract configuration.
+when the definition x ← p y = P is present in the definition environment. Here `p` names the definition, and the rule substitutes actual channel names for the corresponding formal names.
 
-Table 4.2 also lists `a ← p b` as a separate process term: it calls the named process `p`, which may communicate along channels `a` and `b`. This is the publication's named-process call form.
+Table 4.2 likewise describes `a ← p b` as a call to named process `p`, which may communicate along channels `a` and `b`. This supports the reading of the construct as named-process invocation and channel substitution. **It does not specify OrgLang's full `Call` transition or establish that the caller continues through OrgLang's `ContExp`.** For the intended OrgLang contract, use Section 7; keep the publication's rule as supporting context, not proof of the whole contract.
 
-Do not conflate that row with the cut/spawn rule `x ← P ; Q`. In the latter, `P` is an inline process body, `Q` is the original process's continuation, and the rule explicitly allocates a fresh channel shared by the two resulting processes. The table's call row names a process and its channels; it does not itself state the same allocate-channel-and-continue behavior.
-
-The publication's operational call rule below specifies substitution of actual channel names for formal channel names and replaces the call term with the instantiated body in the abstract configuration. It does not explicitly say what happens to a separate calling process or whether it continues. Therefore, use it as evidence for named-process invocation and channel substitution, not as a complete account of OrgLang control flow. OrgLang's currently intended `Call` description—that it starts a fresh incarnation while the caller continues through its continuation—is a language-specific interpretation and should not be presented as directly established by this publication rule.
+Do not conflate named-process call with the separate cut/spawn rule `x ← P ; Q`. The latter has an inline process body `P`, a continuation `Q`, and explicitly allocates a fresh channel shared by the two resulting processes.
 
 ### The publication's cut rule: allocate a channel and spawn
 
@@ -325,7 +297,7 @@ The first fully formalized rules should be limited to constructors whose typing 
 
 The current Go AST uses names such as CallSpec, LinkSpec, BindChnlPH/NewChnlPH, and ValChnlPHs. These names describe the present representation; they are not terms in the rules above.
 
-The inspected call example in test/e2e/pool_test.go is inconclusive: its result assertion is a TODO, the callee declaration has no corresponding process body, and the process-definition persistence methods inspected so far are stubs. The adapter maps external BindChnlPH to internal NewChnlPH and does not preserve ContExp when reconstructing CallSpec. Therefore, current code does not confirm the complete call transition or the mapping of additional channel arguments.
+The inspected call example in test/e2e/pool_test.go is inconclusive: its result assertion is a TODO, the callee declaration has no corresponding process body, and the process-definition persistence methods inspected so far are stubs. The adapter maps external BindChnlPH to internal NewChnlPH and does not preserve ContExp when reconstructing CallSpec. Therefore, the current code does not confirm the Section 7 `Call` transition or the mapping of additional channel arguments.
 
 For Link, the intended meaning is that X and Ys name placeholders in the invoking process, but the inspected AST types these fields as identity.ADT channel identifiers rather than symbol.ADT placeholder names. No complete adapter or executor path for Link was found in the inspected code. This is a likely representation inconsistency if placeholder resolution is expected at this stage; the intended fix should not be chosen without tracing where resolution is meant to occur.
 
@@ -337,7 +309,7 @@ The available code contains multiple incomplete approaches to spawning, which sh
 - The pool-level `SpawnSpec2` instead names a process declaration and optional existing process incarnations. Its `Spawn` method creates a new execution record in linear mode, but the inspected method does not itself instantiate a process body or wire up the fresh channel described by the publication's cut rule.
 - A separate prototype under `proto/rast2` has a `spawn` reduction that creates a fresh channel and two process entries. That resembles the publication's allocate-and-spawn shape, but it belongs to a different prototype representation; it does not establish the intended semantics of the current OrgLang AST or pool API.
 
-The publication's cut rule `x ← P ; Q` describes allocating a fresh channel, starting `P[a/x]`, and continuing the original process as `Q[a/x]`. For OrgLang, this is a useful model of the underlying process-creation behavior, but we should not present it as a standalone source-language operation unless syntax or language documentation confirms that programmers can write `Spawn` directly.
+The publication's cut rule describes allocating a fresh channel, starting `P[a/x]`, and continuing the original process as `Q[a/x]`. This is useful comparison context, but it is not evidence that OrgLang exposes a standalone source-level `Spawn`; see the distinction in Section 7.
 
 `Fwd` is also represented in the inspected executor. When no turn is pending, positive polarity registers a `PubRec` carrying `FwdRec`, while negative polarity registers a `SubRec` carrying `FwdRec`; other branches inspect polarity and the pending turn kind. However, the code contains TODOs for channel-side metadata, and a negative-polarity branch comments on a type mismatch. The ordinary send/receive handlers inspected so far expect `RecvRec`/`SendRec` payloads and do not handle `FwdRec` in those switches. We have not established whether another part of the scheduling and exchange path handles this case. This suggests the implementation may be unfinished, but does not prove that `Fwd` is broken. Its completeness remains an open question.
 
