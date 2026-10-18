@@ -48,7 +48,7 @@ A call has three conceptual stages:
 2. **Pending:** the engine has the request, but cannot yet service it. The caller remains suspended on the call; this does not stop the engine as a whole.
 3. **Serviced:** the engine creates a fresh incarnation, establishes the required channel bindings, and reaches the point at which the callee is ready to execute.
 
-**Agreed:** the call completes at stage 3. Merely accepting or recording the request is not completion. The caller does not wait for the callee's eventual termination. “Ready to execute” means the callee's body can be executed; it does not require that the body has already begun or completed its first instruction. Once the call is serviced, both the callee's body and the caller's continuation are eligible to execute. Neither must execute its first instruction before the other can begin. Any interleaving/order of their execution is permitted, including when they depend on communication over the transferred channels; channel protocol and linearity constraints still apply. A process may wait for a required action by the other. This rule does not prescribe a scheduling priority or strict execution order.
+**Agreed:** the call completes at stage 3. Merely accepting or recording the request is not completion. The caller does not wait for the callee's eventual termination. “Ready to execute” means the callee's body can be executed; it does not require that the body has already begun or completed its first instruction. The caller's continuation becomes eligible to execute when the caller receives a message containing the new incarnation's provider channel. Thus, the caller behaves as if subscribed to the delivery of that channel; creation of the incarnation alone does not resume the caller. The callee's body and caller's continuation may execute in either order or interleave, including when they depend on communication over transferred channels; channel protocol and linearity constraints still apply. A process may wait for a required action by the other. This rule does not prescribe a scheduling priority or strict execution order.
 
 **Agreed:** every successfully serviced call creates a fresh process incarnation. Reuse of an existing incarnation is not implicit and would require a separate rule. **Linearity consequence:** one existing incarnation cannot be reused to service multiple calls by reusing the same channel bindings. Each call that is successfully serviced has its own fresh incarnation, and its argument channels are transferred into that incarnation's environment rather than shared across incarnations.
 
@@ -62,9 +62,9 @@ The motivation is semantic stability: channel type or protocol state may change,
 
 ### 3.3 Result of a serviced call
 
-**Agreed working rule:** the caller does not receive a newly returned endpoint value from `Call`. The relevant endpoint is designated in the call itself by a channel placeholder. When the call is serviced, the engine establishes the corresponding endpoint binding; the caller can then proceed with its continuation (`ContExp`) using that binding.
+**Agreed working rule:** the relevant endpoint is designated in the call itself by a channel placeholder. Once the new incarnation and its provider channel have been created, the caller waits for a message containing that provider channel and resumes its continuation (`ContExp`) upon receiving it. This is not a conventional return value from `Call`; it is delivery of the channel associated with the placeholder.
 
-The placeholder is a name in the call's semantic environment, not the channel or endpoint resource itself. The precise representation and binding mechanics are outside this phase.
+The placeholder is a name in the call's semantic environment, not the channel or endpoint resource itself. The exact message mechanism and binding details are outside this phase.
 
 ## 4. Pool public channel and callee's private communication channel
 
