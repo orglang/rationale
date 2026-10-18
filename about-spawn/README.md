@@ -101,14 +101,13 @@ The engine keeps the call pending without creating the callee's private communic
 
 These are design alternatives, not claims about current OrgLang behavior. A hybrid is possible, but it would need to explain why channel identity exists before service and what guarantees that identity provides.
 
-### Question that must be resolved
+### Decision status: intentionally unresolved
 
-When service may be delayed for a long time, should the caller:
+**Open.** No choice has been made between early channel allocation and allocation at successful service. This is not yet a decision that needs to be forced: both designs can preserve the agreed rule that the call completes only after a fresh incarnation exists, its required channels are bound, and it is ready to execute.
 
-- remain blocked on the **call** until a fresh incarnation and its communication channel are established; or
-- receive/hold a channel earlier and potentially block on **interaction with that channel** while the callee does not yet exist?
+The next step is to clarify the intended meaning and use of the callee's communication channel, rather than choosing an option by preference alone. In particular, determine whether any part of the process semantics needs to name, pass, or interact with that channel before the callee is ready. If not, allocating it at successful service may be the simpler rule; if so, early allocation needs explicit semantics for the period before the peer exists.
 
-The key semantic distinction is not simply whether the process blocks, but **what operation is pending**, what resource exists during that interval, and which event releases the caller. The specification should avoid an accidental design in which a call appears complete even though the caller's continuation is unable to use the channel it was promised.
+The question is therefore not simply whether the process blocks, but **what operation is pending**, what resource exists during that interval, and which event releases the caller. The specification should avoid an accidental design in which a call appears complete even though the caller's continuation is unable to use the channel it was promised.
 
 ## Design constraints
 
@@ -125,7 +124,7 @@ The key semantic distinction is not simply whether the process blocks, but **wha
 
 In order of dependency:
 
-1. **Channel allocation and call completion:** choose between early channel allocation and allocation as part of successful service; define exactly when the caller's continuation resumes.
+1. **Meaning of the communication channel before service:** establish whether process semantics needs the channel to exist or be observable before the callee is ready. Only then choose early allocation or allocation as part of successful service; keep the agreed call-completion boundary unchanged.
 2. **Pending-call lifecycle:** define what keeps a pending call alive, and whether it can be cancelled or fail permanently.
 3. **Unavailable service:** decide whether the engine only waits for conditions to change or may initiate a transaction; this may belong to pool semantics, but the call contract must state what the caller observes.
 4. **Communication before callee startup:** if a channel can exist before the callee, define whether interaction blocks, buffers, or is disallowed.
