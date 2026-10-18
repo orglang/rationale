@@ -367,6 +367,8 @@ The table records which session-type constructor the inspected checker expects f
 
 This table records checker observations, not complete typing rules. Exact side conditions, context splitting, substitution, and freshness conditions remain outside its scope.
 
+**Potential checker issue to verify:** in `proc/compexec/core/core.go`, the `CaseSpec` branch iterates over the type's choices, updates `procCtx.Liabs[expSpec.CommChnlPH]`, and recursively checks each branch using the same mutable context maps. Recursive checks can themselves update those maps (for example, `Send` advances the channel type). No branch-local copy or reset is visible in this path. This may let checking one branch affect the next branch's starting context. Confirm with a focused test where multiple labels have distinct continuations before treating it as a bug.
+
 The inspected checker explicitly handles `One`, `Tensor`, `Lolli`, `Plus`, and `With`. Its default branch appears to panic for `Link`, `Up`, and `Down`, which means those forms are not handled at that point in the code. Whether normal execution resolves or unfolds these constructors before this code is reached is an open question, not yet a confirmed runtime bug.
 
 ## 11. Execution and communication
@@ -451,10 +453,11 @@ The list is ordered by investigation priority, not by semantic importance.
 4. **Fwd:** What are the exact transition rules for positive, negative, and neutral polarity, including pending turns and continuation state?
 5. **Representation and execution:** Are the conversion asymmetries in Section 12 reachable, and what focused tests establish their impact? Check the relevant adapter, executor, and scheduling paths together.
 6. **Type constructors and checker coverage:** Are type-level `Link`, `Up`, and `Down` resolved before the observed checker cases? What tests establish the intended coverage?
-7. **Linear context:** What are the invariants for `ChnlBS`, provider/client orientation, and updates across operations? Must all `Case` branches preserve equivalent linear contexts?
-8. **Publication/subscription state:** What transition semantics do publication, subscription, and exchange-turn records implement?
-9. **Process creation:** What is the intended relationship among process-level invocation, pool-level `Spawn`, and the pool model? What is the role of recursion through process definitions?
-10. **Other constructors:** What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
+7. **Case branch checking:** Does checking one `Case` branch mutate the context used for the next branch? Add a focused test with multiple labels and distinct continuations; verify branch-local context handling.
+8. **Linear context:** What are the invariants for `ChnlBS`, provider/client orientation, and updates across operations? Must all `Case` branches preserve equivalent linear contexts?
+9. **Publication/subscription state:** What transition semantics do publication, subscription, and exchange-turn records implement?
+10. **Process creation:** What is the intended relationship among process-level invocation, pool-level `Spawn`, and the pool model? What is the role of recursion through process definitions?
+11. **Other constructors:** What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
 
 ## 15. Non-goals
 
