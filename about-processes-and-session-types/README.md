@@ -14,7 +14,7 @@ OrgLang processes communicate through **channels**. Think of a channel as a conn
 
 A named process is like a recipe. Each time it is started, that running copy is a **process incarnation**. A **channel placeholder** is a name in the process expression that stands for a channel; while the process runs, an environment tells us which actual channel each placeholder refers to.
 
-A **session type** describes the protocol from the point of view of one endpoint: which action that endpoint may perform next. The two endpoints therefore describe complementary actions. The **residual session type** is the part of that endpoint's protocol still to be performed at the current moment. For example, the client-side view may say “send a request, then receive a response, then finish,” while the provider-side view says “receive a request, then send a response, then finish.” After the request has been sent by the client and received by the provider, their residual types differ: the client must **receive** the response, while the provider must **send** it. After the response is sent and received, both residual types describe finishing. This is a conceptual example, not OrgLang syntax or a claim about a particular type constructor. It matters for `Link`: the new process must be ready to continue the provider endpoint's protocol **from its current point**, not restart it from the beginning.
+A **session type** describes the protocol allowed on one endpoint of a channel. The two endpoints describe complementary actions. The request/response example and the meaning of a **residual session type** are introduced in Section 3.
 
 **Linearity** means that a channel has exactly one provider and exactly one client; there must not be two competing providers or two competing clients for the same channel. This is why `Link` transfers the provider's responsibility for an existing channel rather than creating a second provider for it.
 
@@ -41,7 +41,7 @@ The document distinguishes three evidence levels:
 
 ## 3. A small example: following a channel
 
-Imagine two processes that communicate over one channel. The table tracks the protocol from **each endpoint's point of view**. The client and provider have complementary actions, so their residual session types are not necessarily written as the same sequence.
+Imagine two processes that communicate over one channel. The **residual session type** is the part of an endpoint's protocol still to be performed at the current point. The table tracks the protocol from **each endpoint's point of view**. The client and provider have complementary actions, so their residual session types are not necessarily written as the same sequence.
 
 | Point in the interaction | Client-side action / residual type | Provider-side action / residual type |
 |---|---|---|
@@ -69,7 +69,7 @@ The repository also contains AST constructors for `Spawn`, `Acqure`, `Accept`, `
 
 ## 6. Session types: the protocol for a channel
 
-A session type describes what may happen next at one end of a channel. In the running example, the client must send a request and later receive a response. The provider must receive the request and later send the response. These are complementary views of the same conversation; each endpoint's residual type changes as its next action is completed (see Sections 2–3).
+A session type describes what may happen next at one end of a channel (Section 2). For the request/response example and residual session types, see Section 3.
 
 A protocol can also pass a channel between processes. The sender gives the other process a channel it can use to communicate; the receiver gains access to that channel for the rest of its process. The implementation names the relevant session-type forms `Tensor` and `Lolli`. At a high level, these are the two complementary forms used to describe channel transfer together with the protocol that remains after the transfer. The names alone do not tell the reader which endpoint performs which action: Section 9 records the observed polarity assignments and checker coverage, while Section 10 describes the typing interface. The exact direction mapping remains deliberately unstated here.
 
@@ -108,6 +108,8 @@ This section distinguishes two kinds of uncertainty:
 **Intended transition:** start a fresh incarnation of the named process, passing `X` as its provider channel and the channels named by `Ys` as its client channels, in declaration order. Transfer provider-side responsibility for the existing channel `X` to the new incarnation.
 
 **After:** the channel itself and its existing client connection remain unchanged; the new incarnation provides that same channel. Control transfers to the new incarnation, and the old incarnation has no ordinary continuation.
+
+**Mini-example (schematic, not OrgLang syntax):** suppose process `Old` provides channel `c`, and the client has already sent a request. The protocol remaining on `c` is now “send response, then finish.” `Old` performs `Link` to process `New`, passing `c`. `New` takes over the same provider endpoint and continues with “send response, then finish”; it must not restart by waiting for a new request. `Old` does not continue after the handoff. This resembles a tail call in control flow: responsibility is handed off rather than returning to the old process. The analogy is limited—`Link` also preserves the existing channel and its current protocol state.
 
 **Status and unresolved questions:** the high-level handoff contract is intended, but lifecycle guarantees are not defined by the inspected evidence. It remains open when the old incarnation's remaining state is reclaimed and what scheduling, failure, or rollback guarantees apply during handoff. This contract does not assume that `Link` is implemented using `Spawn`.
 
