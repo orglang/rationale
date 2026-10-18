@@ -231,7 +231,11 @@ The supplied publication gives the call rule:
 
 when the definition x ← p y = P is present in the definition environment. Here p names the process definition, and a, b, x, and y are channel names/placeholders in the call and definition. The rule substitutes actual channel names for the corresponding formal names and replaces the call term with the instantiated body in the publication's abstract configuration.
 
-That rule does not explicitly describe what happens to a calling process: it does not say here whether that process continues, stops, or is represented separately. Use it as a comparison for channel-name substitution only, not as evidence for OrgLang control-flow semantics. OrgLang's intended Call starts a new incarnation and has the caller continue through its continuation.
+Table 4.2 also lists `a ← p b` as a separate process term: it calls the named process `p`, which may communicate along channels `a` and `b`. This is the publication's named-process call form.
+
+Do not conflate that row with the cut/spawn rule `x ← P ; Q`. In the latter, `P` is an inline process body, `Q` is the original process's continuation, and the rule explicitly allocates a fresh channel shared by the two resulting processes. The table's call row names a process and its channels; it does not itself state the same allocate-channel-and-continue behavior.
+
+The publication's operational call rule below specifies substitution of actual channel names for formal channel names and replaces the call term with the instantiated body in the abstract configuration. It does not explicitly say what happens to a separate calling process or whether it continues. Therefore, use it as evidence for named-process invocation and channel substitution, not as a complete account of OrgLang control flow. OrgLang's currently intended `Call` description—that it starts a fresh incarnation while the caller continues through its continuation—is a language-specific interpretation and should not be presented as directly established by this publication rule.
 
 ### The publication's cut rule: allocate a channel and spawn
 
