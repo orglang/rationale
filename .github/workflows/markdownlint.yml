@@ -1,4 +1,4 @@
-name: Markdown lint
+name: Sources Check
 
 on:
   pull_request:
