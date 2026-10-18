@@ -42,51 +42,28 @@ A process declaration describes the channels a process uses: one provider channe
 
 The implementation uses identifiers such as `TermQN`, `ProcQN`, and `ProcTermQN` for different references. Their exact relationships are documented in the implementation part below; they should not be treated as interchangeable.
 
-## 5. Process-expression syntax
+## 5. Process expressions: the main families
 
-The inspected process AST defines the following constructors and fields:
+For now, it is enough to recognize four broad kinds of process action:
 
-| Constructor | Fields observed | Intended reading (provisional where noted) |
-|---|---|---|
-| `CloseSpec` | `ContChnlPH` | Close/terminate a session endpoint |
-| `WaitSpec` | `ContChnlPH`, `ContExp` | Wait on an endpoint, then continue |
-| `SendSpec` | `CommChnlPH`, `ValChnlPH` | Send a channel/value over a communication endpoint |
-| `RecvSpec` | `CommChnlPH`, `NewChnlPH`, `ContExp` | Receive and bind a channel, then continue |
-| `LabSpec` | `CommChnlPH`, `ValLabQN`, `ContExp` | Send/select a label; the AST also carries a continuation, though its use needs verification |
-| `CaseSpec` | `CommChnlPH`, `ContExps` | Offer branches indexed by labels |
-| `LinkSpec` | `ProcTermQN`, `X`, `Ys` (`identity.ADT`) | Named-process construct with no `ContExp`. This distinguishes it from `CallSpec`; do not unify the syntax without accounting for the different continuation/control-flow behavior |
-| `FwdSpec` | `CommChnlPH`, `ContChnlPH` | Forward between endpoints |
-| `CallSpec` | `CommChnlPH`, `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp` | Candidate representation of a named-process call. Unlike the supplied publication's call form `a ← p b₁ … bₙ`, this AST carries a continuation and distinct channel placeholders; their semantic roles are not yet established |
-| `SpawnSpec` | `CommChnlPH`, `ProcTermQN`, `NewChnlPHs`, `ContExp` | Present in AST, but excluded from the current process-semantics scope pending pool-level analysis |
-| `AcqureSpec` | see source | Constructor spelling as present in code; contract open |
-| `AcceptSpec` | see source | Contract open |
-| `DetachSpec` | see source | Contract open |
-| `ReleaseSpec` | see source | Contract open |
+- **Communication:** send or receive a value/channel, or select and handle a labelled choice.
+- **Finishing:** close an interaction or wait for the other side to finish.
+- **Connecting interactions:** forward between channels.
+- **Process control:** invoke a named process with `Call`, or transfer control with `Link`.
 
-The table is a syntax inventory, not a claim that all constructors are executable.
+The repository also contains AST constructors for `Spawn`, `Acqure`, `Accept`, `Detach`, and `Release`. Their presence in the syntax tree does not establish their user-facing status or runtime behavior. The full constructor/field inventory is in Part III.
 
-## 6. Session-type syntax and polarity
+## 6. Session types: the protocol for a channel
 
-The process session-type AST contains these constructors:
+A session type describes the sequence and choices of interactions allowed on a channel. The constructors found in the implementation include:
 
-| Type constructor | Fields observed | Polarity recorded by the type checker |
-|---|---|---|
-| `OneSpec` | none | positive |
-| `TensorSpec` | `Val`, `Cont` | positive |
-| `LolliSpec` | `Val`, `Cont` | negative |
-| `PlusSpec` | `Choices` | positive |
-| `WithSpec` | `Choices` | negative |
-| `UpSpec` | `Cont` | zero / neutral |
-| `DownSpec` | `Cont` | zero / neutral |
-| `LinkSpec` | `TypeQN` | zero / neutral |
+- `One`: a protocol that has finished.
+- `Tensor` and `Lolli`: forms associated with sending or receiving a channel and then continuing.
+- `Plus` and `With`: forms with labelled alternatives.
+- `Up` and `Down`: protocol-shifting forms whose detailed role needs further verification in this repository.
+- Type-level `Link`: a reference to another type definition, distinct from the process expression also named `Link`.
 
-The polarity assignments above reflect the inspected implementation in `proc/typeexp/core/core.go`; they should not be read as a complete typing definition.
-
-At the AST level, process `Plus`/`With` choices are represented as label-indexed alternatives. The exact normalization and lookup rules for type references, and how `Up`/`Down` are unfolded, remain to be confirmed.
-
-The current process-level `CheckSpec` and `CheckRec` implementations explicitly handle only `One`, `Tensor`, `Lolli`, `Plus`, and `With`; any other expected constructor reaches the default panic. In contrast, the pool-level type-expression conversion includes `Link`, `Up`, and `Down` cases. This is evidence that the repository has multiple layers with different constructor coverage, not proof that the process checker is reached with unresolved `Link`/`Up`/`Down` in ordinary execution.
-
-One concrete source discrepancy exists in `pool/typeexp/core/tc.go`: the `DownSpec` conversion constructs and returns `UpRec` rather than `DownRec`. Also, the `PlusSpec` conversion composes a value key but does not check/return the `Compose` error in the same way as neighboring branches. These are implementation findings only; they should be validated with focused tests and should not be used to define the intended type semantics.
+This is only an orientation, not a complete typing definition. Detailed constructor fields, polarity assignments, checker coverage, and source discrepancies are collected in Part III.
 
 ## 7. Intended semantics of named-process operations
 
@@ -204,6 +181,53 @@ Keep these names distinct until their relationships are demonstrated by code. In
 
 Do not assume these identifiers are interchangeable.
 
+### Detailed AST and session-type inventory
+
+#### Process-expression AST inventory
+
+The inspected process AST defines the following constructors and fields:
+
+| Constructor | Fields observed | Intended reading (provisional where noted) |
+|---|---|---|
+| `CloseSpec` | `ContChnlPH` | Close/terminate a session endpoint |
+| `WaitSpec` | `ContChnlPH`, `ContExp` | Wait on an endpoint, then continue |
+| `SendSpec` | `CommChnlPH`, `ValChnlPH` | Send a channel/value over a communication endpoint |
+| `RecvSpec` | `CommChnlPH`, `NewChnlPH`, `ContExp` | Receive and bind a channel, then continue |
+| `LabSpec` | `CommChnlPH`, `ValLabQN`, `ContExp` | Send/select a label; the AST also carries a continuation, though its use needs verification |
+| `CaseSpec` | `CommChnlPH`, `ContExps` | Offer branches indexed by labels |
+| `LinkSpec` | `ProcTermQN`, `X`, `Ys` (`identity.ADT`) | Named-process construct with no `ContExp`. This distinguishes it from `CallSpec`; do not unify the syntax without accounting for the different continuation/control-flow behavior |
+| `FwdSpec` | `CommChnlPH`, `ContChnlPH` | Forward between endpoints |
+| `CallSpec` | `CommChnlPH`, `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp` | Candidate representation of a named-process call. Unlike the supplied publication's call form `a ← p b₁ … bₙ`, this AST carries a continuation and distinct channel placeholders; their semantic roles are not yet established |
+| `SpawnSpec` | `CommChnlPH`, `ProcTermQN`, `NewChnlPHs`, `ContExp` | Present in AST, but excluded from the current process-semantics scope pending pool-level analysis |
+| `AcqureSpec` | see source | Constructor spelling as present in code; contract open |
+| `AcceptSpec` | see source | Contract open |
+| `DetachSpec` | see source | Contract open |
+| `ReleaseSpec` | see source | Contract open |
+
+The table is a syntax inventory, not a claim that all constructors are executable.
+
+#### Session-type AST and checker coverage
+
+The process session-type AST contains these constructors:
+
+| Type constructor | Fields observed | Polarity recorded by the type checker |
+|---|---|---|
+| `OneSpec` | none | positive |
+| `TensorSpec` | `Val`, `Cont` | positive |
+| `LolliSpec` | `Val`, `Cont` | negative |
+| `PlusSpec` | `Choices` | positive |
+| `WithSpec` | `Choices` | negative |
+| `UpSpec` | `Cont` | zero / neutral |
+| `DownSpec` | `Cont` | zero / neutral |
+| `LinkSpec` | `TypeQN` | zero / neutral |
+
+The polarity assignments above reflect the inspected implementation in `proc/typeexp/core/core.go`; they should not be read as a complete typing definition.
+
+At the AST level, process `Plus`/`With` choices are represented as label-indexed alternatives. The exact normalization and lookup rules for type references, and how `Up`/`Down` are unfolded, remain to be confirmed.
+
+The current process-level `CheckSpec` and `CheckRec` implementations explicitly handle only `One`, `Tensor`, `Lolli`, `Plus`, and `With`; any other expected constructor reaches the default panic. In contrast, the pool-level type-expression conversion includes `Link`, `Up`, and `Down` cases. This is evidence that the repository has multiple layers with different constructor coverage, not proof that the process checker is reached with unresolved `Link`/`Up`/`Down` in ordinary execution.
+
+One concrete source discrepancy exists in `pool/typeexp/core/tc.go`: the `DownSpec` conversion constructs and returns `UpRec` rather than `DownRec`. Also, the `PlusSpec` conversion composes a value key but does not check/return the `Compose` error in the same way as neighboring branches. These are implementation findings only; they should be validated with focused tests and should not be used to define the intended type semantics.
 ## 10. Typing interface
 
 The execution path in `proc/compexec/core/core.go` loads the current execution snapshot, builds a type environment from relevant process declarations and type definitions, derives a context from the snapshot's linear channel variables, and calls `checkType` before dispatching the expression to the executor.
