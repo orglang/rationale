@@ -166,16 +166,16 @@ This section states the intended OrgLang behavior independently of Go structures
 
 ### Call
 
-**In simple terms:** Call starts a fresh incarnation of the named process. The caller specifies a placeholder through which a fresh channel is made available to it, so the caller and callee can communicate. The callee starts executing independently, while the caller continues through its continuation.
+**In simple terms:** Call starts a fresh incarnation of the named process. The caller names a placeholder that will be bound to a fresh channel for communication with the callee. The callee receives the corresponding side of that channel according to the call/declaration contract. The callee starts executing independently, while the caller continues through its continuation.
 
 **Preconditions and transition:**
 
 1. The named process definition is available, and a fresh incarnation can be created.
-2. Create a fresh communication channel and make it available to the caller through the placeholder specified by the call.
-3. Start a fresh incarnation of the named process, connecting it to the caller according to the call/declaration contract.
+2. Create a fresh channel and bind the caller's specified placeholder to the caller-side endpoint of that channel.
+3. Start a fresh incarnation of the named process and connect it through the corresponding endpoint, according to the call/declaration contract.
 4. Continue the caller with the call's continuation.
 
-The exact role and ordering of any additional channel arguments, and their correspondence to formal channel parameters, remain open. This rule intentionally does not assign semantics to individual Go fields.
+The first two effects are part of the intended semantics clarified so far. The precise representation of channel endpoints, and the role and ordering of any additional channel arguments and their correspondence to formal channel parameters, remain open. This rule intentionally does not assign semantics to individual Go fields.
 
 ### Link
 
