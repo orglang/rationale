@@ -190,12 +190,12 @@ In simple terms, `Fwd` connects the interaction on one channel to the interactio
 
 The publication's example illustrates the idea: one process sends a unit value on channel `c`, while another is waiting on channel `d`. A forwarding operation relating `d` and `c` allows that waiting interaction to reach the message on `c`, after which the receiving process continues. This is the intended reading of the example, not yet a claim that every execution order is correctly handled by the OrgLang implementation.
 
-### Why Call, Spawn, Link, and Fwd are distinct
+### User-facing operations and internal process creation
 
 - **Call:** invokes a named process; in the current OrgLang model, the caller continues after the call.
-- **Spawn:** starts a process body and continues the original process, allocating a fresh channel shared by both.
 - **Link:** starts a fresh incarnation and transfers provider ownership of an existing channel and control to it.
 - **Fwd:** remains a separate forwarding operation. The analogy Link ≈ Call + Fwd is an intuition only, not an established equivalence.
+- **Spawn:** for now, treat this as a possible internal process-creation mechanism, not as a user-facing OrgLang operation. The working hypothesis is that creating a new incarnation during `Call` or `Link` may use such a mechanism, but this has not been established as a language rule. The publication's `cut` rule describes allocate-and-spawn behavior; it does not imply that OrgLang programmers can write `Spawn` directly.
 
 ### Implementation correspondence (evidence, not semantics)
 
@@ -205,7 +205,7 @@ The inspected call example in test/e2e/pool_test.go is inconclusive: its result 
 
 For Link, the intended meaning is that X and Ys name placeholders in the invoking process, but the inspected AST types these fields as identity.ADT channel identifiers rather than symbol.ADT placeholder names. No complete adapter or executor path for Link was found in the inspected code. This is a likely representation inconsistency if placeholder resolution is expected at this stage; the intended fix should not be chosen without tracing where resolution is meant to occur.
 
-Pool-level Spawn remains distinct: its inspected API carries a process declaration reference and optional references to existing process incarnations. This is evidence about the current pool API, not a reason to define process-level Call and Spawn as the same operation.
+The pool API has a `Spawn` operation that carries a process declaration reference and optional references to existing process incarnations. Here, `Spawn` is an implementation-level API name; it is not evidence that the OrgLang source language exposes a user-written `Spawn` operation.
 
 The available code contains multiple incomplete approaches to spawning, which should not be merged into one inferred rule:
 
@@ -213,9 +213,7 @@ The available code contains multiple incomplete approaches to spawning, which sh
 - The pool-level `SpawnSpec2` instead names a process declaration and optional existing process incarnations. Its `Spawn` method creates a new execution record in linear mode, but the inspected method does not itself instantiate a process body or wire up the fresh channel described by the publication's cut rule.
 - A separate prototype under `proto/rast2` has a `spawn` reduction that creates a fresh channel and two process entries. That resembles the publication's allocate-and-spawn shape, but it belongs to a different prototype representation; it does not establish the intended semantics of the current OrgLang AST or pool API.
 
-**In simple terms:** `Spawn` starts a process with body `P` while the original process continues as `Q`. A fresh channel is allocated so the two processes can communicate with each other through that same channel.
-
-This is the intended meaning given by the publication's cut/spawn term `x ← P ; Q`. It describes the language-level behavior only; it does not specify OrgLang's implementation, channel endpoint representation, or process lifecycle management.
+The publication's cut rule `x ← P ; Q` describes allocating a fresh channel, starting `P[a/x]`, and continuing the original process as `Q[a/x]`. For OrgLang, this is a useful model of the underlying process-creation behavior, but we should not present it as a standalone source-language operation unless syntax or language documentation confirms that programmers can write `Spawn` directly.
 
 `Fwd` is also represented in the inspected executor. When no turn is pending, positive polarity registers a `PubRec` carrying `FwdRec`, while negative polarity registers a `SubRec` carrying `FwdRec`; other branches inspect polarity and the pending turn kind. However, the code contains TODOs for channel-side metadata, and a negative-polarity branch comments on a type mismatch. The ordinary send/receive handlers inspected so far expect `RecvRec`/`SendRec` payloads and do not handle `FwdRec` in those switches. We have not established whether another part of the scheduling and exchange path handles this case. This suggests the implementation may be unfinished, but does not prove that `Fwd` is broken. Its completeness remains an open question.
 
