@@ -1,6 +1,6 @@
 # Processes and session types
 
-> **Status: preliminary research draft.** This document records the current model inferred from the process-related code in `orglang/go-engine`. It is intentionally explicit about uncertainty: syntax present in the AST is not, by itself, evidence that an expression has a complete runtime semantics.
+> **Status: preliminary research draft.** This document separates intended OrgLang semantics from observations about `orglang/go-engine`. Formal rules should describe language behavior independently of Go structure and field names; implementation notes are included only to track evidence, discrepancies, and questions requiring verification. Syntax present in the AST is not, by itself, evidence that an expression has a complete runtime semantics.
 
 ## 1. Scope and evidence
 
@@ -197,7 +197,9 @@ A call creates a fresh process incarnation and starts its body independently. Th
 2. Add a fresh process incarnation running that instantiated body.
 3. Continue the invoking process with `ContExp`.
 
-The exact field-by-field mapping from `CallSpec` to declaration parameters is not confirmed. An illustrative `call` scenario in `test/e2e/pool_test.go` suggests the following interpretation: `BindChnlPH` names a channel through which the caller's continuation communicates with the callee's provider endpoint, while `ValChnlPHs` supplies existing channels for the callee's `AssetVars`, in declaration order. In that scenario, the caller's `ContExp` waits on `BindChnlPH`, and the supplied channel argument comes from the caller's `AssetVars`. However, this example cannot confirm the mapping: its result assertion is a TODO, the callee declaration is created without a corresponding process body, and the inspected `DefSpec` persistence methods are stubs. The adapter also maps the external `BindChnlPH` to internal `NewChnlPH` and does not preserve `ContExp` in the constructed `CallSpec`, so the current API conversion cannot be treated as a faithful semantic definition. Treat the proposed mapping as a hypothesis only. The inspected rationale repository contains no independent language-level rule that settles the question. The intended semantic point remains that the callee's execution and the caller's continuation both remain active after the call transition.
+At the language level, the caller specifies a placeholder into which a fresh channel is made available for communication with the callee. The callee runs as a fresh process incarnation, and the caller continues through `ContExp`; these are distinct parts of the call transition. The intended role of any additional channel arguments, and their exact correspondence to the callee's formal channel parameters, still needs confirmation.
+
+**Implementation note (not part of the formal rule).** The Go AST and an illustrative scenario in `test/e2e/pool_test.go` use fields named `BindChnlPH`/`NewChnlPH` and `ValChnlPHs`. The example is inconclusive: its result assertion is a TODO, the callee declaration has no corresponding process body, and the inspected process-definition persistence methods are stubs. The adapter also maps the external `BindChnlPH` to internal `NewChnlPH` and does not preserve `ContExp` in the constructed `CallSpec`. These are implementation observations, not definitions of OrgLang semantics. Do not infer a complete positional mapping from these fields alone.
 
 #### `Link`
 
@@ -290,7 +292,7 @@ The existing client can continue the same protocol on the same channel because t
 3. What is the intended semantic relationship between named-process invocation, process creation (`Spawn`), and the pool model, and which parts belong to each layer?
 4. (Partly resolved.) The intended `Link` transition is stated in the rule above. Remaining open: lifecycle of the old incarnation's state, and any failure/scheduling guarantees beyond the abstract transition.
 5. Where should name resolution, recursion checks, and type checks be enforced? The language-level meaning of `LinkSpec.X` and `Ys` is settled: they name placeholders in the invoking process; the Go field-type discrepancy is an implementation issue.
-6. (Resolved at the language-design level.) OrgLang `Call` starts a new incarnation while the caller continues through `ContExp`. Still open: confirm the field-by-field mapping of `BindChnlPH` and `ValChnlPHs` to the callee's declaration parameters; the current test only suggests a mapping and does not assert the result.
+6. (Partly resolved.) `Call` starts a fresh process incarnation and makes a fresh communication channel available in a caller-specified placeholder; the caller continues through `ContExp`. Still open: define the semantic role and ordering of any additional channel arguments passed to the callee. Go field names such as `BindChnlPH` and `ValChnlPHs` are implementation notes, not formal-language terms.
 7. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
 8. What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
 9. What are the full invariants for `ChnlBS`, provider/client orientation, and linear-context updates?
