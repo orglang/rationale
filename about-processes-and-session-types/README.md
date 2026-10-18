@@ -35,7 +35,7 @@ A **session type** describes the protocol allowed on one endpoint of a channel. 
 
 ### Terminology correspondence: OrgLang, publication, and implementation
 
-| Concept | OrgLang language-level term | Publication notation / term | Implementation name(s) |
+| Concept | OrgLang language-level term | Publication notation / term | Implementation name(s) | Notes |
 |---|---|---|---|---|
 | Channel roles | provider / client | provider / client roles in the process interface | `LiabVar` / `AssetVars` in `DecSpec`; `X` / `Ys` in `Link` | `LiabVar` is the provider placeholder; `AssetVars` are client placeholders. The intended `Link` mapping is provider to `X`, clients to `Ys` in declaration order; runtime wiring is unverified. |
 | Named-process invocation | `Call` | `a ← p b` and `proc(a ← p b) → proc(P[a/x, b/y])` | `CallSpec`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, `NewChnlPH` | The publication supports invocation and substitution; OrgLang continuation and argument mapping remain open. The inspected executor has no `Call` branch. |
