@@ -213,6 +213,14 @@ For Link, the intended meaning is that X and Ys name placeholders in the invokin
 
 Pool-level Spawn remains distinct: its inspected API carries a process declaration reference and optional references to existing process incarnations. This is evidence about the current pool API, not a reason to define process-level Call and Spawn as the same operation.
 
+The available code contains multiple incomplete approaches to spawning, which should not be merged into one inferred rule:
+
+- The process-expression AST has a `SpawnSpec` with a communication-channel placeholder, a process-term name, new-channel placeholders, and a continuation. But the inspected process executor has no `SpawnSpec` execution branch; an older `SpawnSpecOld` branch remains commented out in the type-checking/execution code.
+- The pool-level `SpawnSpec2` instead names a process declaration and optional existing process incarnations. Its `Spawn` method creates a new execution record in linear mode, but the inspected method does not itself instantiate a process body or wire up the fresh channel described by the publication's cut rule.
+- A separate prototype under `proto/rast2` has a `spawn` reduction that creates a fresh channel and two process entries. That resembles the publication's allocate-and-spawn shape, but it belongs to a different prototype representation; it does not establish the intended semantics of the current OrgLang AST or pool API.
+
+These are distinct pieces of implementation evidence, not a completed implementation path. In particular, the publication's `P` and `Q` have not yet been mapped reliably to the current `SpawnSpec` fields. Keep the current OrgLang `Spawn` semantics unspecified until that relationship and the intended role of the pool are clarified.
+
 `Fwd` is also represented in the inspected executor. When no turn is pending, positive polarity registers a `PubRec` carrying `FwdRec`, while negative polarity registers a `SubRec` carrying `FwdRec`; other branches inspect polarity and the pending turn kind. However, the code contains TODOs for channel-side metadata, and a negative-polarity branch comments on a type mismatch. The ordinary send/receive handlers inspected so far expect `RecvRec`/`SendRec` payloads and do not handle `FwdRec` in those switches. We have not established whether another part of the scheduling and exchange path handles this case. This suggests the implementation may be unfinished, but does not prove that `Fwd` is broken. Its completeness remains an open question.
 
 ## 10. Comparison with the supplied publication
