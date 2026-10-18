@@ -242,6 +242,14 @@ In the inspected OrgLang executor, the no-pending cases follow the same broad po
 
 Tracing the stored forwarding record one step further, its executor branch binds the recorded continuation channel ID to the current channel placeholder and schedules the forwarding expression again. This is consistent with the idea that forwarding mediates subsequent interaction, rather than performing a one-time global channel-name replacement.
 
+### When `Fwd` runs before the sender or receiver
+
+The inspected executor has an explicit no-pending path: `Fwd` records a `PubRec` carrying `FwdRec` for positive polarity, or a `SubRec` carrying `FwdRec` for negative polarity. This establishes that the implementation can register forwarding before an ordinary communication turn is present.
+
+However, following the path into the ordinary send/receive handlers exposes an unresolved integration question. The send handler expects a pending `SubRec` whose continuation is a `RecvRec`; the receive handler expects a pending `PubRec` whose value is a `SendRec`. Their inspected switches do not handle `FwdRec` as an ordinary send/receive turn. We therefore cannot conclude from these paths alone that a later sender or receiver will successfully consume the previously registered forwarding record. This may be handled elsewhere in the wider execution flow, but that has not been established by the code examined so far.
+
+This is a concrete next verification target: trace the forwarding record through the exchange repository's `NextTurn` behavior and the full execution scheduling path, or find a focused test that runs `Fwd` before both peers. Until then, describe the intended behavior from the publication separately from the currently verified implementation behavior.
+
 **Comparison result: partial match, not a proof of equivalence.** The high-level distinction between positive/message-side and negative/service-side forwarding matches the shape of the publication's `forward+` and `forward−` rules. However, the executor has TODOs for channel-side metadata, and one negative-polarity branch even comments on a type mismatch. We have not verified all producer/consumer paths or shown that every resulting channel binding agrees with the publication's reduction trace. So we can record the structural correspondence, but should not claim full semantic equivalence yet.
 
 This evidence supports reading `Fwd` as forwarding/mediation, not as generic global replacement of channel identifiers. It does not prove that `Link` is operationally equivalent to `Call` followed by `Fwd`.
