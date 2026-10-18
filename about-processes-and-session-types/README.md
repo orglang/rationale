@@ -69,13 +69,13 @@ This is only an orientation, not a complete typing definition. Detailed construc
 
 ### `Call`
 
-**Before:** the caller is executing a process expression containing `Call`, with its current channel environment and a continuation `ContExp`.
+**Before:** the caller is executing a `Call` expression, with its current channel environment and a continuation `ContExp`.
 
-**Intended transition:** resolve the named process and the channel placeholders supplied to it, then start a fresh incarnation of that process using the channels specified by the process interface.
+**Intended transition:** resolve the named process and the caller-supplied channel placeholders, then start a fresh incarnation of the named process with the channels required by its declaration. The call expression also identifies a caller-side placeholder (`NewChnlPH`) through which a channel made available by the call can be used; the precise allocation/injection mechanism and its mapping to the callee's formal channels remain open.
 
-**After:** the new incarnation can execute independently. The original caller remains active and continues with `ContExp`. Existing channels supplied as arguments are the channels referred to by those arguments; this description does not imply that new channels are automatically allocated or that a channel is replaced.
+**After:** the new incarnation can execute independently. The original caller remains active and continues with `ContExp`. Any existing channels passed as arguments retain their identity; this description does not imply that they are replaced.
 
-**Still unspecified:** the exact mapping and ordering between OrgLang's channel-argument fields and the target declaration's formal channels. This is the intended OrgLang contract, not a behavior proven by the current executor or by the publication's call rule. It does not assume that `Call` is implemented using `Spawn`.
+**Still unspecified:** the exact mapping and ordering between OrgLang's channel-argument fields and the target declaration's formal channels, and exactly how the channel associated with `NewChnlPH` is created or injected. This is the intended OrgLang contract, not a behavior proven by the current executor or by the publication's call rule. It does not assume that `Call` is implemented using `Spawn`.
 
 ### `Link`
 
@@ -101,7 +101,7 @@ This is only an orientation, not a complete typing definition. Detailed construc
 
 | Operation | Process state after the operation | Channel identity and connection | Caller continuation |
 |---|---|---|---|
-| `Call` | A fresh named-process incarnation starts independently. | Supplied channels are passed according to the process interface; exact argument mapping remains open. | Continues with `ContExp`. |
+| `Call` | A fresh named-process incarnation starts independently. | Existing argument channels retain their identity; the channel exposed through `NewChnlPH` has unresolved allocation/mapping details. | Continues with `ContExp`. |
 | `Link` | A fresh named-process incarnation takes over provider responsibility. | Existing provider channel `X` and its client connection stay the same. | No ordinary continuation. |
 | `Fwd` | No named-process incarnation is implied by the operation itself. | Relates two existing channel interactions; no global rename is implied. | Not specified as a named-process continuation transfer. |
 
@@ -291,7 +291,7 @@ A formal reduction relation should distinguish at least:
 
 The current evidence supports treating execution as a stateful transition over an execution snapshot plus communication/exchange state. It does **not** yet justify importing a generic session-calculus semantics verbatim, nor asserting that each AST constructor has a complete reduction rule.
 
-The first fully formalized rules should be limited to constructors whose typing and execution branches have both been checked end-to-end. Rules for calls and resource-management constructs should remain explicitly unspecified until their intended and implemented contracts are reconciled. `Spawn` is deferred to the pool-level analysis. `Link` should be investigated alongside recursive process definitions/calls, not conflated with `Fwd`.
+The first fully formalized implementation-level rules should be limited to constructors whose typing and execution branches have both been checked end-to-end. A complete implementation-level reduction rule for `Call` and resource-management constructs should remain unspecified until the execution paths have been verified and reconciled with the intended contract in Section 7. `Spawn` is deferred to the pool-level analysis. `Link` should be investigated alongside recursive process definitions/calls, not conflated with `Fwd`.
 
 ### Named-process implementation evidence
 
