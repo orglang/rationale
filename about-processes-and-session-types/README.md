@@ -198,18 +198,9 @@ Table 4.2 likewise describes `a ← p b` as a call to named process `p`, which m
 
 Do not conflate named-process call with the separate cut/spawn rule `x ← P ; Q`. The latter has an inline process body `P`, a continuation `Q`, and explicitly allocates a fresh channel shared by the two resulting processes.
 
-### The publication's cut rule: allocate a channel and spawn
+### The publication's cut/spawn rule
 
-The publication gives this rule:
-
-    proc(x ← P ; Q) 7→ proc([a/x]P), proc([a/x]Q) (a fresh)
-    cut: allocate channel & spawn
-
-Table 4.2 explains the term `x ← P ; Q` in plain language: allocate a new channel `a`, spawn a process running `P[a/x]`, and continue the original process as `Q[a/x]`. The two processes may communicate using the same fresh channel `a`.
-
-So `P` is the body of the process being spawned, while `Q` is the continuation of the original process. The rule combines channel allocation and process spawning; it does not describe two arbitrary processes or two equivalent continuations.
-
-This clarifies the publication's intended meaning, but it does not yet tell us exactly how OrgLang's `SpawnSpec` represents `P` and `Q`, how the channel is represented in OrgLang, or how process-pool lifecycle and scheduling work. Those questions remain open, especially because the inspected implementation attempts are incomplete. Treat this as the publication's semantics, not yet as a complete OrgLang `Spawn` semantics.
+The publication separately describes cut/spawn as allocating a fresh channel shared by a spawned process and the original process's continuation. The detailed rule and its limits as evidence for OrgLang are documented in [about-spawn, Section 2.2](../about-spawn/README.md#22-existing-rationale-publication-cutspawn-rule). This comparative rule does not by itself establish OrgLang's `Spawn` semantics.
 
 The publication also gives the following forwarding rules. The mode parameter `m` is omitted here to keep the discussion focused on forwarding rather than channel modes:
 
