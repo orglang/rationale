@@ -115,6 +115,8 @@ The next question is how a new process incarnation is associated with the pool r
 
 **Meaning of servicing:** the pool services the process's provider channel by interacting with the client according to that channel's session type. **Agreed working rule:** each process incarnation has exactly one provider channel. The pool association identifies who provides and services that channel. This does not, by itself, mean that the pool controls the process incarnation's execution or entire lifecycle.
 
+**Pool eligibility:** the pool's transaction type carries information about whether that pool can service a process with a given name. This constrains which pool can be selected for a named process. The exact encoding of this information and the procedure for using it in pool selection remain open.
+
 **Open creation/servicing split:** two models remain possible:
 
 - **Engine-first:** the engine creates the new process incarnation, then finds a pool that will service its provider channel.
