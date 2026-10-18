@@ -7,7 +7,7 @@
 **How to use this document:**
 - Start with Parts I and II for the conceptual model, intended behavior, and comparison with the supplied publication.
 - Use Part III when checking those descriptions against the current implementation.
-- Read Section 1 for the two independent status axes: semantic/evidential status and implementation status. A semantic claim may be well specified even when the implementation is incomplete or unverified.
+- Read Section 1 for the independent evidence and implementation status axes. A claim may be confirmed by a source even when the implementation is incomplete or unverified.
 - Use Section 14 as the consolidated list of questions still requiring investigation.
 
 **Contents**
@@ -19,13 +19,58 @@
 
 ## 1. Scope and evidence
 
-This document focuses on processes and session types. Pool and transaction semantics are not formalized here, although pool-level process creation is considered where necessary to understand the boundary between invocation and spawning.
+This document describes OrgLang processes and session types, compares the intended language model with the supplied publication, and records evidence from `orglang/go-engine`.
 
-**Status policy.** Keep two axes separate. **Semantic/evidential status** describes what supports an individual claim: **Specified** means stated directly in the relevant language source or publication; **Observed** means directly visible in inspected source or comments; **Inferred** means a working interpretation derived from evidence but not directly specified; **Open** means the available evidence does not settle the question. **Implementation status** describes implementation coverage independently: **Implemented**, **Partial**, **Not implemented**, or **Unverified**. Use **Intended behavior** in prose for a proposed or target language-level contract, not as an evidence label. Do not infer implementation completeness from a semantic status, or semantic correctness from implementation evidence. Assign statuses to claims, not to terms as a whole: one term may have observed existence, an inferred interpretation, and open semantic questions at the same time.
+It is a research draft, not a normative language specification. The publication is evidence for the rules it states, but is not automatically an authoritative specification of OrgLang. Implementation behavior is evidence about the implementation, not proof of a language-level rule.
 
-For each substantial or disputed claim, record **Claim**, **Source**, **Status**, and **Notes / mismatch**. Keep this evidence trail lightweight for straightforward glossary entries and more detailed for ambiguous terms, formal rules, and cross-source discrepancies. State whether a claim comes from OrgLang material, the publication, or implementation code. The publication is authoritative evidence for what it says, but is not automatically a normative OrgLang specification; implementation behavior likewise does not by itself establish a language rule. If sources disagree, preserve each source's claim and document the discrepancy rather than silently harmonizing them.
+### Evidence status
 
-Distinguish **Language rule** (supported as a rule of OrgLang), **Implementation rule** (a constraint or behavior of this implementation), and **Candidate rule** (a semantic hypothesis awaiting verification). Code alone is insufficient to promote an implementation observation into a language rule. Promote a candidate only when directly supported by an authoritative semantic description or by multiple independent, mutually consistent sources that do not conflict with known language rules; document the basis for the decision. If evidence is insufficient, retain the claim as **Open** and list what would resolve it.
+Assign a status to an individual claim, not to a term as a whole.
+
+- **Confirmed** — the claim is directly supported by an appropriate source or by sufficient verified evidence. State what the evidence establishes.
+- **Inferred** — the claim is a working interpretation derived from available evidence, but is not directly established.
+- **Open** — available evidence does not settle the claim, or relevant verification has not been completed.
+
+Use the source to distinguish a language rule, a publication rule, and an implementation observation. A claim confirmed by one source is not automatically confirmed for another.
+
+### Implementation status
+
+Track implementation coverage independently from evidence status.
+
+- **Implemented** — the relevant behavior has been verified in the execution path or by an appropriate test.
+- **Partial** — some of the required behavior is implemented, but coverage is incomplete.
+- **Absent** — inspection or testing establishes that the relevant behavior is not implemented in the scope examined.
+- **Unverified** — implementation coverage has not been established.
+
+Finding an AST constructor does not establish runtime support. Failing to find a handler in one code path does not, by itself, establish that the behavior is absent throughout the system.
+
+### Recording claims
+
+For substantial or disputed claims, record:
+
+| Field | Purpose |
+|---|---|
+| Claim | The specific statement being evaluated. |
+| Source | The relevant language material, publication, code, or test. |
+| Evidence status | Confirmed, Inferred, or Open. |
+| Implementation status | Implemented, Partial, Absent, or Unverified, when relevant. |
+| Notes | Limitations, discrepancies, and the next verification step. |
+
+Keep simple glossary entries lightweight. Use the full record for semantic rules, implementation claims, and discrepancies between sources.
+
+Distinguish three kinds of statement in prose:
+
+- **Language rule** — a rule established for OrgLang.
+- **Implementation observation** — behavior or structure found in the inspected implementation.
+- **Candidate rule** — a proposed interpretation awaiting verification or a design decision.
+
+Do not promote a candidate rule to a language rule merely because it is described in detail or reflected in the current code. Record unresolved questions and the evidence needed to resolve them.
+
+### Terminology mappings
+
+The correspondence between OrgLang, the publication, and implementation identifiers is tracked separately in the terminology table. Its mapping status describes the correspondence, not the certainty of an individual claim or the completeness of the implementation.
+
+Use **Confirmed**, **Provisional**, or **Unresolved** for mappings. Preserve mismatches rather than silently treating similarly named concepts as equivalent.
 
 ## 2. Core concepts
 
