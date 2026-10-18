@@ -230,13 +230,13 @@ The publication's Example 9 gives a concrete positive-polarity trace. A sender p
 
 The important point is that forwarding is shown as an interaction between a forwarding message and a waiting service, not as a global renaming of every occurrence of `d` to `c`. The trace also shows that the receiver may need another evaluation step to begin listening again after its service has been redirected.
 
-The publication states that the forwarding message is persistent when the session type admits contraction. In that case, multiple clients of `d` can be forwarded to `c` independently. This persistence is conditional: it must not be generalized to linear channels or to types that do not admit contraction.
+The publication describes the forwarding message as persistent when the session type admits contraction. In that case, multiple clients of `d` can be forwarded to `c` independently. This persistence is conditional and should not be generalized to linear channels or to types that do not admit contraction.
 
 Neither this example nor the other discussion in this section establishes that OrgLang's `Link` is equivalent to `Call` followed by `Fwd`.
 
 ### `Fwd`: intended behavior and implementation status
 
-The publication describes `Fwd` as polarity-sensitive forwarding. Its positive-polarity rule uses a forwarding message (`msg`), while its negative-polarity rule uses a forwarding service (`srv`). Example 9 shows a waiting service being redirected so it can receive a message on the other channel. The forwarding message is persistent when the session type admits contraction; this should not be generalized to linear types.
+The publication describes `Fwd` as polarity-sensitive forwarding. Its positive-polarity rule uses a forwarding message (`msg`), while its negative-polarity rule uses a forwarding service (`srv`). Example 9 shows a waiting service being redirected so it can receive a message on the other channel.
 
 In the inspected OrgLang executor, the no-pending cases register a `PubRec` carrying `FwdRec` for positive polarity and a `SubRec` carrying `FwdRec` for negative polarity. Other branches inspect the polarity and the kind of pending turn. This is consistent with a polarity-sensitive forwarding mechanism, rather than a global replacement of channel names.
 
