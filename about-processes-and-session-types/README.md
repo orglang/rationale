@@ -33,6 +33,20 @@ A **session type** describes the protocol allowed on one endpoint of a channel. 
 | Snapshot | A saved view of the computation's state at a particular execution point. |
 | Turn | A recorded pending communication action or exchange state that may be matched with an action from the other endpoint. |
 
+### Terminology correspondence: OrgLang, publication, and implementation
+
+| Concept | OrgLang language-level term | Publication notation / term | Implementation name(s) | Evidence and caveat |
+|---|---|---|---|---|
+| Channel roles | provider / client | provider / client roles in the process interface | `LiabVar` / `AssetVars` in `DecSpec`; `X` / `Ys` in the intended `Link` description | `LiabVar` is the provider-channel placeholder; `AssetVars` are client-channel placeholders. For `Link`, `X` maps to the provider slot and `Ys[i]` to client slots in declaration order. The AST field types for `X` / `Ys` do not match placeholder-symbol types, so this mapping is intended semantics, not confirmed runtime wiring. |
+| Named-process invocation | `Call` | `a ← p b` and the substitution rule `proc(a ← p b) → proc(P[a/x, b/y])` | `CallSpec`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, `NewChnlPH` | The publication supports named-process invocation and substitution. It does not establish OrgLang's continuation behavior or the precise argument mapping; the executor has no `Call` branch in the inspected version. |
+| Provider handoff | `Link` | No equivalent established by the inspected publication excerpt | `LinkSpec`, `ProcTermQN`, `X`, `Ys` | Intended behavior is a handoff of provider responsibility for an existing channel, with no ordinary continuation in the old incarnation. No complete adapter/executor path was found. Do not equate it with `Call` or `Fwd`. |
+| Forwarded message action | `pub` (publish/send) | `msg` | `PubRec`, `ValExp` | The publication's `msg` corresponds to the send/message side. The inspected implementation stores a publication action in `ValExp`; full forwarding correctness is not established. |
+| Forwarded service action | `sub` (subscribe/wait/serve) | `srv` | `SubRec`, `ContExp` | The publication's `srv` corresponds to the service/waiting side. The inspected implementation stores a subscription continuation in `ContExp`; exact exchange-state invariants remain open. |
+| Protocol remaining at a point | residual session type | Remaining protocol after an interaction step | Current session-type value / checker context (`LinearVars`) | The term is defined in Section 3. The implementation's exact state invariant and how it is updated across all actions remain under investigation. |
+| Polarity | positive / negative / neutral classification | `+` / `−` in the cited forwarding rules | Type-checker polarity assignments in `proc/typeexp/core/core.go` | The code assigns positive polarity to `One`, `Tensor`, `Plus`; negative to `Lolli`, `With`; neutral to `Up`, `Down`, and type-level `Link`. This is observed checker behavior, not a complete operational semantics. |
+
+This table is a navigation aid, not a claim that the three vocabularies align perfectly. Where the implementation path is incomplete, the table records the intended correspondence and its evidence limit.
+
 The document distinguishes three evidence levels:
 
 - **Confirmed**: directly supported by the inspected implementation or its comments.
