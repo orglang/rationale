@@ -151,4 +151,3 @@ The current contract makes no progress guarantee for pending calls: it does not 
 
 Pool negotiation, transaction initiation, and resource reservation are outside the current phase except where needed to clarify how an incarnation is associated with the pool responsible for servicing it. Implementation structures, call paths, and mappings between AST/API representations are also deferred until the semantic model is sufficiently stable.
 
-Implementation study is a later phase, after the semantic model is sufficiently stable.
