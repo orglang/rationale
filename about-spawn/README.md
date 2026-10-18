@@ -60,6 +60,12 @@ The motivation is semantic stability: channel type or protocol state may change,
 
 **Agreed clarification — escrow/depository model:** while the call is pending, the engine is a custodian of the argument channels, not a participant in their protocols. It preserves the channels for later transfer; it does not interact over them, inspect their protocol state, or change that state. The caller cannot use them during custody. Once the call is serviced, the channels are bound into the fresh incarnation's environment and the pending-call custody ends. The analogy is limited to safekeeping and separation of control; it does not import additional legal or transactional obligations from real-world escrow.
 
+### 3.3 Result of a serviced call
+
+**Agreed working rule:** the caller does not receive a newly returned endpoint value from `Call`. The relevant endpoint is designated in the call itself by a channel placeholder. When the call is serviced, the engine establishes the corresponding endpoint binding; the caller can then proceed with its continuation (`ContExp`) using that binding.
+
+The placeholder is a name in the call's semantic environment, not the channel or endpoint resource itself. The precise representation and binding mechanics are outside this phase.
+
 ## 4. Open design question: the callee's private communication channel
 
 The callee's private communication channel is distinct from the argument channels passed to the call. The accepted custody rule for argument channels does **not** decide when this private channel is allocated.
