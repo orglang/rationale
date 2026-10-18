@@ -109,7 +109,7 @@ The channel allocated for communication with the callee is not the only relevant
 
 The motivation is semantic stability: a channel's type or protocol state may change while it is being used elsewhere, so allowing the caller to continue interacting with a channel already committed to a pending call could invalidate the assumptions under which the eventual callee receives it. The engine's custody prevents concurrent use by the caller while service is delayed.
 
-This rule settles the caller's permission to use those channels, but not every detail of custody. The precise ownership representation, whether the engine may inspect or transform the channels while holding them, and what happens if a pending call is cancelled or can never be serviced remain open. The intended successful outcome is that the channels are transferred into the new incarnation's environment when the call is serviced.
+This rule settles the caller's permission to use those channels, but not every detail of custody. The precise ownership representation and whether the engine may inspect or transform the channels while holding them remain open. Cancellation and permanently unserviceable calls are explicitly out of scope for the current semantic phase. The intended successful outcome is that the channels are transferred into the new incarnation's environment when the call is serviced.
 
 ### Decision status: intentionally unresolved
 
@@ -134,7 +134,7 @@ The question is therefore not simply whether the process blocks, but **what oper
 
 In order of dependency:
 
-1. **Channel state during a pending call:** the caller's argument channels are temporarily held by the engine and unavailable to the caller. Further specify the custody contract, failure/cancellation behavior, and when the callee's private communication channel is allocated. Keep the agreed call-completion boundary unchanged.
+1. **Channel state during a pending call:** the caller's argument channels are temporarily held by the engine and unavailable to the caller. Further specify the custody contract and when the callee's private communication channel is allocated. Cancellation and permanently unserviceable calls are out of scope for this phase. Keep the agreed call-completion boundary unchanged.
 2. **Pending-call lifecycle:** define what keeps a pending call alive, and whether it can be cancelled or fail permanently.
 3. **Unavailable service:** decide whether the engine only waits for conditions to change or may initiate a transaction; this may belong to pool semantics, but the call contract must state what the caller observes.
 4. **Communication before callee startup:** if a channel can exist before the callee, define whether interaction blocks, buffers, or is disallowed.
