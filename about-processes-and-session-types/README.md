@@ -225,6 +225,17 @@ when the definition x ← p y = P is present in the definition environment. Here
 
 That rule does not explicitly describe what happens to a calling process: it does not say here whether that process continues, stops, or is represented separately. Use it as a comparison for channel-name substitution only, not as evidence for OrgLang control-flow semantics. OrgLang's intended Call starts a new incarnation and has the caller continue through its continuation.
 
+### The publication's cut rule: allocate a channel and spawn
+
+The supplied publication also gives this rule:
+
+    proc(x ← P ; Q) 7→ proc([a/x]P), proc([a/x]Q) (a fresh)
+    cut: allocate channel & spawn
+
+In plain language, the rule replaces one process configuration with two process configurations. It chooses a fresh channel name `a` and substitutes that same name for `x` in both `P` and `Q`. So both resulting processes refer to the same newly allocated channel, rather than to two separate channels. The rule's label describes the combined action as channel allocation and spawning.
+
+This is the reading supported directly by the notation. It does not, by itself, specify how the channel's provider and client sides are assigned, how OrgLang's `SpawnSpec` corresponds to `P` and `Q`, or how process-pool lifecycle and scheduling work. Those questions remain open, especially because the two inspected implementation attempts are incomplete. Treat this as the publication's rule, not yet as a complete OrgLang `Spawn` semantics.
+
 The author also supplied these publication forwarding rules:
 
     proc(d⁺ m ← c⁺ m) → !⁺mmsg(d⁺m, c⁺m)   id: forward+
