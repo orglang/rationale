@@ -6,7 +6,7 @@
 
 Establish the semantics of process invocation and incarnation creation before studying implementation code. This phase uses the existing OrgLang rationale and [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85), including its comments. Implementation structures and call paths are out of scope.
 
-Here, `spawn` is a candidate engine-level process-creation operation, not a claim that OrgLang has a source-language construct named `spawn`. Whether a distinct semantic operation called `Spawn` is needed remains open.
+Here, `spawn` is descriptive shorthand for creating a process incarnation at the engine level, not a source-language construct. **Agreed working rule:** no distinct semantic operation called `Spawn` is introduced at this stage. Creation of a fresh incarnation is an internal step by which the engine services `Call`. This can be revisited only if a separate semantic role is established.
 
 Claims below are marked **Evidence**, **Agreed**, or **Open**. Issue comments are provisional discussion, not normative rules. A rule from the publication's calculus is not automatically an OrgLang rule.
 
@@ -101,6 +101,6 @@ In order of dependency:
 
 1. **Private-channel timing:** determine whether the private communication channel needs to exist or be observable before the callee is ready.
 2. **Observable result of a serviced call:** specify what the caller receives or can use after successful service, without conflating this with a pool API return value.
-3. **Semantic identity of `Spawn`:** once the call contract is clearer, determine whether a distinct semantic operation called `Spawn` is needed.
+3. **Revisit only if warranted:** reconsider a separate `Spawn` operation only if later semantic evidence establishes a role that is not already covered by `Call` and its servicing transition.
 
 Implementation study is a later phase, after the semantic model is sufficiently stable.
