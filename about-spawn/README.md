@@ -50,7 +50,7 @@ A call has three conceptual stages:
 
 **Agreed:** the call completes at stage 3. Merely accepting or recording the request is not completion. The caller does not wait for the callee's eventual termination. “Ready to execute” means the callee's body can be executed; it does not require that the body has already begun or completed its first instruction. Once the call is serviced, both the callee's body and the caller's continuation are eligible to execute. Neither must execute its first instruction before the other can begin. Any interleaving/order of their execution is permitted, including when they depend on communication over the transferred channels; channel protocol and linearity constraints still apply. A process may wait for a required action by the other. This rule does not prescribe a scheduling priority or strict execution order.
 
-**Agreed:** every successfully serviced call creates a fresh process incarnation. Reuse of an existing incarnation is not implicit and would require a separate rule.
+**Agreed:** every successfully serviced call creates a fresh process incarnation. Reuse of an existing incarnation is not implicit and would require a separate rule. **Linearity consequence:** one existing incarnation cannot be reused to service multiple calls by reusing the same channel bindings. Each call that is successfully serviced has its own fresh incarnation, and its argument channels are transferred into that incarnation's environment rather than shared across incarnations.
 
 ### 3.2 Argument-channel custody while pending
 
