@@ -77,6 +77,8 @@ This introduction explains why these forms are useful; it is not a complete theo
 
 ## 7. Intended semantics of named-process operations
 
+**Reading the implementation names in this section:** `ContExp` is the continuation expression—the work the caller proceeds with after `Call`; `NewChnlPH` is a field name for a channel placeholder whose allocation or supply is not yet established. These are Go/AST names, not defined OrgLang keywords. In `Link`, `X` denotes the provider-channel placeholder being handed off, and `Ys` denotes the list of client-channel placeholders passed to the new process; their correspondence to declaration fields is detailed in Section 9.
+
 **This is the canonical statement of the intended language-level behavior.** The comparison with the publication and the implementation notes below provide evidence and caveats; they should not be read as alternative definitions of these operations.
 
 This section distinguishes two kinds of uncertainty:
@@ -87,17 +89,17 @@ This section distinguishes two kinds of uncertainty:
 
 ### `Call`
 
-**Before:** the caller is executing a `Call` expression, with its current channel environment and a continuation `ContExp`.
+**Before:** the caller is executing a `Call` expression, with its current channel environment and a continuation `ContExp` (the implementation field for the expression the caller should continue with).
 
 **Intended transition:** resolve the named process and the caller-supplied channel placeholders, then start a fresh incarnation of the named process with the channels required by its declaration.
 
 **After:** the new incarnation can execute independently. The original caller remains active and continues with `ContExp`. Existing channels passed as arguments retain their identity.
 
-**Status and unresolved questions:** the high-level control-flow contract is intended, but its channel wiring is underspecified. The exact mapping and ordering of actual arguments to formal channels remains unknown. The role of `NewChnlPH` is also unresolved: the current evidence does not show whether its channel is allocated, supplied by the caller, or injected by another part of the runtime. This description does not assume that `Call` is implemented using `Spawn`.
+**Status and unresolved questions:** the high-level control-flow contract is intended, but its channel wiring is underspecified. The exact mapping and ordering of actual arguments to formal channels remains unknown. The role of `NewChnlPH` (the AST field named above) is also unresolved: the current evidence does not show whether its channel is allocated, supplied by the caller, or injected by another part of the runtime. This description does not assume that `Call` is implemented using `Spawn`.
 
 ### `Link`
 
-**Before:** the invoking process is providing a service on channel `X`, with caller-side placeholders `X` and `Ys` resolved in its channel environment.
+**Before:** the invoking process is providing a service on the existing provider channel named by `X`. Here `X` is the provider-channel placeholder, and `Ys` is the list of client-channel placeholders supplied to the target process; these are operand names in the intended description, not yet confirmed runtime field semantics.
 
 **Preconditions:** the target process definition is available and a fresh incarnation can be created. The channel supplied by `X` must have the same **current residual session type** as the target process's provider channel—not merely the same initial declared type. In plain terms, both sides must agree on what is supposed to happen next in the conversation. If the existing channel has already passed the request step, the new process must be ready for the response step, not for a new request.
 
@@ -113,7 +115,7 @@ This section distinguishes two kinds of uncertainty:
 
 **Operational intuition:** forwarding connects interactions across two existing channels; it is not a global renaming of channel names. The publication illustrates this with a sender that has a unit message pending on `c` and a receiver waiting on `d`. See Section 8 for the publication's forwarding example and trace.
 
-**Intended but underspecified:** a complete OrgLang transition rule must cover both polarities, all pending-turn cases, and the resulting continuation state. The publication example gives useful intuition, but it does not settle every OrgLang case; the inspected executor contains TODOs and has not been shown to implement them all correctly.
+**Intended but underspecified:** a complete OrgLang transition rule must cover both polarities (the positive/negative/neutral classification described in Section 2 and tabulated in Section 9), all pending-turn cases, and the resulting continuation state. Here a *turn* means a recorded pending communication action or exchange state that the executor may match against an action from the other endpoint; the precise invariants remain open. The publication example gives useful intuition, but it does not settle every OrgLang case; the inspected executor contains TODOs and has not been shown to implement them all correctly.
 
 ### Summary
 
@@ -157,7 +159,7 @@ The publication also gives the following forwarding rules. The mode parameter `m
     proc(d⁺ ← c⁺) → !⁺msg(d⁺, c⁺)   id: forward+
     proc(d⁻ ← c⁻) → !⁻srv(d⁻, c⁻)   id: forward−
 
-In OrgLang, the publication's msg maps to pub, and srv maps to sub. In the inspected implementation, PubRec stores a ValExp (publication/message action) and SubRec stores a ContExp (subscription/service continuation). The Fwd executor examines channel polarity and pending communication turns, redirecting the relevant turn; if none is pending, it records a publication or subscription turn carrying a forwarding record. Some source branches still contain TODOs, so this is not a complete correctness proof.
+In OrgLang, the publication's `msg` action corresponds to `pub` (publish/send a message), and `srv` corresponds to `sub` (subscribe/wait to receive or serve). In the inspected implementation, `PubRec` stores a `ValExp` (publication/message action) and `SubRec` stores a `ContExp` (subscription/service continuation). The `Fwd` executor examines channel polarity and pending communication turns, redirecting the relevant turn; if none is pending, it records a publication or subscription turn carrying a forwarding record. Some source branches still contain TODOs, so this is not a complete correctness proof.
 
 ### Reading the publication's forwarding example
 
