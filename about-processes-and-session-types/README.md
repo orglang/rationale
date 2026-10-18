@@ -2,6 +2,14 @@
 
 > **Status: preliminary research draft.** This document separates intended OrgLang semantics from observations about `orglang/go-engine`. Formal rules should describe language behavior independently of Go structure and field names; implementation notes are included only to track evidence, discrepancies, and questions requiring verification. Syntax present in the AST is not, by itself, evidence that an expression has a complete runtime semantics.
 
+**Audience:** readers who need to understand OrgLang process expressions and session types, and contributors verifying how those concepts are represented in `orglang/go-engine`. The document is a research draft, not a normative language specification.
+
+**How to use this document:**
+- Start with Parts I and II for the conceptual model, intended behavior, and comparison with the supplied publication.
+- Use Part III when checking those descriptions against the current implementation.
+- Treat **Observed**, **Intended**, **Partial**, and **Open** as evidence labels, defined in Section 1. They distinguish kinds of claims; they do not imply that an end-to-end behavior has been verified.
+- Use Section 14 as the consolidated list of questions still requiring investigation.
+
 ## Part I. Language model
 
 ## 1. Scope and evidence
