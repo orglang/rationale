@@ -155,11 +155,11 @@ This section distinguishes two kinds of uncertainty:
 
 These operations are not interchangeable. `Call` starts a named-process incarnation and preserves a continuation for the caller; `Link` starts a named-process incarnation that takes over provider responsibility, with no ordinary continuation for the old incarnation; `Fwd` connects two existing channel interactions and does not itself imply a named-process invocation.
 
-| Operation | Primary role | Process-control effect | Channel effect | Evidence status |
+| Operation | Primary role | Intended process-control effect | Intended channel effect | Semantic/evidential status | Implementation status |
 |---|---|---|---|---|
-| `Call` | Invoke a named process. | A fresh incarnation starts; the caller continues with `ContExp`. | Existing argument channels retain their identity. Allocation and mapping involving `NewChnlPH` remain unresolved. | Intended high-level contract; wiring is open. |
-| `Link` | Hand off provider responsibility. | A fresh incarnation takes over; the old incarnation has no ordinary continuation. | The existing `providerChannel` (`X`) and its client connection stay the same. | Intended high-level contract; lifecycle and representation are open. |
-| `Fwd` | Connect two existing channel interactions. | No named-process incarnation or named-process continuation transfer is implied. | Relates existing endpoints; no global renaming is implied. | Partial implementation evidence; full transition rule is open. |
+| `Call` | Invoke a named process. | A fresh incarnation starts; the caller continues with `ContExp`. | Existing argument channels retain their identity. Allocation and mapping involving `NewChnlPH` remain unresolved. | Inferred target contract; details open. | Unverified; no executor branch found in the inspected dispatcher. |
+| `Link` | Hand off provider responsibility. | A fresh incarnation takes over; the old incarnation has no ordinary continuation. | The existing `providerChannel` (`X`) and its client connection stay the same. | Inferred target contract; lifecycle and representation open. | Unverified; no complete executor path found. |
+| `Fwd` | Connect two existing channel interactions. | No named-process incarnation or named-process continuation transfer is implied. | Relates existing endpoints; no global renaming is implied. | Intended rule open beyond the documented example. | Partial; full symmetric behavior not established. |
 
 Use this table as the quick comparison, and the operation-specific subsections above for the intended transitions and preconditions. Part II gives publication context; Part III records implementation evidence. Those evidence sources are not alternative definitions of the intended behavior.
 
