@@ -1,144 +1,101 @@
 # Spawn at the process–pool boundary
 
-> **Status: preliminary semantic research.** This document develops the intended contract at the boundary between process invocation and a future pool model. It distinguishes source evidence, provisional interpretation, decisions accepted during discussion, and unresolved choices. It is not yet a normative specification.
+> **Status: preliminary semantic research.** This document records the current evidence, agreed working rules, and unresolved choices. It is not yet a normative specification.
 
-## Purpose and scope
+## 1. Purpose and scope
 
-The immediate goal is to establish semantics before studying implementation code. The investigation therefore uses the existing OrgLang rationale and the discussion in [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85), including its comments. Implementation structures and call paths are explicitly out of scope for this phase.
+Establish the semantics of process invocation and incarnation creation before studying implementation code. This phase uses the existing OrgLang rationale and [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85), including its comments. Implementation structures and call paths are out of scope.
 
-For this document, `spawn` means a candidate engine-level process-creation operation, not a source-language construct. The current hypothesis is that `Call` is the process-level request and that the engine creates a fresh process incarnation when it can service that request. Whether OrgLang needs a distinct semantic operation called `Spawn` remains open.
+Here, `spawn` is a candidate engine-level process-creation operation, not a claim that OrgLang has a source-language construct named `spawn`. Whether a distinct semantic operation called `Spawn` is needed remains open.
 
-## Sources and evidential method
+Claims below are marked **Evidence**, **Agreed**, or **Open**. Issue comments are provisional discussion, not normative rules. A rule from the publication's calculus is not automatically an OrgLang rule.
 
-Primary sources:
+## 2. Evidence
 
-- [Processes and session types](https://github.com/orglang/rationale/blob/main/about-processes-and-session-types/README.md), especially Section 7 on `Call` and `Link`, and Section 8 on the publication's cut/spawn rule.
-- [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85), including comments transferred from #84 that discuss `Call`, process creation, pool agreements, and resource provisioning.
-- [Grilling method](https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md), used to structure clarification of semantic uncertainties. This document is a research note, not a Q&A transcript.
+### 2.1 Existing rationale: `Call`
 
-Claims are labelled **Observed**, **Working interpretation**, **Agreed**, or **Open**. Issue comments are provisional discussion, not normative rules. A rule from the publication's calculus is not automatically an OrgLang rule.
+**Evidence — [Processes and session types, Section 7](https://github.com/orglang/rationale/blob/main/about-processes-and-session-types/README.md).** `Call` is described as invocation of a named process. Its intended contract resolves the named process, maps declared channel parameters to existing channels, starts a fresh process incarnation with separate execution state and a channel environment, injects a distinct provider channel for communication with the caller, and allows the caller's continuation to proceed once the incarnation has started. Explicitly mapped channels are transferred to the new incarnation; distinct formal parameters must map to distinct channels under linearity.
 
-## Evidence from the existing rationale
+The rationale notes that the authoritative language source and implementation mapping remain unverified. It does not establish that `Call` is implemented using `Spawn`.
 
-### The intended contract of `Call`
+### 2.2 Existing rationale: publication cut/spawn rule
 
-**Observed — rationale, Section 7.** `Call` is described as invocation of a named process. The intended contract resolves the named process, maps declared channel parameters to existing channels, starts a fresh process incarnation with separate execution state and a channel environment, injects a distinct provider channel for communication with the caller, and allows the caller's continuation to proceed once the incarnation has started. Explicitly mapped channels are transferred to the new incarnation; distinct formal parameters must map to distinct channels under linearity.
+**Evidence — [Section 8](https://github.com/orglang/rationale/blob/main/about-processes-and-session-types/README.md).** The publication's rule `x ← P ; Q` allocates a fresh channel, starts a process running `P` with that channel substituted for `x`, and continues the original process as `Q` with the same channel substituted.
 
-The same section says that the authoritative language source and implementation mapping remain unverified. It also avoids assuming that `Call` is implemented using `Spawn`.
+**Limit.** This is a rule from a particular calculus. It does not establish that OrgLang uses the same rule or requires channel allocation and process creation to happen at the same moment.
 
-**Implication.** `Call` already expresses process invocation at the language level. A separate engine-level creation operation may be needed to fulfil a call, but this does not establish that `Call` and `Spawn` are equivalent or that the latter is a separate source-language operation.
+### 2.3 Issue #85 discussion
 
-### The publication's cut/spawn rule
+The issue comments are the strongest current evidence for the conceptual separation, but remain provisional:
 
-**Observed — rationale, Section 8.** The publication's rule `x ← P ; Q` allocates a fresh channel, starts a process running `P` with that channel substituted for `x`, and continues the original process as `Q` with the same channel substituted.
-
-**Limitation.** This rule combines channel allocation, process creation, and continuation in a particular calculus. It does not establish that OrgLang has the same rule or that the creation and channel-allocation events must be atomic in OrgLang.
-
-## Evidence from issue #85
-
-The issue discussion provides the strongest current evidence for the intended conceptual separation, while explicitly remaining provisional:
-
-- `Call` inside a process is described as the trigger for requesting work identified by `qn`; it is distinguished from a separate `spawn` message.
+- `Call` inside a process is the trigger for requesting work identified by `qn`; it is distinguished from a separate `spawn` message.
 - Creating a process incarnation is described as an internal engine operation that services `Call`.
-- An agreement between pools may make service possible under specified conditions, but the agreement itself does not create the process.
-- Resource provisioning, reservation, and the point at which the incarnation is created remain unresolved.
-- If no existing agreement enables service, the caller might wait for an agreement to change, or the engine might initiate a transaction to change it. The discussion does not select either behavior as final semantics.
-- A public structural channel might act as an offer/template, with a private linear channel for each invocation. This is a proposal, not an established rule.
+- An agreement between pools may make service possible, but the agreement itself does not create the process.
+- Resource provisioning, reservation, and the exact point of incarnation creation are unresolved.
+- A public structural channel as an offer/template, with a private linear channel per invocation, is proposed but not established.
 
 Relevant comments: [Call versus internal spawning](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290893), [pool agreements and transactions](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290639), [transactional types and process creation](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290369), [offer channel proposal](https://github.com/orglang/go-workspace/issues/85#issuecomment-6231176672), and [end-to-end service scenario](https://github.com/orglang/go-workspace/issues/85#issuecomment-6232198226).
 
-## Working semantic model
+## 3. Current semantic contract
 
-The current working model separates three concepts:
+The following rules have been accepted in discussion. They define the working model, not yet a normative language specification.
 
-1. **Call initiation.** A process requests invocation of a named process and supplies the channel arguments required by the `Call` contract.
-2. **Call pending / service not yet possible.** The engine has accepted a request that cannot yet be fulfilled. The request must remain pending if the chosen semantics permit delayed service; it must not be confused with a successfully completed call.
-3. **Call serviced.** The engine creates a fresh incarnation, establishes the required channel bindings, and reaches the point at which the rationale says the caller's continuation may proceed.
+### 3.1 Call lifecycle
 
-The pool layer may affect when a pending call can be serviced, but pool agreements and transactions are separate mechanisms. Their detailed semantics are out of scope here.
+A call has three conceptual stages:
 
-This model is provisional except where the following choices have been explicitly accepted in discussion.
+1. **Initiated:** a process requests invocation of a named process and supplies the channel arguments required by the `Call` contract.
+2. **Pending:** the engine has the request, but cannot yet service it. The caller remains suspended on the call; this does not stop the engine as a whole.
+3. **Serviced:** the engine creates a fresh incarnation, establishes the required channel bindings, and reaches the point at which the callee is ready to execute.
 
-## Decisions accepted so far
+**Agreed:** the call completes at stage 3. Merely accepting or recording the request is not completion. The caller does not wait for the callee's eventual termination.
 
-### Completion and caller continuation
+**Agreed:** every successfully serviced call creates a fresh process incarnation. Reuse of an existing incarnation is not implicit and would require a separate rule.
 
-**Agreed.** A call is complete when a new process incarnation has been created, the required channels have been bound, and the callee is ready to execute. Merely accepting or recording a request is not enough to count as a completed call.
+### 3.2 Argument-channel custody while pending
 
-**Agreed.** The caller does not wait for the callee's eventual termination as part of call completion. The call's completion boundary is startup and channel binding, not the whole lifetime of the callee.
+**Agreed working rule:** when a call is initiated, the caller temporarily relinquishes the argument channels passed to it. The engine holds these channels while the call is pending, and the caller cannot use them during that interval. This is more than a reservation that still permits caller-side interaction.
 
-### Delayed service
+The motivation is semantic stability: channel type or protocol state may change, so concurrent use by the caller could invalidate assumptions under which the eventual callee receives the channel. Upon successful service, the channels enter the new incarnation's environment.
 
-**Agreed.** If the engine cannot yet service a call, the caller remains suspended with the call pending. This suspension must not imply that the entire engine stops. The policy for eventual wake-up, cancellation, or terminal failure remains to be specified.
+This rule settles the caller's permission to use the channels, but not the engine's internal ownership representation or whether it may inspect or transform held channels.
 
-### Fresh incarnation
+## 4. Open design question: the callee's private communication channel
 
-**Agreed.** Every successfully serviced call creates a fresh process incarnation. Reusing an existing incarnation would change identity and shared-state semantics and therefore requires a separate, explicit rule; it is not implicit in `Call`.
+The callee's private communication channel is distinct from the argument channels passed to the call. The accepted custody rule for argument channels does **not** decide when this private channel is allocated.
 
-**Important consequence.** Fresh incarnation per successful call does not, by itself, decide when its communication channel is allocated, nor does it settle whether a caller can attempt channel interaction while the call is pending. It also does not settle when the caller's argument channels are transferred or reserved.
+Two designs remain possible:
 
-## Central unresolved question: call waiting versus channel waiting
+### Option A — allocate at call initiation
 
-A potentially long delay before service makes the distinction between the **call** and the **channel used to communicate with the callee** central. These are separate possible waiting points, and the semantics must say which one a process is waiting on.
+The engine creates the private channel when it records the call, even if the callee cannot yet be created. The call remains pending. Semantics would need to say what it means for the channel to exist before its peer process does.
 
-At least two designs remain possible:
+### Option B — allocate when the call is serviced
 
-### Option A — channel allocated when the call is initiated
+The engine keeps the call pending without creating the private channel. When service is possible, it creates the incarnation and channel, binds the endpoints, and completes the call.
 
-The engine allocates a fresh private channel when it records the call, even if the callee incarnation cannot yet be created. The call itself remains pending until service conditions are met. The channel exists as a pending rendezvous point, but the specification must still define whether interaction on it blocks, buffers, or is otherwise constrained before the callee starts.
+Neither option has been selected. Both preserve the agreed completion boundary: the call completes only when a fresh incarnation exists, required channels are bound, and the callee is ready to execute.
 
-**Benefit:** channel identity can be established early and retained across a long service delay.
+The next useful question is whether process semantics needs to name, pass, or interact with the private channel before the callee is ready. Until evidence establishes that need, there is no reason to force a choice.
 
-**Cost:** this introduces semantics for a channel whose peer process does not yet exist, and requires careful rules for cancellation, failure, and channel ownership during the pending interval.
+## 5. Explicitly deferred topics
 
-### Option B — channel allocated only when the call is serviced
+The following topics are outside the current phase and should not be mixed into the decisions above:
 
-The engine keeps the call pending without creating the callee's private communication channel. Once service is possible, it creates the incarnation and channel, binds the endpoints, and completes the call as one logical transition.
+- cancellation or permanently unserviceable calls;
+- failure policy and the eventual fate of held argument channels in such cases;
+- pool negotiation, transaction initiation, and resource reservation;
+- implementation structures, call paths, and mappings between AST/API representations.
 
-**Benefit:** a successfully returned call always has an established callee incarnation and channel binding; there is no live call channel without a callee.
+They can be revisited after the core successful-call semantics is clearer.
 
-**Cost:** any interaction through the callee's channel necessarily occurs after the call has completed, so a caller waiting for service is blocked on the call itself rather than on a not-yet-serviced channel.
-
-These are design alternatives, not claims about current OrgLang behavior. A hybrid is possible, but it would need to explain why channel identity exists before service and what guarantees that identity provides.
-
-### A related question: what happens to the caller's argument channels while pending?
-
-The channel allocated for communication with the callee is not the only relevant channel. The `Call` contract also maps existing channels to the callee's declared channel parameters. The rationale describes these mapped channels as transferred to the new incarnation, but does not fully specify the timing of that transfer when service is delayed.
-
-**Agreed working rule.** As soon as a call is initiated, the caller temporarily relinquishes the argument channels passed to the call. The engine holds them while the call is pending; the caller must not use them during this interval. This is stronger than merely reserving channels while leaving them usable by the caller.
-
-The motivation is semantic stability: a channel's type or protocol state may change while it is being used elsewhere, so allowing the caller to continue interacting with a channel already committed to a pending call could invalidate the assumptions under which the eventual callee receives it. The engine's custody prevents concurrent use by the caller while service is delayed.
-
-This rule settles the caller's permission to use those channels, but not every detail of custody. The precise ownership representation and whether the engine may inspect or transform the channels while holding them remain open. Cancellation and permanently unserviceable calls are explicitly out of scope for the current semantic phase. The intended successful outcome is that the channels are transferred into the new incarnation's environment when the call is serviced.
-
-### Decision status: intentionally unresolved
-
-**Open.** No choice has been made between early channel allocation and allocation at successful service. This is not yet a decision that needs to be forced: both designs can preserve the agreed rule that the call completes only after a fresh incarnation exists, its required channels are bound, and it is ready to execute.
-
-The next step is to clarify the intended meaning and use of the callee's communication channel, rather than choosing an option by preference alone. In particular, determine whether any part of the process semantics needs to name, pass, or interact with that channel before the callee is ready. If not, allocating it at successful service may be the simpler rule; if so, early allocation needs explicit semantics for the period before the peer exists.
-
-The question is therefore not simply whether the process blocks, but **what operation is pending**, what resource exists during that interval, and which event releases the caller. The specification should avoid an accidental design in which a call appears complete even though the caller's continuation is unable to use the channel it was promised.
-
-## Design constraints
-
-1. Establish process and engine semantics before inspecting implementation code.
-2. Treat `Call` as the current process-level request baseline; treat internal incarnation creation as a candidate engine operation.
-3. Keep call completion distinct from callee termination.
-4. Create a fresh incarnation for every successfully serviced call; do not infer reuse.
-5. Distinguish pending call service from channel interaction. While a call is pending, argument channels are held by the engine and cannot be used by the caller; separately decide when the callee's private communication channel is allocated and when the caller may proceed.
-6. Do not treat a pool agreement as a process-creation event.
-7. Defer pool negotiation, transaction initiation, resource reservation, cancellation, and failure policy except where a minimal rule is necessary to state the call contract.
-8. Do not use implementation details to settle semantic questions in this phase.
-
-## Remaining semantic agenda
+## 6. Next semantic questions
 
 In order of dependency:
 
-1. **Channel state during a pending call:** the caller's argument channels are temporarily held by the engine and unavailable to the caller. Further specify the custody contract and when the callee's private communication channel is allocated. Cancellation and permanently unserviceable calls are out of scope for this phase. Keep the agreed call-completion boundary unchanged.
-2. **Pending-call lifecycle:** define what keeps a pending call alive, and whether it can be cancelled or fail permanently.
-3. **Unavailable service:** decide whether the engine only waits for conditions to change or may initiate a transaction; this may belong to pool semantics, but the call contract must state what the caller observes.
-4. **Communication before callee startup:** if a channel can exist before the callee, define whether interaction blocks, buffers, or is disallowed.
-5. **Observable result:** specify what a serviced call gives the caller (for example, access to a private linear endpoint) without conflating that with a pool API's return value.
-6. **Semantic identity of `Spawn`:** after the above contract is clearer, determine whether a distinct semantic operation named `Spawn` is needed at all.
+1. **Private-channel timing:** determine whether the private communication channel needs to exist or be observable before the callee is ready.
+2. **Custody contract:** clarify what it means for the engine to hold argument channels, without revisiting the already agreed prohibition on caller-side use while pending.
+3. **Observable result of a serviced call:** specify what the caller receives or can use after successful service, without conflating this with a pool API return value.
+4. **Semantic identity of `Spawn`:** once the call contract is clearer, determine whether a distinct semantic operation called `Spawn` is needed.
 
-Conclusions should be promoted to normative rules only when they are explicitly agreed or supported by authoritative rationale. Implementation study is a later phase, after this semantic model is sufficiently stable.
+Implementation study is a later phase, after the semantic model is sufficiently stable.
