@@ -79,6 +79,12 @@ This introduction explains why these forms are useful; it is not a complete theo
 
 **This is the canonical statement of the intended language-level behavior.** The comparison with the publication and the implementation notes below provide evidence and caveats; they should not be read as alternative definitions of these operations.
 
+This section distinguishes two kinds of uncertainty:
+
+- **Intended but underspecified:** the broad behavior is stated here, but its precise rule, conditions, or edge cases still need to be written down and checked.
+- **Design question:** the available evidence does not settle which behavior or mechanism OrgLang should choose. This needs an explicit design decision, not just a more precise description.
+
+
 ### `Call`
 
 **Before:** the caller is executing a `Call` expression, with its current channel environment and a continuation `ContExp`.
@@ -87,7 +93,9 @@ This introduction explains why these forms are useful; it is not a complete theo
 
 **After:** the new incarnation can execute independently. The original caller remains active and continues with `ContExp`. Any existing channels passed as arguments retain their identity; this description does not imply that they are replaced.
 
-**Still unspecified:** the exact mapping and ordering between OrgLang's channel-argument fields and the target declaration's formal channels, and exactly how the channel associated with `NewChnlPH` is created or injected. This is the intended OrgLang contract, not a behavior proven by the current executor or by the publication's call rule. It does not assume that `Call` is implemented using `Spawn`.
+**Intended but underspecified:** `Call` starts a fresh incarnation and leaves the caller running its `ContExp`; existing argument channels keep their identity. The precise rule that maps actual channel arguments to the target declaration's formal channels has not been established.
+
+**Design questions:** what channel, exactly, `NewChnlPH` denotes in the call protocol, and whether that channel is allocated, supplied by the caller, or injected by another part of the runtime. The current evidence does not settle this mechanism. This description does not assume that `Call` is implemented using `Spawn`.
 
 ### `Link`
 
@@ -99,7 +107,9 @@ This introduction explains why these forms are useful; it is not a complete theo
 
 **After:** the channel itself and its existing client connection remain unchanged; the new incarnation provides that same channel. Control transfers to the new incarnation, and the old incarnation has no ordinary continuation.
 
-**Still unspecified:** when the old incarnation's remaining state is reclaimed, and how scheduling or failures are handled. This contract does not assume that `Link` is implemented using `Spawn`.
+**Intended but underspecified:** `Link` transfers provider responsibility for the existing channel to a fresh incarnation, with no ordinary continuation in the old incarnation.
+
+**Design questions:** when the old incarnation's remaining state is reclaimed, and what scheduling, failure, or rollback guarantees apply during the handoff. The current evidence does not establish those lifecycle guarantees. This contract does not assume that `Link` is implemented using `Spawn`.
 
 ### `Fwd`
 
@@ -107,7 +117,7 @@ This introduction explains why these forms are useful; it is not a complete theo
 
 **Operational intuition:** forwarding connects interactions across two existing channels; it is not a global renaming of channel names. The publication illustrates this with a sender that has a unit message pending on `c` and a receiver waiting on `d`. See Section 8 for the publication's forwarding example and trace.
 
-**Still unspecified:** a complete OrgLang transition rule covering both polarities, all pending-turn cases, and the resulting continuation state. The publication example illustrates the intended idea, but the inspected executor contains TODOs and has not been shown to implement every case correctly.
+**Intended but underspecified:** a complete OrgLang transition rule must cover both polarities, all pending-turn cases, and the resulting continuation state. The publication example gives useful intuition, but it does not settle every OrgLang case; the inspected executor contains TODOs and has not been shown to implement them all correctly.
 
 ### Summary
 
