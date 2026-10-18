@@ -10,11 +10,13 @@ This document focuses on processes and session types. Pool and transaction seman
 
 ## 2. Core concepts
 
-OrgLang processes communicate through **channels**. Each channel connects one provider, which offers a service, and one client, which uses that service. A process has one provider channel of its own and may use other channels as a client.
+OrgLang processes communicate through **channels**. Think of a channel as a connection between two roles: the **provider** offers a service, and the **client** uses it. Each process has one provider channel of its own and can use other channels as a client.
 
-A **process incarnation** is one running instance of a named process. A **channel placeholder** is a name used in an expression to refer to a channel; a placeholder environment maps those names to the actual channels in a running process.
+A named process is like a recipe. Each time it is started, that running copy is a **process incarnation**. A **channel placeholder** is a name in the process expression that stands for a channel; while the process runs, an environment tells us which actual channel each placeholder refers to.
 
-A **session type** describes the protocol allowed on a channel. As communication proceeds, the channel reaches a **residual session type**: the remaining protocol at the current point, which may differ from the initially declared type.
+A **session type** is the protocol for a channel: it says what kind of interaction is allowed next. The **residual session type** is the part of that protocol still to be performed at the current moment. For example, imagine a channel whose protocol is “send a request, then receive a response, then finish.” Before the request, its residual type describes the whole sequence. After the request has been sent and received, the residual type describes only “receive a response, then finish.” This matters for `Link`: the new process must be ready to continue the conversation **from its current point**, not restart the protocol from the beginning.
+
+**Linearity** means that a channel has exactly one provider and exactly one client; there must not be two competing providers or two competing clients for the same channel. This is why `Link` transfers the provider's responsibility for an existing channel rather than creating a second provider for it.
 
 The document distinguishes three evidence levels:
 
@@ -36,9 +38,7 @@ This is a **conceptual trace**, not literal OrgLang source code. It illustrates 
 
 ## 4. Process declarations and definitions
 
-A process declaration describes the channels a process uses: one provider channel and its client-side channels. A process definition associates a name with the expression that implements the process. Keeping the declaration separate from the definition matters: knowing the declared channels does not by itself establish that a process body exists or can be loaded at runtime.
-
-The implementation uses identifiers such as `TermQN`, `ProcQN`, and `ProcTermQN` for different references. Their exact relationships are documented in the implementation part below; they should not be treated as interchangeable.
+A **process declaration** describes the channels a process expects: one provider channel and any channels it uses as a client. A **process definition** gives the expression—the process body—that carries out the work. These are different things: a declaration can exist even when the repository does not establish that a usable body is stored or can be loaded. Go-specific names for these concepts are introduced in Part III.
 
 ## 5. Process expressions: the main families
 
@@ -81,9 +81,9 @@ This is only an orientation, not a complete typing definition. Detailed construc
 
 **Before:** the invoking process is providing a service on channel `X`, with caller-side placeholders `X` and `Ys` resolved in its channel environment.
 
-**Preconditions:** the target process definition is available and a fresh incarnation can be created. The channel supplied by `X` must have the same **current residual session type** as the target process's provider channel—not merely the same initial declared type.
+**Preconditions:** the target process definition is available and a fresh incarnation can be created. The channel supplied by `X` must have the same **current residual session type** as the target process's provider channel—not merely the same initial declared type. In plain terms, both sides must agree on what is supposed to happen next in the conversation. If the existing channel has already passed the request step, the new process must be ready for the response step, not for a new request.
 
-**Intended transition:** start a fresh incarnation of the named process, mapping `X` to its `LiabVar` and `Ys[i]` to `AssetVars[i]` in declaration order. Transfer provider-side responsibility for the existing channel `X` to the new incarnation.
+**Intended transition:** start a fresh incarnation of the named process, passing `X) as its provider channel and the channels named by `Ys` as its client channels, in declaration order. Transfer provider-side responsibility for the existing channel `X` to the new incarnation. The names `LiabVar` and `AssetVars` are Go implementation field names, explained in Part III; they are not needed to understand the language-level rule.
 
 **After:** the channel itself and its existing client connection remain unchanged; the new incarnation provides that same channel. Control transfers to the new incarnation, and the old incarnation has no ordinary continuation.
 
@@ -166,10 +166,10 @@ The main implementation locations inspected for this draft are:
 A process declaration is represented by `DecSpec` with fields:
 
 - `TermQN`: the declaration's qualified name;
-- `LiabVar`: the endpoint on which the process acts as provider;
-- `AssetVars`: endpoints on which it acts as client.
+- `LiabVar`: the provider-channel placeholder in the declaration;
+- `AssetVars`: the client-channel placeholders in the declaration.
 
-These provider/client descriptions come from comments in `proc/termdec/core/core.go`. For `Link`, the author confirms that `Ys[i]` maps to `AssetVars[i]` in declaration order.
+These interpretations are supported by comments in `proc/termdec/core/core.go`. For language-level `Link`, the intended mapping is that `X) supplies the channel for `LiabVar`, and `Ys[i]` supplies the channel for `AssetVars[i]` in declaration order. The names are implementation terminology only.
 
 A process definition is represented by `DefSpec{ProcQN, ProcES}`; `DefRec` contains a `Ref`. The inspected `Create`/ `Retrieve` implementation in `proc/termdef/core/core.go` appears to be a stub, so this representation alone does not establish the persistence contract.
 
@@ -222,7 +222,7 @@ The process session-type AST contains these constructors:
 | `DownSpec` | `Cont` | zero / neutral |
 | `LinkSpec` | `TypeQN` | zero / neutral |
 
-The polarity assignments above reflect the inspected implementation in `proc/typeexp/core/core.go`; they should not be read as a complete typing definition.
+The polarity assignments above reflect the inspected implementation in `proc/typeexp/core/core.go`; they should not be read as a complete typing definition. Here, **polarity** is the implementation's positive/negative/neutral classification of a session type. It is relevant to how the implementation handles a protocol action, but the table alone does not explain or prove all operational cases.
 
 At the AST level, process `Plus`/`With` choices are represented as label-indexed alternatives. The exact normalization and lookup rules for type references, and how `Up`/`Down` are unfolded, remain to be confirmed.
 
