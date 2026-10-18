@@ -67,15 +67,13 @@ The repository also contains AST constructors for `Spawn`, `Acqure`, `Accept`, `
 
 ## 6. Session types: the protocol for a channel
 
-A session type describes the sequence and choices of interactions allowed on a channel. The constructors found in the implementation include:
+A session type describes what may happen next at one end of a channel. In the running example, the client must send a request and later receive a response. The provider must receive the request and later send the response. These are complementary views of the same conversation; each endpoint's residual type changes as its next action is completed (see Sections 2–3).
 
-- `One`: a protocol that has finished.
-- `Tensor` and `Lolli`: forms associated with sending or receiving a channel and then continuing.
-- `Plus` and `With`: forms with labelled alternatives.
-- `Up` and `Down`: protocol-shifting forms whose detailed role needs further verification in this repository.
-- Type-level `Link`: a reference to another type definition, distinct from the process expression also named `Link`.
+A protocol can also pass a channel between processes. The sender gives the other process a channel it can use to communicate; the receiver gains access to that channel for the rest of its process. The implementation names the relevant session-type forms `Tensor` and `Lolli`. Their exact typing conditions and the way each name corresponds to a direction are recorded in Part III rather than assumed here.
 
-This is only an orientation, not a complete typing definition. Detailed constructor fields, polarity assignments, checker coverage, and source discrepancies are collected in Part III.
+Protocols may also allow a choice between labelled alternatives. The implementation uses `Plus` and `With` for these forms, and `One` for a finished protocol. The implementation contains `Up` and `Down` too, but their meaning in OrgLang is still being investigated. Type-level `Link` refers to another type definition; it is different from the process expression `Link`, which is described in Section 7.
+
+This introduction explains why these forms are useful; it is not a complete theory of session types. Part III contains the constructor inventory, observed polarity assignments, checker coverage, and open questions.
 
 ## 7. Intended semantics of named-process operations
 
