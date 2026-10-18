@@ -111,6 +111,21 @@ For example, if a process needs a helper to perform work and then continue, that
 
 These are language-level descriptions. The implementation evidence later in the document does not yet establish complete execution paths for all three operations.
 
+A schematic view (not OrgLang source syntax):
+
+```text
+Call:  caller ── invokes ──> fresh process
+       caller ── continues through its continuation
+
+Link:  old provider ── same channel ──> new process takes over
+       control transfers; no ordinary caller continuation
+
+Fwd:   interaction on channel A ── forwarded to ──> interaction on channel B
+       no named-process invocation is implied
+```
+
+The arrows summarize the intended distinctions only. They do not specify scheduling order, internal data structures, or a proven implementation strategy.
+
 ### User-facing operations and internal process creation
 
 - **Call:** invokes a named process; in the current OrgLang model, the caller continues after the call.
