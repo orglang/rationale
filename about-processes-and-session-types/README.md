@@ -153,211 +153,106 @@ The current evidence supports treating execution as a stateful transition over a
 
 The first fully formalized rules should be limited to constructors whose typing and execution branches have both been checked end-to-end. Rules for calls and resource-management constructs should remain explicitly unspecified until their intended and implemented contracts are reconciled. `Spawn` is deferred to the pool-level analysis. `Link` should be investigated alongside recursive process definitions/calls, not conflated with `Fwd`.
 
-## 9. Preliminary design direction: named-process calls
+## 9. Intended semantics of named-process operations
 
-`Link` and `Call` both refer to named-process behavior, but they are not interchangeable syntax: `CallSpec` has a `ContExp` field, while `LinkSpec` has no continuation expression. This difference must be preserved in the language model unless a formal rule establishes an equivalent continuation mechanism for `Link`. Recursion may still be a property of the dependency graph among process definitions rather than a separate recursive-only construct; that question is distinct from the `Link`/`Call` continuation distinction.
+This section states the intended OrgLang behavior independently of Go structures. The rules are preliminary: they record the design clarified so far, while leaving unresolved details explicit.
 
-This choice avoids making call behavior depend on whether the source expression happens to occur inside a definition. Context may still constrain whether a call is well-typed or executable, but the construct should not acquire unrelated meanings merely from its syntactic location unless the language rationale requires that distinction.
+### Shared concepts
 
-The supplied publication gives a useful reference model for named-process calls: a call `a ← p b` reduces `proc(a ← p b)` to `proc(P[a/x, b/y])` when the process definition `x ← p y = P` is in the definition environment. In this notation, `p` names the process definition; `a`, `b`, `x`, and `y` are channel names/placeholders in the call and definition. These letters should keep the roles assigned by the publication and must not be repurposed as identifiers for OrgLang process incarnations. The rule substitutes the actual channel names for the definition's placeholders and replaces the call term with the instantiated body in the publication's abstract configuration. This rule does not explicitly describe what happens to the calling process: it says nothing here about whether that process continues, stops, or is represented separately. It should therefore be used only as a comparison point for channel-name substitution, not as evidence for OrgLang's control-flow semantics. In OrgLang, invocation creates a new process incarnation connected to the invoking process through channels, and the `Call` specification includes a `ContExp` for the caller's continuation.
+- A **process incarnation** is one running instance of a process.
+- A **channel** connects exactly one provider and one client.
+- A **placeholder environment** maps channel-placeholder names in an expression to the actual channels they refer to.
+- A **residual session type** is the session type a channel has reached at the current point in the protocol, not necessarily its initial declared type.
 
-OrgLang's intended call semantics should not be collapsed into the publication's single-process replacement rule: invocation creates a new process incarnation connected to the invoking process through channels, and the invoking process continues through `ContExp`. This continuation is part of the intended language-level behavior; how snapshots, runtime components, channels, and pool state realize the transition remains an implementation question. Pool-level `Spawn` stays a distinct operation.
+### Call
 
-Pool-level `Spawn` has a concrete, separate role in the current implementation: its specification carries a process-declaration reference and optional references to existing process incarnations (`ProcCompRefs`). The pool adapter converts those references at the API boundary. This supports keeping pool-level instantiation/injection distinct from process-level named invocation. It does not by itself establish that `Call` and `Spawn` have identical lifecycle semantics.
+**In simple terms:** Call starts a fresh incarnation of the named process. The caller specifies a placeholder through which a fresh channel is made available to it, so the caller and callee can communicate. The callee starts executing independently, while the caller continues through its continuation.
 
-The author has clarified the intended mapping for `LinkSpec`: `X` corresponds to the declaration's `LiabVar` (the new process's provider endpoint), and `Ys[i]` corresponds positionally to `AssetVars[i]` (the new process's client endpoints). The invoking process supplies the actual channels by naming its own channel placeholders; those actual channels are then passed, connected, or injected into the new incarnation according to the declaration's provider/client roles. Thus the mapping is positional, and `Ys` preserves the order of `AssetVars`.
+**Preconditions and transition:**
 
-There is also an important representation distinction: `symbol.ADT` represents a channel-placeholder name, while `identity.ADT` represents a channel identifier. Since `LinkSpec.X` and `LinkSpec.Ys` are currently typed as `identity.ADT`, this may be an implementation mismatch with the intended semantics. It is not yet proven to be a defect: we must check whether placeholder resolution is meant to happen before constructing `LinkSpec` or whether these fields should instead retain placeholder symbols. The supplied publication's call syntax `a ← p b₁ … bₙ` is a comparison point, not independent evidence for OrgLang's exact representation.
+1. The named process definition is available, and a fresh incarnation can be created.
+2. Create a fresh communication channel and make it available to the caller through the placeholder specified by the call.
+3. Start a fresh incarnation of the named process, connecting it to the caller according to the call/declaration contract.
+4. Continue the caller with the call's continuation.
 
-### Evidence note: pool spawning versus process-level invocation
+The exact role and ordering of any additional channel arguments, and their correspondence to formal channel parameters, remain open. This rule intentionally does not assign semantics to individual Go fields.
 
-The inspected pool expression API has a `Spawn` form whose implementation-level specification carries a process declaration reference (`ProcTermRef`) and optional references to process incarnations (`ProcCompRefs`). The `test/e2e/pool_test.go` scenarios use pool-level `Spawn` to instantiate a declared process and, in some cases, supply existing process incarnations as dependencies. This is evidence for a distinct pool-level instantiation operation in the current implementation, not yet a normative language rule.
+### Link
 
-By contrast, the process-level `Call` scenario uses a process name, a binding placeholder, channel placeholders, and a continuation. However, that scenario is not invoked by `TestPool`, its expected-result assertion is a TODO, and it creates the callee declaration without creating a corresponding process definition. It cannot establish the semantics of a complete call. The process definition API's inspected `Create` and `Retrieve` methods are stubs, which further limits conclusions from this path.
+**In simple terms:** Link starts a fresh incarnation and hands it the existing provider channel of the invoking process. The channel and its client connection stay the same; the new incarnation takes over providing that channel. Control transfers to the new incarnation rather than continuing in the old one.
 
-The intended direction is that process-level invocation creates a new incarnation connected to the invoking process through channels. For `Call`, the new incarnation begins executing independently and the invoking process may continue via `ContExp`. `Link` has no `ContExp`, so its control-flow rule must differ or obtain continuation behavior through some other explicit mechanism; the absence of this field alone does not establish that the invoking process terminates. Current pool API fields are clues about implementation boundaries, not a basis for deciding that question.
+**Preconditions and transition:**
 
-### Preliminary operational rules for `Call` and `Link`
+1. The named process definition is available, and a fresh incarnation can be created.
+2. Resolve the caller-supplied placeholders in the invoking process's placeholder environment. X supplies the existing provider channel for the target process's LiabVar; each Ys[i] supplies the channel for AssetVars[i], in declaration order.
+3. At the point Link is invoked, the target process's provider channel must have exactly the same **current residual session type** as the existing channel supplied by X.
+4. Start the fresh incarnation with those channels, transferring provider-side ownership of the existing channel to it. The channel itself and its existing client's connection remain unchanged.
+5. Transfer control to the new incarnation. There is no ordinary caller continuation.
 
-These rules state the intended language-level distinction. They are not claims about the completeness of the current Go implementation.
+The transition preserves linearity: every channel has exactly one provider and one client. This rule does not specify when the old incarnation's remaining state is reclaimed, or define scheduling and failure behavior.
 
-#### `Call`
+### Why Call, Link, and Fwd are distinct
 
-A call creates a fresh process incarnation and starts its body independently. The invoking process continues through `ContExp`.
+- **Call:** starts a fresh incarnation; the caller continues.
+- **Link:** starts a fresh incarnation; provider ownership of an existing channel and control transfer to it.
+- **Fwd:** remains a separate forwarding operation. The analogy Link ≈ Call + Fwd is an intuition only, not an established equivalence.
 
-**Preconditions**
+### Implementation correspondence (evidence, not semantics)
 
-- The named process definition is available.
-- A fresh process-incarnation identifier can be chosen.
-- The call's actual channel arguments can be matched to the declaration's formal channel parameters, preserving provider/client roles and the declaration's parameter order.
+The current Go AST uses names such as CallSpec, LinkSpec, BindChnlPH/NewChnlPH, and ValChnlPHs. These names describe the present representation; they are not terms in the rules above.
 
-**Transition**
+The inspected call example in test/e2e/pool_test.go is inconclusive: its result assertion is a TODO, the callee declaration has no corresponding process body, and the process-definition persistence methods inspected so far are stubs. The adapter maps external BindChnlPH to internal NewChnlPH and does not preserve ContExp when reconstructing CallSpec. Therefore, current code does not confirm the complete call transition or the mapping of additional channel arguments.
 
-1. Instantiate the callee body by substituting the actual channels for the corresponding formal channel placeholders.
-2. Add a fresh process incarnation running that instantiated body.
-3. Continue the invoking process with `ContExp`.
+For Link, the intended meaning is that X and Ys name placeholders in the invoking process, but the inspected AST types these fields as identity.ADT channel identifiers rather than symbol.ADT placeholder names. No complete adapter or executor path for Link was found in the inspected code. This is a likely representation inconsistency if placeholder resolution is expected at this stage; the intended fix should not be chosen without tracing where resolution is meant to occur.
 
-At the language level, the caller specifies a placeholder into which a fresh channel is made available for communication with the callee. The callee runs as a fresh process incarnation, and the caller continues through `ContExp`; these are distinct parts of the call transition. The intended role of any additional channel arguments, and their exact correspondence to the callee's formal channel parameters, still needs confirmation.
+Pool-level Spawn remains distinct: its inspected API carries a process declaration reference and optional references to existing process incarnations. This is evidence about the current pool API, not a reason to define process-level Call and Spawn as the same operation.
 
-**Implementation note (not part of the formal rule).** The Go AST and an illustrative scenario in `test/e2e/pool_test.go` use fields named `BindChnlPH`/`NewChnlPH` and `ValChnlPHs`. The example is inconclusive: its result assertion is a TODO, the callee declaration has no corresponding process body, and the inspected process-definition persistence methods are stubs. The adapter also maps the external `BindChnlPH` to internal `NewChnlPH` and does not preserve `ContExp` in the constructed `CallSpec`. These are implementation observations, not definitions of OrgLang semantics. Do not infer a complete positional mapping from these fields alone.
+## 10. Comparison with the supplied publication
 
-#### `Link`
+The supplied publication gives the call rule:
 
-`Link` creates a fresh incarnation but transfers control to it without an ordinary caller continuation.
+    proc(a ← p b) → proc(P[a/x, b/y])
 
-**Preconditions**
+when the definition x ← p y = P is present in the definition environment. Here p names the process definition, and a, b, x, and y are channel names/placeholders in the call and definition. The rule substitutes actual channel names for the corresponding formal names and replaces the call term with the instantiated body in the publication's abstract configuration.
 
-- The named process definition is available, and a fresh process incarnation can be created.
-- Resolve `X` and `Ys` in the invoking process's placeholder environment. `X` supplies the existing provider channel for the new process's `LiabVar`; `Ys[i]` supplies the channel for `AssetVars[i]`, in declaration order.
-- The new process's provider channel has exactly the same **current residual session type** as the invoking process's provider channel.
+That rule does not explicitly describe what happens to a calling process: it does not say here whether that process continues, stops, or is represented separately. Use it as a comparison for channel-name substitution only, not as evidence for OrgLang control-flow semantics. OrgLang's intended Call starts a new incarnation and has the caller continue through its continuation.
 
-**Transition**
+The author also supplied these publication forwarding rules:
 
-1. Instantiate and start a fresh incarnation of the named process with those channel parameters.
-2. Transfer provider-side ownership of the existing channel named by `X` to the new incarnation. The channel itself and its unique client's connection to it remain unchanged.
-3. Preserve linearity: each channel has exactly one provider and exactly one client.
-4. Transfer control to the new incarnation; the invoking incarnation has no ordinary `ContExp` to run.
+    proc(d⁺ m ← c⁺ m) → !⁺mmsg(d⁺m, c⁺m)   id: forward+
+    proc(d⁻ m ← c⁻ m) → !⁻msrv(d⁻m, c⁻m)   id: forward−
 
-The client can continue the same protocol on the same channel because the new incarnation takes over providing it with the same residual session type. This rule does not specify when the old incarnation's remaining state is reclaimed, or define failure and scheduling behavior.
+In OrgLang, the publication's msg maps to pub, and srv maps to sub. In the inspected implementation, PubRec stores a ValExp (publication/message action) and SubRec stores a ContExp (subscription/service continuation). The Fwd executor examines channel polarity and pending communication turns, redirecting the relevant turn; if none is pending, it records a publication or subscription turn carrying a forwarding record. Some source branches still contain TODOs, so this is not a complete correctness proof.
 
-#### Summary
+This evidence supports reading Fwd as polarity-sensitive forwarding/mediation, not as generic global replacement of channel identifiers. It does not prove that Link is operationally equivalent to Call followed by Fwd.
 
-- **Call:** create and run a new incarnation; the caller continues with `ContExp`.
-- **Link:** create and run a new incarnation; transfer the existing provider channel and control to it; no ordinary caller continuation.
-- **Fwd:** remains a distinct forwarding operation. The analogy `Link ≈ Call + Fwd` is explanatory only and is not asserted as an equivalence.
+## 11. Other implementation observations
 
-### Publication rules for forwarding
+The inspected process execution path loads an execution snapshot, collects declarations and type definitions, builds a type context, checks the expression, dispatches it, persists the resulting changes, and may schedule a continuation. The dispatcher currently has branches for Close, Wait, Send, Recv, Lab, Case, and Fwd, but not for Call, Spawn, Link, Acqure, Accept, Detach, or Release. This describes the inspected implementation, not by itself a conclusion about the language design.
 
-The author supplied these forwarding rules from the session-types publication:
+Other adapter discrepancies observed during inspection include:
 
-```text
-proc(d⁺ m ← c⁺ m) → !⁺mmsg(d⁺m, c⁺m)   id: forward+
-proc(d⁻ m ← c⁻ m) → !⁻msrv(d⁻m, c⁻m)   id: forward−
-```
+- MsgFromExpSpec has no Link branch.
+- MsgToExpSpec reconstructs CallSpec without CommChnlPH and ContExp; it also reconstructs LabSpec without its ContExp.
+- Case-expression conversions appear to read label data from a fixed Lab field rather than the current branch entry.
+- Some send/receive record conversions do not preserve channel fields symmetrically.
 
-In OrgLang, the publication's `msg` and `srv` actions map to `pub` and `sub`, respectively. This gives a concrete cross-language correspondence for interpreting the forwarding rules: the positive rule's message action corresponds to `pub`, and the negative rule's service action corresponds to `sub`.
+These are source-level findings whose runtime impact has not been established. Focused tests and complete call-path analysis are needed before proposing implementation changes. This research task does not modify orglang/go-engine.
 
-Keep the publication's rules as source evidence rather than silently treating them as OrgLang rules. The exact meanings of the polarity markers and indexed symbols should be read from the surrounding publication definitions before deriving a stronger claim about endpoint replacement or channel rewiring.
+## 12. Open questions for the next verification pass
 
-For OrgLang `Link`, this suggests that its channel-proxying effect may be understood through the forwarding behavior represented by `pub`/`sub`, while `Link` additionally creates a new process incarnation and transfers control. These rules alone do not prove that OrgLang `Link` is formally equivalent to `Call` followed by `Fwd`, or that `Fwd` itself mutates channel identity; that equivalence requires the surrounding semantics and linearity invariants.
+1. What is the precise relationship among TermQN, ProcQN, ProcTermQN, declaration references, and expression identity?
+2. What is the intended relationship among process-level invocation, pool-level Spawn, and the pool model?
+3. For Call, what are the role and ordering of additional channel arguments, and how do they map to formal channel parameters?
+4. Where should name resolution, recursion checks, and type checks be enforced?
+5. Are type-level Link, Up, and Down resolved before the currently observed type-checking cases?
+6. What are the contracts of Acqure, Accept, Detach, and Release?
+7. What are the full invariants for ChnlBS, provider/client orientation, and linear-context updates?
+8. Are the conversion asymmetries listed above reachable in actual execution, and which tests can establish their impact?
+9. What exact transition semantics do subscription/publication and exchange-turn records implement?
+10. Must all branches of a Case preserve equivalent linear contexts, and where is that enforced?
+11. What lifecycle, failure, and scheduling guarantees apply when Link transfers control?
 
-### Comparison with OrgLang `pub`/`sub` and `Fwd`
+## 13. Non-goals
 
-In the inspected `orglang/go-engine` source, the process communication-turn representation aligns with the author's mapping: `PubRec` stores a `ValExp` (the publication/message action), while `SubRec` stores a `ContExp` (the subscription/service continuation). The process executor's `FwdSpec` branch reads the forwarding endpoint's current session-type polarity and examines the next communication turn on that channel.
-
-The inspected implementation behaves schematically as follows:
-
-- With positive polarity, a waiting `SubRec` is redirected to the forwarding expression's communication channel; a pending `PubRec` is redirected to its continuation channel; if no turn exists, the forwarder records a `PubRec` carrying a `FwdRec`.
-- With negative polarity, the redirection targets are reversed for the existing `SubRec`/`PubRec` cases; if no turn exists, the forwarder records a `SubRec` carrying a `FwdRec`.
-- The branches update linear-variable bindings and schedule the affected peer's continuation where applicable. Some channel-side fields remain marked `TODO` in the implementation, so these observations are not a complete correctness proof.
-
-This supports interpreting `Fwd` as a polarity-sensitive operation that connects the pending publication/subscription protocol action across two endpoints, rather than as a generic global replacement of channel identifiers. It is a useful implementation comparison for `Link`'s provider-channel handoff, but does not yet establish that the whole `Link` transition can be implemented by simply composing the existing `Call` and `Fwd` branches. In particular, `Link` must create the new incarnation, transfer control, preserve the one-provider/one-client invariant, and ensure compatibility with the client's current residual session type.
-
-### Trace of channel placeholders versus channel identifiers
-
-The inspected process AST and execution snapshot expose a concrete distinction:
-
-- Ordinary expression specifications such as `CallSpec` use `symbol.ADT` for fields such as `NewChnlPH` and `ValChnlPHs`. These are placeholder names, and the execution snapshot's `LinearVars` is keyed by `symbol.ADT`; for example, the `Send` executor looks up `execSnap.LinearVars[termExp.ValChnlPH]` to resolve a placeholder to its current linear-channel record, which contains a channel identifier.
-- Stored/runtime records use `identity.ADT` for resolved channel IDs in fields such as `SendRec.ValChnlID` and `ContChnlID`. The adapter explicitly converts between placeholder symbols and stored channel identities in the relevant paths.
-- `LinkSpec.X` and `LinkSpec.Ys`, however, are currently typed as `identity.ADT`/`[]identity.ADT`, while the author's intended meaning is that the invoking process names the placeholders from which the actual channels are obtained. `LinkSpec.Via()` also returns an empty symbol, and the inspected expression adapter has no `Link` conversion branch; the process executor has no `Link` branch either.
-
-This is a concrete representation mismatch **if** `LinkSpec.X` and `Ys` are supposed to carry caller-side placeholder names at the AST/expression-spec stage. A possible alternative is that the design intends these fields to carry already-resolved channel IDs and resolve them through another mapping, but no such path has been established in the inspected code. The evidence therefore supports flagging the current type choice as a likely implementation inconsistency with the stated intent, not yet declaring the correct fix. A focused follow-up should decide whether the AST fields should be `symbol.ADT`/`[]symbol.ADT`, then trace serialization and resolution before changing `go-engine` (which is out of scope for this rationale-only work).
-The author has clarified the exact typing condition for `Link`: the new process's provider channel, declared in `Dec`, must have exactly the same session type as the invoking process's provider channel at the moment `Link` is invoked. This is equality of the current residual session type, not merely compatibility of the initial declared types. If the old provider channel has residual type S at the transition point, the new provider channel must also have type S, allowing the existing client to continue the same protocol without changing its expected session type.
-
-### Preliminary operational rule for `Link`
-
-This is the intended abstract language-level rule. It describes process/channel behavior, not the Go representation or a required implementation strategy.
-
-**Preconditions**
-
-- The named process definition is available, and a fresh process incarnation can be created.
-- Resolve `X` and `Ys` in the invoking process's placeholder environment. `X` supplies the actual channel for the new process's `LiabVar`; `Ys[i]` supplies the actual channel for `AssetVars[i]`, in declaration order.
-- The new process's provider channel has exactly the same **current residual session type** as the invoking process's provider channel.
-
-**Transition**
-
-- Create and start a fresh incarnation of the named process, instantiating its channel parameters from those actual channels.
-- Transfer the existing provider channel named by `X` into the new incarnation as its `LiabVar`; the channel and its existing client connection remain unchanged. No client reconnection is required.
-- Preserve linearity: each channel has exactly one provider and exactly one client.
-- Transfer control to the new incarnation. There is no ordinary continuation of the invoking incarnation; `Link` has no `ContExp`.
-
-**Result and limits**
-
-The existing client can continue the same protocol on the same channel because the new incarnation takes over providing that channel, with the same residual session type. This rule does not specify when the old incarnation's stored state is reclaimed, nor does it define failure or scheduling behavior. The analogy `Link ≈ Call + Fwd` is explanatory only; the rule does not require that decomposition.
-
-## 10. Open questions for the next verification pass
-
-1. What is the precise relationship among `TermQN`, `ProcQN`, `ProcTermQN`, declaration references, and expression identity?
-2. (Resolved for `Link`.) `Ys[i]` corresponds to `AssetVars[i]` in declaration order.
-3. What is the intended semantic relationship between named-process invocation, process creation (`Spawn`), and the pool model, and which parts belong to each layer?
-4. (Partly resolved.) The intended `Link` transition is stated in the rule above. Remaining open: lifecycle of the old incarnation's state, and any failure/scheduling guarantees beyond the abstract transition.
-5. Where should name resolution, recursion checks, and type checks be enforced? The language-level meaning of `LinkSpec.X` and `Ys` is settled: they name placeholders in the invoking process; the Go field-type discrepancy is an implementation issue.
-6. (Partly resolved.) `Call` starts a fresh process incarnation and makes a fresh communication channel available in a caller-specified placeholder; the caller continues through `ContExp`. Still open: define the semantic role and ordering of any additional channel arguments passed to the callee. Go field names such as `BindChnlPH` and `ValChnlPHs` are implementation notes, not formal-language terms.
-7. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
-8. What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
-9. What are the full invariants for `ChnlBS`, provider/client orientation, and linear-context updates?
-10. Are the conversion asymmetries listed above reachable in the actual execution path, and which tests can establish their impact?
-11. What exact transition semantics do subscription/publication and exchange-turn records implement?
-12. Must all branches of a `Case` preserve equivalent linear contexts, and where is that enforced?
-
-## 11. Non-goals
-
-This draft does not define pool or transaction semantics, resource-allocation policy, fairness, deadlock freedom, or a complete metatheory (such as preservation/progress). Those require a separate pass over the pool/transaction implementation and rationale.
-
-
-
-## Author clarification: invocation creates a new process incarnation
-
-The language author has confirmed the following intended call semantics:
-
-- Invoking a named process creates a **new process incarnation** connected to the invoking process through channels. Invocation is not merely textual substitution/unfolding inside the existing incarnation.
-- The new incarnation begins executing independently of the invoking process.
-- The invoking process may continue along `ContExp`.
-- The call's channel arguments connect the new incarnation to the invoking process according to the call/declaration contract. The positional mapping is established: `X` corresponds to `LiabVar`, and `Ys[i]` corresponds to `AssetVars[i]`.
-
-This settles the intended control-flow direction and positional channel mapping at a conceptual level. It does not specify scheduling guarantees, failure behavior, or lifecycle details.
-
-Keep the following boundaries explicit:
-- **Established design direction:** `Call` creates a new incarnation; it begins executing independently; the invoking process may continue via `ContExp`; channels connect the two. `Link` differs from `Call` in that its AST has no `ContExp`.
-- **Established at the abstract level:** `Link` transfers control to a new incarnation and does not schedule an ordinary continuation for the invoking process.
-- **Still open:** remaining typing premises beyond provider session-type equality, scheduling and persistence details, and failure/lifecycle rules.
-- **Separate operation:** pool-level `Spawn` remains distinct from process-level named invocation.
-- **Implementation evidence only:** existing Go structures and pool APIs may inform implementation choices but do not determine the intended semantics by themselves.
-
-
-## 12. A simple shared model for process transitions
-
-We can describe `Call` and `Link` without introducing a large formal configuration. For now, use three basic ideas:
-
-- **Process incarnation:** one running instance of a process.
-- **Channel:** a connection with exactly one provider and exactly one client.
-- **Placeholder environment:** the mapping from channel-placeholder names used in a process expression to the actual channels they refer to.
-
-A placeholder is a name used by the expression; the channel is the connection that name resolves to. For `Link`, resolve `X` and each entry in `Ys` in the invoking process's environment before starting the target process.
-
-### `Call`
-
-1. Find the named process definition.
-2. Create a fresh process incarnation and supply its channels according to the call/declaration contract.
-3. Start the new incarnation.
-4. Let the invoking process continue with `ContExp`.
-
-The exact field-by-field mapping from `CallSpec` to declaration parameters remains unspecified.
-
-### `Link`
-
-1. Find the named process definition.
-2. Resolve `X` and `Ys` in the invoking process's placeholder environment. `X` supplies the target process's provider channel; `Ys[i]` supplies its client channels in declaration order.
-3. Require the target provider channel to have the same **current residual session type** as the existing channel named by `X`.
-4. Start a fresh incarnation and transfer provider-side ownership of that existing channel to it. The channel and its client connection do not change.
-5. Transfer control to the new incarnation; there is no ordinary caller continuation.
-
-Throughout the transition, each channel still has exactly one provider and one client. The lifecycle of the old incarnation's remaining state is not specified here.
-
-### Why these constructs differ
-
-- **Call** starts a new incarnation and the caller continues.
-- **Link** starts a new incarnation, transfers provider ownership of an existing channel, and transfers control.
-- **Fwd** remains a separate forwarding operation. The analogy `Link ≈ Call + Fwd` is only an intuition, not a proven equivalence.
-
-This is the current level of detail needed to state the intended behavior. We can add formal notation later, only where it makes a rule clearer.
+This draft does not define pool or transaction semantics, resource-allocation policy, fairness, deadlock freedom, or a complete metatheory (such as preservation/progress). Those require a separate pass over the pool/transaction implementation.
