@@ -6,19 +6,7 @@
 
 ## 1. Scope and evidence
 
-The primary implementation locations inspected for this draft are:
-
-- `proc/termdec/core/core.go`
-- `proc/termdef/core/core.go`
-- `proc/termexp/core/core.go`
-- `proc/typeexp/core/core.go`
-- `proc/compexec/core/core.go`
-- `proc/termexp/adapter/tc.go`
-- `proc/termexp/core/ds.go`
-
-This is a description of the process/session-type layer. Pool and transaction semantics are not formalized here, but pool-level process creation is inspected where necessary to understand the boundary between invocation and spawning.
-
-
+This document focuses on processes and session types. Pool and transaction semantics are not formalized here, although pool-level process creation is considered where necessary to understand the boundary between invocation and spawning.
 
 ## 2. Core concepts
 
@@ -34,7 +22,13 @@ The document distinguishes three evidence levels:
 - **Tentative**: a plausible interpretation, but the complete call path or invariant has not been verified.
 - **Open**: the inspected implementation does not establish the contract.
 
-## 3. Process-expression syntax
+## 3. Process declarations and definitions
+
+A process declaration describes the channels a process uses: one provider channel and its client-side channels. A process definition associates a name with the expression that implements the process. Keeping the declaration separate from the definition matters: knowing the declared channels does not by itself establish that a process body exists or can be loaded at runtime.
+
+The implementation uses identifiers such as `TermQN`, `ProcQN`, and `ProcTermQN` for different references. Their exact relationships are documented in the implementation part below; they should not be treated as interchangeable.
+
+## 4. Process-expression syntax
 
 The inspected process AST defines the following constructors and fields:
 
@@ -56,7 +50,6 @@ The inspected process AST defines the following constructors and fields:
 | `ReleaseSpec` | see source | Contract open |
 
 The table is a syntax inventory, not a claim that all constructors are executable.
-
 
 ## 4. Session-type syntax and polarity
 
@@ -81,17 +74,9 @@ The current process-level `CheckSpec` and `CheckRec` implementations explicitly 
 
 One concrete source discrepancy exists in `pool/typeexp/core/tc.go`: the `DownSpec` conversion constructs and returns `UpRec` rather than `DownRec`. Also, the `PlusSpec` conversion composes a value key but does not check/return the `Compose` error in the same way as neighboring branches. These are implementation findings only; they should be validated with focused tests and should not be used to define the intended type semantics.
 
-
 ## 5. Intended semantics of named-process operations
 
 This section states the intended OrgLang behavior independently of Go structures. The rules are preliminary: they record the design clarified so far, while leaving unresolved details explicit.
-
-### Shared concepts
-
-- A **process incarnation** is one running instance of a process.
-- A **channel** connects exactly one provider and one client.
-- A **placeholder environment** maps channel-placeholder names in an expression to the actual channels they refer to.
-- A **residual session type** is the session type a channel has reached at the current point in the protocol, not necessarily its initial declared type.
 
 ### Call
 
@@ -172,7 +157,6 @@ The important point is that forwarding is shown as an interaction between a forw
 
 Neither this example nor the other discussion in this section establishes that OrgLang's `Link` is equivalent to `Call` followed by `Fwd`.
 
-
 ## Part III. Implementation evidence and open questions
 
 ## 7. Implementation map: process declarations and definitions
@@ -196,7 +180,6 @@ Keep these names distinct until their relationships are demonstrated by code. In
 
 Do not assume these identifiers are interchangeable.
 
-
 ## 8. Typing interface
 
 The execution path in `proc/compexec/core/core.go` loads the current execution snapshot, builds a type environment from relevant process declarations and type definitions, derives a context from the snapshot's linear channel variables, and calls `checkType` before dispatching the expression to the executor.
@@ -218,7 +201,6 @@ This table is intentionally not a formal typing judgment. In particular, it does
 
 The inspected `CheckSpec`/`CheckRec` handling explicitly covers `One`, `Tensor`, `Lolli`, `Plus`, and `With`; `Link`, `Up`, and `Down` appear to reach an unsupported-constructor panic in the default branch. Whether normal execution resolves or unfolds these constructors before this code is reached is an open question, not yet a confirmed runtime bug.
 
-
 ## 9. Execution and communication
 
 At a high level, the inspected `Take` path is:
@@ -236,7 +218,6 @@ Communication is not necessarily completed in one pass. For example, when the co
 
 This is an implementation-level description. The exact transition relation, message ownership, and invariants for subscriptions, publications, and exchange turns still need to be formalized from all producer/consumer call paths.
 
-
 ## 10. Representation and serialization caveats
 
 The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. In the inspected version, `MsgFromExpSpec` has no `Link` branch; `MsgToExpSpec` has a `Call` branch, but reconstructs `CallSpec` without `CommChnlPH` and `ContExp`. The executor has no `Call` or `Link` branch. The `call` scenario in `test/e2e/pool_test.go` constructs a caller and a call expression, but the top-level `TestPool` does not run it (the subtest is commented out); the scenario also leaves its result assertion as a TODO and creates the callee declaration without defining a callee body. It therefore does not establish a successful call transition, even if run separately. These observations describe the current implementation and evidence limits; they do not establish that `Call` is independently implementable or that the missing branches are defects, because call semantics may depend on the unresolved `Spawn`/pool model. The adapter also contains these apparent asymmetries:
@@ -248,7 +229,6 @@ The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and
 - Some receive conversions appear to write the communication-channel placeholder into the field that the reverse conversion reads as the newly bound channel. Specifically, `dataFromExpSpec` assigns `RecvSpecDS.Y` from `CommChnlPH`, although `dataToExpSpec` reads `Y` into `NewChnlPH`.
 
 These are source-level discrepancies to validate with focused tests and call-path analysis. Their observable runtime impact is not established by this document.
-
 
 ## 11. Operational semantics: conservative scope
 
@@ -264,9 +244,7 @@ The current evidence supports treating execution as a stateful transition over a
 
 The first fully formalized rules should be limited to constructors whose typing and execution branches have both been checked end-to-end. Rules for calls and resource-management constructs should remain explicitly unspecified until their intended and implemented contracts are reconciled. `Spawn` is deferred to the pool-level analysis. `Link` should be investigated alongside recursive process definitions/calls, not conflated with `Fwd`.
 
-
 ### Named-process implementation evidence
-
 
 The current Go AST uses names such as CallSpec, LinkSpec, BindChnlPH/NewChnlPH, and ValChnlPHs. These names describe the present representation; they are not terms in the rules above.
 
@@ -299,7 +277,6 @@ Other adapter discrepancies observed during inspection include:
 
 These are source-level findings whose runtime impact has not been established. Focused tests and complete call-path analysis are needed before proposing implementation changes. This research task does not modify orglang/go-engine.
 
-
 ## 13. Open questions for the next verification pass
 
 1. What is the precise relationship among TermQN, ProcQN, ProcTermQN, declaration references, and expression identity?
@@ -313,7 +290,6 @@ These are source-level findings whose runtime impact has not been established. F
 9. What exact transition semantics do subscription/publication and exchange-turn records implement?
 10. Must all branches of a Case preserve equivalent linear contexts, and where is that enforced?
 11. What lifecycle, failure, and scheduling guarantees apply when Link transfers control?
-
 
 ## 14. Non-goals
 
