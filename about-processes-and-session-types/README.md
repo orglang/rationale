@@ -113,7 +113,7 @@ This section distinguishes two kinds of uncertainty:
 
 **After:** the new incarnation can execute independently. The original caller remains active and continues with `ContExp`. Existing channels passed as arguments retain their identity.
 
-**Status and unresolved questions:** the high-level control-flow contract is intended, but its channel wiring is underspecified. The exact mapping and ordering of actual arguments to formal channels remains unknown. The role of `NewChnlPH` (the AST field named above) is also unresolved: the current evidence does not show whether its channel is allocated, supplied by the caller, or injected by another part of the runtime. This description does not assume that `Call` is implemented using `Spawn`.
+**Status:** the high-level control-flow contract is intended, but channel wiring remains underspecified. The unresolved argument mapping and the role of `NewChnlPH` are listed in Section 14. This description does not assume that `Call` is implemented using `Spawn`.
 
 ### `Link`
 
@@ -127,13 +127,13 @@ This section distinguishes two kinds of uncertainty:
 
 **Mini-example (schematic, not OrgLang syntax):** suppose process `Old` provides channel `c`, and the client has already sent a request. The protocol remaining on `c` is now “send response, then finish.” `Old` performs `Link` to process `New`, passing `c`. `New` takes over the same provider endpoint and continues with “send response, then finish”; it must not restart by waiting for a new request. `Old` does not continue after the handoff. This resembles a tail call in control flow: responsibility is handed off rather than returning to the old process. The analogy is limited—`Link` also preserves the existing channel and its current protocol state.
 
-**Status and unresolved questions:** the high-level handoff contract is intended, but lifecycle guarantees are not defined by the inspected evidence. It remains open when the old incarnation's remaining state is reclaimed and what scheduling, failure, or rollback guarantees apply during handoff. This contract does not assume that `Link` is implemented using `Spawn`.
+**Status:** the high-level handoff contract is intended, but lifecycle guarantees are not established by the inspected evidence. See Section 14 for the unresolved lifecycle and representation questions. This contract does not assume that `Link` is implemented using `Spawn`.
 
 ### `Fwd`
 
 **Purpose:** connect the interaction on one existing channel to the interaction on another. This is an endpoint-level connection, not a named-process invocation. The publication illustrates it with a unit message pending on `c` and a receiver waiting on `d`; see Section 8 for the trace.
 
-**Intended but underspecified:** a complete OrgLang transition rule must account for the positive and negative channel polarities and establish how any neutral-polarity case is handled; it must also cover all pending-turn cases and the resulting continuation state. Section 2 defines polarity, and Section 9 records the type checker's observed assignments. The current evidence does not establish that `Fwd` handles all three classifications. Here a *turn* means a recorded pending communication action or exchange state that the executor may match against an action from the other endpoint; the precise invariants remain open. The publication example does not settle every OrgLang case. The inspected executor contains TODOs; its full behavior remains unverified.
+**Intended but underspecified:** `Fwd` needs a complete transition rule for channel polarity, pending turns, and continuation state. Polarity is defined in Section 2; Section 9 records the checker's observed assignments. A *turn* is a recorded pending communication action or exchange state that may be matched with an action from the other endpoint. The publication example and inspected executor do not settle all OrgLang cases; see Section 14 for the canonical open question.
 
 ### Summary
 
@@ -366,7 +366,7 @@ A formal reduction rule should be added after the relevant typing, executor, ada
 
 ## 14. Open questions for the next verification pass
 
-1. **Call:** What is the role and ordering of additional channel arguments, and how do they map to formal channel parameters? Where are name resolution, recursion checks, and type checks enforced?
+1. **Call:** What is the role and ordering of additional channel arguments, and how do they map to formal channel parameters? What is the role of `NewChnlPH`—is its channel allocated, supplied by the caller, or injected by the runtime? Where are name resolution, recursion checks, and type checks enforced?
 2. **Link:** Where should `X` / `Ys` be resolved, and what lifecycle, failure, and scheduling guarantees apply when provider responsibility transfers?
 3. **Fwd:** What are the exact transition rules for positive, negative, and neutral polarity, including pending turns and continuation state?
 4. **Process creation:** What is the intended relationship among process-level invocation, pool-level `Spawn`, and the pool model? What is the role of recursion through process definitions?
