@@ -234,25 +234,17 @@ The publication states that the forwarding message is persistent when the sessio
 
 Neither this example nor the other discussion in this section establishes that OrgLang's `Link` is equivalent to `Call` followed by `Fwd`.
 
-### Negative polarity: what the implementation shows
+### `Fwd`: intended behavior and implementation status
 
-The publication's negative-polarity rule creates a forwarding service (`srv`) rather than a forwarding message (`msg`). This is the dual shape of the positive rule: the forwarding operation is registered as something that can redirect a service-side wait, rather than as a pending message-side action.
+The publication describes `Fwd` as polarity-sensitive forwarding. Its positive-polarity rule uses a forwarding message (`msg`), while its negative-polarity rule uses a forwarding service (`srv`). Example 9 shows a waiting service being redirected so it can receive a message on the other channel. The forwarding message is persistent when the session type admits contraction; this should not be generalized to linear types.
 
-In the inspected OrgLang executor, the no-pending cases follow the same broad polarity distinction as the publication: positive polarity registers a `PubRec` carrying a forwarding record, while negative polarity registers a `SubRec` carrying a forwarding record. When a turn is already pending, the executor checks whether it is a `SubRec` or `PubRec` and resumes that peer's continuation or publication using a channel binding selected by the polarity and turn kind.
+In the inspected OrgLang executor, the no-pending cases register a `PubRec` carrying `FwdRec` for positive polarity and a `SubRec` carrying `FwdRec` for negative polarity. Other branches inspect the polarity and the kind of pending turn. This is consistent with a polarity-sensitive forwarding mechanism, rather than a global replacement of channel names.
 
-Tracing the stored forwarding record one step further, its executor branch binds the recorded continuation channel ID to the current channel placeholder and schedules the forwarding expression again. This is consistent with the idea that forwarding mediates subsequent interaction, rather than performing a one-time global channel-name replacement.
+**Implementation status: incomplete or at least not fully verified.** The inspected code contains TODOs, including channel-side metadata, and a negative-polarity branch comments on a type mismatch. In addition, the ordinary send/receive handlers inspected so far expect `RecvRec`/`SendRec` payloads and do not handle `FwdRec` in those switches. We have not established whether another part of the execution path handles this case.
 
-### When `Fwd` runs before the sender or receiver
+This is evidence that the implementation may be unfinished, but it is not proof that `Fwd` is broken: the complete scheduling and exchange paths have not been traced. For this research note, keep the publication's intended behavior separate from the implementation observations and mark implementation completeness as an open question. Further code investigation can wait until another semantic question makes it necessary.
 
-The inspected executor has an explicit no-pending path: `Fwd` records a `PubRec` carrying `FwdRec` for positive polarity, or a `SubRec` carrying `FwdRec` for negative polarity. This establishes that the implementation can register forwarding before an ordinary communication turn is present.
-
-However, following the path into the ordinary send/receive handlers exposes an unresolved integration question. The send handler expects a pending `SubRec` whose continuation is a `RecvRec`; the receive handler expects a pending `PubRec` whose value is a `SendRec`. Their inspected switches do not handle `FwdRec` as an ordinary send/receive turn. We therefore cannot conclude from these paths alone that a later sender or receiver will successfully consume the previously registered forwarding record. This may be handled elsewhere in the wider execution flow, but that has not been established by the code examined so far.
-
-This is a concrete next verification target: trace the forwarding record through the exchange repository's `NextTurn` behavior and the full execution scheduling path, or find a focused test that runs `Fwd` before both peers. Until then, describe the intended behavior from the publication separately from the currently verified implementation behavior.
-
-**Comparison result: partial match, not a proof of equivalence.** The high-level distinction between positive/message-side and negative/service-side forwarding matches the shape of the publication's `forward+` and `forward−` rules. However, the executor has TODOs for channel-side metadata, and one negative-polarity branch even comments on a type mismatch. We have not verified all producer/consumer paths or shown that every resulting channel binding agrees with the publication's reduction trace. So we can record the structural correspondence, but should not claim full semantic equivalence yet.
-
-This evidence supports reading `Fwd` as forwarding/mediation, not as generic global replacement of channel identifiers. It does not prove that `Link` is operationally equivalent to `Call` followed by `Fwd`.
+Neither the publication example nor the inspected implementation proves that OrgLang's `Link` is equivalent to `Call` followed by `Fwd`.
 
 ## 11. Other implementation observations
 
