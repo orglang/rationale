@@ -75,7 +75,7 @@ The placeholder is a name in the call's semantic environment, not the channel or
 
 Both kinds use the same pool-selection algorithm. The selected pool starts servicing the provider channel immediately after the relevant transition completes. The outcome when no eligible pool is found remains unspecified for both kinds.
 
-This distinction is a semantic summary of the working rules, not a claim that the source language necessarily uses the terms “external call” and “internal call.”
+**Terminology decision:** `external call` and `internal call` are intended as semantic terms in OrgLang, with `Call` denoting external call and `Link` denoting internal call. These terms name the two distinct call semantics, rather than serving only as explanatory prose.
 
 ### 3.5 Evidence and detailed working rules for `Link`
 
