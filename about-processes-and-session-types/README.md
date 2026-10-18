@@ -223,6 +223,15 @@ The available code contains multiple incomplete approaches to spawning, which sh
 
 These are distinct pieces of implementation evidence, not a completed implementation path. As a working hypothesis, OrgLang `Spawn` corresponds to the publication's cut/spawn term `x ← P ; Q`: `P` is the spawned process body, `Q` is the original process's continuation, and both use the same fresh channel. The current `SpawnSpec` fields have not yet been mapped reliably to those roles, so this is a guide for further analysis rather than a verified account of OrgLang's implementation.
 
+A closer look at the process-level `SpawnSpec` shows why that mapping is not yet straightforward. Its fields are `CommChnlPH`, `ProcTermQN`, `NewChnlPHs`, and `ContExp`:
+
+- `ContExp` is a plausible candidate for the continuation `Q`, but this has not been confirmed by a working execution path.
+- `ProcTermQN` identifies a named process term/declaration, whereas the publication's `P` in `x ← P ; Q` is presented as the process body to spawn. This is a meaningful difference in representation.
+- `NewChnlPHs` suggests that the operation can introduce channel placeholders, but the code inspected so far does not establish which one, if any, corresponds to the publication's shared fresh channel `a`.
+- The role of `CommChnlPH` in this rule is also not yet clear from the incomplete implementation.
+
+So the best current conclusion is narrower: the publication gives us a useful semantic target for `Spawn`, but the current AST does not yet provide an obvious one-to-one mapping to `P`, `Q`, and `a`. We should keep that mismatch explicit instead of assigning field meanings based on their names alone.
+
 `Fwd` is also represented in the inspected executor. When no turn is pending, positive polarity registers a `PubRec` carrying `FwdRec`, while negative polarity registers a `SubRec` carrying `FwdRec`; other branches inspect polarity and the pending turn kind. However, the code contains TODOs for channel-side metadata, and a negative-polarity branch comments on a type mismatch. The ordinary send/receive handlers inspected so far expect `RecvRec`/`SendRec` payloads and do not handle `FwdRec` in those switches. We have not established whether another part of the scheduling and exchange path handles this case. This suggests the implementation may be unfinished, but does not prove that `Fwd` is broken. Its completeness remains an open question.
 
 ## 10. Comparison with the supplied publication
