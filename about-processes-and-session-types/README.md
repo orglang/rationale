@@ -103,9 +103,7 @@ This introduction explains why these forms are useful; it is not a complete theo
 
 ## 7. Intended semantics of named-process operations
 
-**Reading the implementation names in this section:** `ContExp` is the continuation expression—the work the caller proceeds with after `Call`; `NewChnlPH` is a field name for a channel placeholder whose allocation or supply is not yet established. These are Go/AST names, not defined OrgLang keywords. In `Link`, `X` denotes the provider-channel placeholder being handed off, and `Ys` denotes the list of client-channel placeholders passed to the new process; Section 9 explains how these correspond to the declaration's provider and client fields.
-
-**This is the canonical statement of the intended language-level behavior.** The comparison with the publication and the implementation notes below provide evidence and caveats; they should not be read as alternative definitions of these operations.
+**This is the canonical statement of the intended language-level behavior.** The comparison with the publication and the implementation notes below provide evidence and caveats; they should not be read as alternative definitions of these operations. Implementation field names are not OrgLang keywords; their correspondence to language-level roles is documented in Section 9.
 
 This section distinguishes two kinds of uncertainty:
 
@@ -216,6 +214,8 @@ A process declaration is represented by `DecSpec`:
 - `TermQN` — qualified name of the declaration.
 - `LiabVar` — provider-channel placeholder.
 - `AssetVars` — client-channel placeholders.
+
+In Section 7, `ContExp` names the continuation expression for `Call`; `NewChnlPH` names a channel placeholder whose allocation or supply is not yet established. For process-expression `Link`, `X` denotes the provider-channel placeholder being handed off and `Ys` the client-channel placeholders passed to the new process. These are Go/AST field names used to discuss the inspected representation, not OrgLang keywords or independent definitions of the intended semantics.
 
 Comments in `proc/termdec/core/core.go` support these readings. For process-expression `Link`, the intended mapping is `X` → `LiabVar` and `Ys[i]` → `AssetVars[i]` in declaration order. These are implementation field names; the language-level description uses provider and client roles.
 
