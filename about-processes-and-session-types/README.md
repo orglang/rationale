@@ -5,10 +5,9 @@
 **Audience:** readers who need to understand OrgLang process expressions and session types, and contributors verifying how those concepts are represented in `orglang/go-engine`. The document is a research draft, not a normative language specification.
 
 **How to use this document:**
-- Start with Parts I and II for the conceptual model, intended behavior, and comparison with the supplied publication.
-- Use Part III when checking those descriptions against the current implementation.
-- Read Section 1 for the independent evidence and implementation status axes. A claim may be confirmed by a source even when the implementation is incomplete or unverified.
-- Use Section 14 as the consolidated list of questions still requiring investigation.
+- Parts I and II describe the language model, intended operation semantics, and comparison with the publication.
+- Part III records implementation evidence and open questions; it does not define language semantics.
+- Section 1 explains the three independent status dimensions. Section 14 collects the remaining verification questions.
 
 **Contents**
 - [Part I — Language model](#part-i-language-model): [core concepts and glossary](#2-core-concepts), [protocol example](#3-a-small-example-following-a-channel), [session types](#6-session-types-the-protocol-for-a-channel), and [intended operation semantics](#7-intended-semantics-of-named-process-operations).
@@ -19,11 +18,9 @@
 
 ## 1. Scope and evidence
 
-This document describes OrgLang processes and session types, compares the intended language model with the supplied publication, and records evidence from `orglang/go-engine`.
+This research draft describes OrgLang processes and session types, compares the intended model with the supplied publication, and records implementation evidence from `orglang/go-engine`. It is not a normative language specification. Pool and transaction semantics are out of scope, except where pool-level process creation clarifies the boundary between invocation and spawning.
 
-Pool and transaction semantics are not formalized here, although pool-level process creation is considered where necessary to understand the boundary between invocation and spawning.
-
-It is a research draft, not a normative language specification. The publication is evidence for the rules it states, but is not automatically an authoritative specification of OrgLang. Implementation behavior is evidence about the implementation, not proof of a language-level rule.
+Treat each source according to what it can establish: the publication supports claims about its own rules, while implementation code supports claims about the inspected implementation. Neither automatically establishes a normative OrgLang rule.
 
 ### Evidence status
 
@@ -48,17 +45,7 @@ Finding an AST constructor does not establish runtime support. Failing to find a
 
 ### Recording claims
 
-For substantial or disputed claims, record:
-
-| Field | Purpose |
-|---|---|
-| Claim | The specific statement being evaluated. |
-| Source | The relevant language material, publication, code, or test. |
-| Evidence status | Confirmed, Inferred, or Open. |
-| Implementation status | Implemented, Partial, Absent, or Unverified, when relevant. |
-| Notes | Limitations, discrepancies, and the next verification step. |
-
-Keep simple glossary entries lightweight. Use the full record for semantic rules, implementation claims, and discrepancies between sources.
+For substantial or disputed claims, record the claim, source, evidence status, implementation status (when relevant), and any limitation or next verification step. Keep glossary entries lightweight; use the full record for semantic rules, implementation claims, and cross-source discrepancies.
 
 Distinguish three kinds of statement in prose:
 
@@ -76,7 +63,7 @@ Use **Confirmed**, **Provisional**, or **Unresolved** for mappings. Preserve mis
 
 ## 2. Core concepts
 
-OrgLang processes communicate through **channels**. A channel is the shared communication resource connecting two roles: the **provider** offers a service, and the **client** uses it. An **endpoint** is one participant's role-specific side of that channel: the **provider endpoint** belongs to the process offering the service, and the **client endpoint** belongs to the process using it. A **provider channel** is a channel viewed from the process that provides on it; a **client channel** is a channel viewed from the process that uses it. These names describe a channel's role relative to a particular process, not permanent kinds of channel: the same channel is the provider channel for one process and a client channel for the other. Thus, *channel* names the shared resource, while *endpoint* names one participant's side of it. Each process has one provider channel of its own and may use other channels as a client. The two language-level named-process operations are **`ExternalCall`** and **`InternalCall`**. Both create a fresh process incarnation; they differ in the direction in which a channel is transferred relative to that new incarnation.
+OrgLang processes communicate through **channels**. A channel connects two roles: the **provider**, which offers a service, and the **client**, which uses it. Each participant has an **endpoint**; the same channel is the provider channel for one process and the client channel for the other. These are relative roles, not permanent channel kinds. Each process has one provider channel of its own and may use other channels as a client. The two named-process operations are **`ExternalCall`** and **`InternalCall`**. Both create a fresh process incarnation, but transfer channels in different directions relative to that incarnation.
 
 **Process** is the general umbrella term in this document; its precise referent follows context. A **named process** is the process identified by a name. A **process declaration** describes its interface, while a **process definition** supplies its behavior. Each start creates a concrete running copy called a **process incarnation**. These are related concepts, not interchangeable terms. A **channel placeholder** is a name in an expression or process interface that is intended to stand for a channel. It is a syntactic name, not the channel resource or endpoint itself; an environment or substitution must associate it with the relevant channel. The implementation may represent these layers with different Go types, and the mapping must be verified rather than inferred from field names alone.
 
@@ -365,7 +352,7 @@ The table records which session-type constructor the inspected checker expects f
 | `Close` / `Wait` | `One` on the corresponding endpoint side | `One` on the corresponding endpoint side | Unverified |
 | `Fwd` | compatibility/polarity checks exist | full symmetric behavior not established | Partial |
 
-This table records checker observations, not complete typing rules. Exact side conditions, context splitting, substitution, and freshness conditions remain outside its scope.
+These are checker observations, not complete typing rules; side conditions, context splitting, substitution, and freshness conditions remain to be established.
 
 **Potential checker issue to verify:** in `proc/compexec/core/core.go`, the `CaseSpec` branch iterates over the type's choices, updates `procCtx.Liabs[expSpec.CommChnlPH]`, and recursively checks each branch using the same mutable context maps. Recursive checks can themselves update those maps (for example, `Send` advances the channel type). No branch-local copy or reset is visible in this path. This may let checking one branch affect the next branch's starting context. Confirm with a focused test where multiple labels have distinct continuations before treating it as a bug.
 
@@ -388,9 +375,9 @@ Communication may take more than one execution step. If the matching action from
 
 The exact transition relation, message ownership, and invariants for subscriptions, publications, and exchange turns still need to be formalized from all producer/consumer call paths. Here, a publication (`pub`) is the send/message side and a subscription (`sub`) is the waiting/service side in the terminology used by this implementation; the exact state invariants remain open.
 
-## 12. Representation and serialization caveats
+## 12. AST and serialization gaps
 
-The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. This section lists conversion discrepancies; Section 13 separately records execution support.
+The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. The findings below are source-level discrepancies; execution support is assessed separately in Section 13.
 
 - `MsgFromExpSpec` has no branch for the process-expression AST constructor `LinkSpec` (`InternalCall`).
 - `MsgToExpSpec` reconstructs `CallSpec` without `CommChnlPH` and `ContExp`. It also reconstructs `LabSpec` without its `ContExp`, although the AST contains that field.
@@ -401,11 +388,11 @@ The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and
 
 These are source-level discrepancies to validate with focused tests and call-path analysis. Their observable runtime impact is not established by this document. The current call example also does not demonstrate a successful transition; the evidence and its limitations are summarized in Section 13.
 
-## 13. Operational semantics: conservative scope
+## 13. What the execution path establishes
 
-### Evidence limits
+### Scope of the evidence
 
-Apply the evidence policy in Section 1 throughout: AST presence alone does not establish runtime support, publication rules do not automatically define OrgLang semantics, and a single code path does not establish end-to-end behavior without checking typing, adapters, scheduling, and execution together. The operation-specific questions are listed in Section 14.
+Use the status policy in Section 1 when reading the findings below. End-to-end behavior requires checking typing, adapters, scheduling, and execution together; AST presence or a single handler is not sufficient. The operation-specific gaps are collected in Section 14.
 
 A formal reduction relation should distinguish at least:
 
@@ -443,7 +430,7 @@ The executor contains a `Fwd` branch. When no turn is pending, positive polarity
 
 A formal reduction rule should be added after the relevant typing, executor, adapter, and scheduling paths have been checked together.
 
-## 14. Open questions for the next verification pass
+## 14. Open questions and next tests
 
 The list is ordered by investigation priority, not by semantic importance.
 
