@@ -234,7 +234,15 @@ The publication states that the forwarding message is persistent when the sessio
 
 Neither this example nor the other discussion in this section establishes that OrgLang's `Link` is equivalent to `Call` followed by `Fwd`.
 
-This evidence supports reading Fwd as polarity-sensitive forwarding/mediation, not as generic global replacement of channel identifiers. It does not prove that Link is operationally equivalent to Call followed by Fwd.
+### Negative polarity: what the implementation shows
+
+The publication's negative-polarity rule creates a forwarding service (`srv`) rather than a forwarding message (`msg`). This is the dual shape of the positive rule: the forwarding operation is registered as something that can redirect a service-side wait, rather than as a pending message-side action.
+
+In the inspected OrgLang executor, when the forwarded channel has negative polarity and no communication turn is pending, `Fwd` records a `SubRec` containing a forwarding record. For positive polarity, the corresponding no-pending case records a `PubRec`. When a turn is already pending, the executor branches on whether it is a `SubRec` or `PubRec` and updates the channel binding used by that interaction. The exact channel choice differs by polarity and by turn kind.
+
+This is implementation evidence, not yet a complete semantic account. Some branches contain TODOs (including channel-side metadata and a type mismatch comment), and the complete interaction between forwarding records and later turns has not been verified end-to-end. Therefore, the safe conclusion is that OrgLang's implementation treats `Fwd` as polarity-sensitive coordination with pending communication turns; the precise negative-polarity reduction rule remains to be confirmed.
+
+This evidence supports reading `Fwd` as forwarding/mediation, not as generic global replacement of channel identifiers. It does not prove that `Link` is operationally equivalent to `Call` followed by `Fwd`.
 
 ## 11. Other implementation observations
 
