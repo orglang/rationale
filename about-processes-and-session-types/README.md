@@ -55,12 +55,14 @@ The table gives the main terminology mapping. Intended behavior is described in 
 
 Imagine two processes that communicate over one channel. The **residual session type** is the part of an endpoint's protocol still to be performed at the current point. The table tracks the protocol from **each endpoint's point of view**. The client and provider have complementary actions, so their residual session types are not necessarily written as the same sequence.
 
-| Point in the interaction | Client-side action / residual type | Provider-side action / residual type |
-|---|---|---|
-| Before the request | Next: send request. Residual: send request → receive response → finish. | Next: receive request. Residual: receive request → send response → finish. |
-| Request transferred | The send is complete. Next: receive response. Residual: receive response → finish. | The receive is complete. Next: send response. Residual: send response → finish. |
-| Response transferred | The receive is complete. Residual: finish. | The send is complete. Residual: finish. |
-| Protocol finished | Finished. | Finished. |
+- **Before the request:**
+  - Client: next, send request; then receive response and finish.
+  - Provider: next, receive request; then send response and finish.
+- **After the request is transferred:**
+  - Client: next, receive response; then finish.
+  - Provider: next, send response; then finish.
+- **After the response is transferred:** both endpoints have only finishing left.
+- **Protocol finished:** both endpoints are finished.
 
 The arrows mean “then”; they are explanatory notation, not literal OrgLang syntax. “Transferred” means the matching send/receive actions have both taken place, not merely that one side has started its action. This is a conceptual trace showing how each endpoint's residual type advances according to its own action. A channel is not just a wire carrying arbitrary messages: its session type limits which interaction is allowed next.
 
@@ -197,9 +199,13 @@ The main implementation locations inspected for this draft are:
 - `proc/termexp/adapter/tc.go`
 - `proc/termexp/core/ds.go`
 
-A process declaration is represented by `DecSpec` with three relevant fields: `TermQN` is the declaration's qualified name, `LiabVar` is its provider-channel placeholder, and `AssetVars` is the list of client-channel placeholders.
+A process declaration is represented by `DecSpec`:
 
-These interpretations are supported by comments in `proc/termdec/core/core.go`. For language-level `Link`, the intended mapping is that `X` supplies the channel for `LiabVar`, and `Ys[i]` supplies the channel for `AssetVars[i]` in declaration order. These are implementation field names; the language-level description uses provider and client channels instead.
+- `TermQN` — qualified name of the declaration.
+- `LiabVar` — provider-channel placeholder.
+- `AssetVars` — client-channel placeholders.
+
+Comments in `proc/termdec/core/core.go` support these readings. For process-expression `Link`, the intended mapping is `X` → `LiabVar` and `Ys[i]` → `AssetVars[i]` in declaration order. These are implementation field names; the language-level description uses provider and client roles.
 
 A process definition is represented by `DefSpec{ProcQN, ProcES}`; `DefRec` contains a `Ref`. The inspected `Create`/`Retrieve` implementation in `proc/termdef/core/core.go` appears to be a stub, so this representation alone does not establish the persistence contract.
 
@@ -216,41 +222,35 @@ Do not assume these identifiers are interchangeable.
 
 #### Process-expression AST inventory
 
-The inspected process AST defines the following constructors and fields:
+The inspected process AST defines these constructors. Field names below are those observed in the Go AST; the short descriptions are provisional where noted.
 
-| Constructor | Fields observed | Intended reading (provisional where noted) |
-|---|---|---|
-| `CloseSpec` | `ContChnlPH` | Close/terminate a session endpoint |
-| `WaitSpec` | `ContChnlPH`, `ContExp` | Wait on an endpoint, then continue |
-| `SendSpec` | `CommChnlPH`, `ValChnlPH` | Send a channel/value over a communication endpoint |
-| `RecvSpec` | `CommChnlPH`, `NewChnlPH`, `ContExp` | Receive and bind a channel, then continue |
-| `LabSpec` | `CommChnlPH`, `ValLabQN`, `ContExp` | Send/select a label; the AST also carries a continuation, though its use needs verification |
-| `CaseSpec` | `CommChnlPH`, `ContExps` | Offer branches indexed by labels |
-| `LinkSpec` | `ProcTermQN`, `X`, `Ys` (`identity.ADT`) | Named-process construct with no `ContExp`. This distinguishes it from `CallSpec`; do not unify the syntax without accounting for the different continuation/control-flow behavior |
-| `FwdSpec` | `CommChnlPH`, `ContChnlPH` | Forward between endpoints |
-| `CallSpec` | `CommChnlPH`, `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp` | Candidate representation of a named-process call. Unlike the supplied publication's call form `a ← p b₁ … bₙ`, this AST carries a continuation and distinct channel placeholders; their semantic roles are not yet established |
-| `SpawnSpec` | `CommChnlPH`, `ProcTermQN`, `NewChnlPHs`, `ContExp` | Present in AST, but excluded from the current process-semantics scope pending pool-level analysis |
-| `AcqureSpec` | see source | Constructor spelling as present in code; contract open |
-| `AcceptSpec` | see source | Contract open |
-| `DetachSpec` | see source | Contract open |
-| `ReleaseSpec` | see source | Contract open |
+- **`CloseSpec`** — `ContChnlPH`: close/terminate a session endpoint.
+- **`WaitSpec`** — `ContChnlPH`, `ContExp`: wait on an endpoint, then continue.
+- **`SendSpec`** — `CommChnlPH`, `ValChnlPH`: send a channel/value over a communication endpoint.
+- **`RecvSpec`** — `CommChnlPH`, `NewChnlPH`, `ContExp`: receive and bind a channel, then continue.
+- **`LabSpec`** — `CommChnlPH`, `ValLabQN`, `ContExp`: select/send a label; use of the AST continuation needs verification.
+- **`CaseSpec`** — `CommChnlPH`, `ContExps`: offer branches indexed by labels.
+- **`LinkSpec`** — `ProcTermQN`, `X`, `Ys` (`identity.ADT`): named-process construct without `ContExp`, unlike `CallSpec`.
+- **`FwdSpec`** — `CommChnlPH`, `ContChnlPH`: forward between endpoints.
+- **`CallSpec`** — `CommChnlPH`, `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp`: candidate named-process call representation. Unlike the publication form `a ← p b₁ … bₙ`, it carries a continuation and distinct channel placeholders whose roles remain unsettled.
+- **`SpawnSpec`** — `CommChnlPH`, `ProcTermQN`, `NewChnlPHs`, `ContExp`: present in the AST; process semantics are deferred pending pool-level analysis.
+- **`AcqureSpec`** — contract open; spelling preserved as in source.
+- **`AcceptSpec`**, **`DetachSpec`**, **`ReleaseSpec`** — contracts open; see source for fields.
 
 The table is a syntax inventory; execution support is assessed separately in Section 13.
 
 #### Session-type AST and checker coverage
 
-The process session-type AST contains these constructors:
+The process session-type AST contains these constructors; polarity below is what the inspected type checker records.
 
-| Type constructor | Fields observed | Polarity recorded by the type checker |
-|---|---|---|
-| `OneSpec` | none | positive |
-| `TensorSpec` | `Val`, `Cont` | positive |
-| `LolliSpec` | `Val`, `Cont` | negative |
-| `PlusSpec` | `Choices` | positive |
-| `WithSpec` | `Choices` | negative |
-| `UpSpec` | `Cont` | zero / neutral |
-| `DownSpec` | `Cont` | zero / neutral |
-| `LinkSpec` | `TypeQN` | zero / neutral |
+- **`OneSpec`** — no fields; positive polarity.
+- **`TensorSpec`** — `Val`, `Cont`; positive polarity.
+- **`LolliSpec`** — `Val`, `Cont`; negative polarity.
+- **`PlusSpec`** — `Choices`; positive polarity.
+- **`WithSpec`** — `Choices`; negative polarity.
+- **`UpSpec`** — `Cont`; neutral polarity.
+- **`DownSpec`** — `Cont`; neutral polarity.
+- **Type-level `LinkSpec`** — `TypeQN`; neutral polarity.
 
 The polarity assignments above are **Observed** in `proc/typeexp/core/core.go`. They classify session types as positive, negative, or neutral; they do not define all operational cases.
 
