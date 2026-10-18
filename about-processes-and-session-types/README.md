@@ -133,9 +133,9 @@ This section distinguishes two kinds of uncertainty:
 
 **Preconditions:** the target process definition is available and a fresh incarnation can be created. The channel supplied by `X` must have the same **current residual session type** as the target process's provider channel—not merely the same initial declared type. In plain terms, both sides must agree on what is supposed to happen next in the conversation. If the existing channel has already passed the request step, the new process must be ready for the response step, not for a new request.
 
-**Intended transition:** start a fresh incarnation of the named process, passing `X` as its provider channel and the channels named by `Ys` as its client channels, in declaration order. Transfer provider-side responsibility for the existing channel `X` to the new incarnation.
+**Intended transition:** start a fresh incarnation of the named process, passing `providerChannel` as its provider channel and `clientChannels` as its client channels, in declaration order. Transfer provider-side responsibility for the existing `providerChannel` to the new incarnation.
 
-**After:** the channel itself and its existing client connection remain unchanged; the new incarnation provides that same channel. Control transfers to the new incarnation, and the old incarnation has no ordinary continuation.
+**After:** `providerChannel` and its existing client connection remain unchanged; the new incarnation provides that same channel. Control transfers to the new incarnation, and the old incarnation has no ordinary continuation.
 
 **Mini-example (schematic, not OrgLang syntax):** suppose process `Old` provides channel `c`, and the client has already sent a request. The protocol remaining on `c` is now “send response, then finish.” `Old` performs `Link` to process `New`, passing `c`. `New` takes over the same provider endpoint and continues with “send response, then finish”; it must not restart by waiting for a new request. `Old` does not continue after the handoff. This resembles a tail call in control flow: responsibility is handed off rather than returning to the old process. The analogy is limited—`Link` also preserves the existing channel and its current protocol state.
 
@@ -154,7 +154,7 @@ These operations are not interchangeable. `Call` starts a named-process incarnat
 | Operation | Primary role | Process-control effect | Channel effect | Evidence status |
 |---|---|---|---|---|
 | `Call` | Invoke a named process. | A fresh incarnation starts; the caller continues with `ContExp`. | Existing argument channels retain their identity. Allocation and mapping involving `NewChnlPH` remain unresolved. | Intended high-level contract; wiring is open. |
-| `Link` | Hand off provider responsibility. | A fresh incarnation takes over; the old incarnation has no ordinary continuation. | The existing provider channel `X` and its client connection stay the same. | Intended high-level contract; lifecycle and representation are open. |
+| `Link` | Hand off provider responsibility. | A fresh incarnation takes over; the old incarnation has no ordinary continuation. | The existing `providerChannel` (`X`) and its client connection stay the same. | Intended high-level contract; lifecycle and representation are open. |
 | `Fwd` | Connect two existing channel interactions. | No named-process incarnation or named-process continuation transfer is implied. | Relates existing endpoints; no global renaming is implied. | Partial implementation evidence; full transition rule is open. |
 
 Use this table as the quick comparison, and the operation-specific subsections above for the intended transitions and preconditions. Part II gives publication context; Part III records implementation evidence. Those evidence sources are not alternative definitions of the intended behavior.
@@ -223,7 +223,7 @@ A process declaration is represented by `DecSpec`:
 
 In Section 7, `ContExp` names the continuation expression for `Call`; `NewChnlPH` names a channel placeholder whose allocation or supply is not yet established. For process-expression `Link`, `X` is intended to identify the existing provider channel being handed off, and `Ys` the client channels passed to the new process. However, `LinkSpec.X` and `LinkSpec.Ys` are typed as `identity.ADT`, not `symbol.ADT`; the AST therefore does not represent them using the same type as the channel placeholders elsewhere. Here “placeholder” describes their intended language-level role, not a confirmed implementation representation. The actual resolution path remains unverified.
 
-Comments in `proc/termdec/core/core.go` support these readings. For process-expression `Link`, the intended mapping is `X` → `LiabVar` and `Ys[i]` → `AssetVars[i]` in declaration order. These are implementation field names; the language-level description uses provider and client roles.
+Comments in `proc/termdec/core/core.go` support these readings. For process-expression `Link`, the intended mapping is `providerChannel` (`X`) → `LiabVar` and `clientChannels[i]` (`Ys[i]`) → `AssetVars[i]` in declaration order. These are implementation field names; the language-level description uses provider and client roles.
 
 A process definition is represented by `DefSpec{ProcQN, ProcES}`; `DefRec` contains a `Ref`. The inspected `Create`/`Retrieve` implementation in `proc/termdef/core/core.go` appears to be a stub, so this representation alone does not establish the persistence contract.
 
@@ -358,7 +358,7 @@ This subsection records implementation findings for `Call`, `Link`, and process 
 
 The inspected `call` scenario in `test/e2e/pool_test.go` is inconclusive: the top-level `TestPool` does not run the subtest, its result assertion is a TODO, and the callee declaration has no corresponding process body. The process-definition persistence methods inspected so far also appear to be stubs. Thus the repository evidence does not demonstrate a successful `Call` transition. See Section 14 for the unresolved argument-mapping question.
 
-**Observed:** for process-expression `Link`, `X` and `Ys` are intended as caller-side channel placeholders, but the AST types them as `identity.ADT` channel identifiers rather than `symbol.ADT` placeholder names. No complete adapter or executor path was found. `Call` has an explicit `ContExp`; `Link` does not. See Section 14 for the open lifecycle and representation questions.
+**Observed:** for process-expression `Link`, `X` (`providerChannel`) and `Ys` (`clientChannels`) are intended to identify caller-side channels, but the AST types them as `identity.ADT` channel identifiers rather than `symbol.ADT` placeholder names. No complete adapter or executor path was found. `Call` has an explicit `ContExp`; `Link` does not. See Section 14 for the open lifecycle and representation questions.
 
 The pool API has a `Spawn` operation that carries a process declaration reference and optional references to existing process incarnations. This implementation-level API name is not evidence that OrgLang exposes a user-written `Spawn` operation. The repository contains three distinct `Spawn` representations; they should not be treated as one implementation:
 
