@@ -108,7 +108,7 @@ A **session type** describes the allowed protocol from the provider endpoint's p
 
 ### Terminology correspondence: OrgLang, publication, and implementation
 
-Use one row for one proposed correspondence. **Mapping status** describes the strength of that correspondence, not the semantic/evidential status of a claim or the implementation status. Use three values:
+Use one row for one proposed correspondence. **Mapping status** describes the strength of that correspondence, not the evidence status of a claim or the implementation status. Use three values:
 
 - **Confirmed** — the correspondence is supported by sufficient evidence.
 - **Provisional** — evidence supports the correspondence, but it still needs verification.
@@ -335,7 +335,7 @@ The process session-type AST contains these constructors; polarity below is what
 - **`DownSpec`** — `Cont`; neutral polarity.
 - **Type-level `LinkSpec`** — `TypeQN`; neutral polarity.
 
-The polarity assignments above are **Observed** in `proc/typeexp/core/core.go`. They classify session types as positive, negative, or neutral; they do not define all operational cases.
+The polarity assignments above are confirmed by inspection of `proc/typeexp/core/core.go`. They classify session types as positive, negative, or neutral; they do not define all operational cases.
 
 At the AST level, process `Plus`/`With` choices are represented as label-indexed alternatives. The exact normalization and lookup rules for type references, and how `Up`/`Down` are unfolded, remain to be confirmed.
 
@@ -356,10 +356,10 @@ The table records which session-type constructor the inspected checker expects f
 
 | Process operator | Provider-side expectation | Client-side expectation | Implementation evidence |
 |---|---|---|---|
-| `Send` | `Tensor` | `Lolli` | Observed |
-| `Recv` | `Lolli` | `Tensor` | Observed |
-| `Lab` | `Plus` | `With` | Observed |
-| `Case` | `With` | `Plus` | Observed |
+| `Send` | `Tensor` | `Lolli` | Confirmed |
+| `Recv` | `Lolli` | `Tensor` | Confirmed |
+| `Lab` | `Plus` | `With` | Confirmed |
+| `Case` | `With` | `Plus` | Confirmed |
 | `Close` / `Wait` | `One` on the corresponding endpoint side | `One` on the corresponding endpoint side | Unverified |
 | `Fwd` | compatibility/polarity checks exist | full symmetric behavior not established | Partial |
 
@@ -419,11 +419,11 @@ The first fully formalized implementation-level rules should be limited to const
 
 This subsection records implementation findings for `Call`, `Link`, and process creation. Section 12 lists conversion discrepancies; Section 14 is the canonical list of unresolved questions.
 
-**Observed:** the inspected `takeWith` dispatcher has execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. It has no branch for the AST constructs `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release` in the inspected version. This describes the current dispatcher, not the language design.
+**Implementation observation:** the inspected `takeWith` dispatcher has execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. It has no branch for the AST constructs `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release` in the inspected version. This describes the current dispatcher, not the language design.
 
 The inspected `call` scenario in `test/e2e/pool_test.go` is inconclusive: the top-level `TestPool` does not run the subtest, its result assertion is a TODO, and the callee declaration has no corresponding process body. The process-definition persistence methods inspected so far also appear to be stubs. Thus the repository evidence does not demonstrate a successful transition for the AST call construct. See Section 14 for the unresolved argument-mapping question.
 
-**Observed:** for process-expression `Link`, `X` (the provider channel) and `Ys` (the client channels) are intended to identify caller-side channels, but the AST types them as `identity.ADT` channel identifiers rather than `symbol.ADT` placeholder names. No complete adapter or executor path was found. The AST `CallSpec` has an explicit `ContExp`; `LinkSpec` does not. See Section 14 for the open lifecycle and representation questions.
+**Implementation observation:** for process-expression `Link`, `X` (the provider channel) and `Ys` (the client channels) are intended to identify caller-side channels, but the AST types them as `identity.ADT` channel identifiers rather than `symbol.ADT` placeholder names. No complete adapter or executor path was found. The AST `CallSpec` has an explicit `ContExp`; `LinkSpec` does not. See Section 14 for the open lifecycle and representation questions.
 
 The pool API has a `Spawn` operation that carries a process declaration reference and optional references to existing process incarnations. This implementation-level API name is not evidence that OrgLang exposes a user-written `Spawn` operation. The repository contains three distinct `Spawn` representations; they should not be treated as one implementation:
 
