@@ -25,9 +25,9 @@ This document focuses on processes and session types. Pool and transaction seman
 
 ## 2. Core concepts
 
-OrgLang processes communicate through **channels**. Think of a channel as a connection between two roles: the **provider** offers a service, and the **client** uses it. Each process has one provider channel of its own and can use other channels as a client.
+OrgLang processes communicate through **channels**. A channel is the shared communication resource connecting two roles: the **provider** offers a service, and the **client** uses it. An **endpoint** is one participant's role-specific side of that channel—the provider endpoint or the client endpoint. In this document, “provider channel” and “client channel” describe a channel from the relevant process's role; they do not imply two separate channels. Each process has one provider channel of its own and may use other channels as a client.
 
-A named process is like a recipe. Each time it is started, that running copy is a **process incarnation**. A **channel placeholder** is a name in the process expression that stands for a channel; while the process runs, an environment tells us which actual channel each placeholder refers to.
+A named process is like a recipe. Each time it is started, that running copy is a **process incarnation**. A **channel placeholder** is a name in an expression or process interface that is intended to stand for a channel. It is a syntactic name, not the channel resource or endpoint itself; an environment or substitution must associate it with the relevant channel. The implementation may represent these layers with different Go types, and the mapping must be verified rather than inferred from field names alone.
 
 A **session type** describes the protocol allowed on one endpoint of a channel. The two endpoints describe complementary actions. The request/response example and the meaning of a **residual session type** are introduced in Section 3.
 
@@ -37,10 +37,11 @@ A **session type** describes the protocol allowed on one endpoint of a channel. 
 
 | Term | Meaning in this document |
 |---|---|
-| Channel | A connection used by two processes to communicate. |
-| Provider / client | The two roles on a channel: offering a service / using it. |
+| Channel | The shared communication resource used by a provider and a client. |
+| Endpoint | One role-specific side of a channel: provider endpoint or client endpoint. |
+| Provider / client | Roles on the same channel: offering a service / using it. |
 | Process incarnation | One running instance of a named process. |
-| Channel placeholder | A name in an expression that stands for an actual channel. |
+| Channel placeholder | A syntactic name intended to be associated with a channel; not the channel resource itself. |
 | Session type | The protocol describing which interaction is allowed on a channel. |
 | Residual session type | The part of that protocol still to be performed at the current point. |
 | Linearity | The invariant that each channel has exactly one provider and one client. |
@@ -52,7 +53,7 @@ A **session type** describes the protocol allowed on one endpoint of a channel. 
 
 | Concept | OrgLang language-level term | Publication notation / term | Implementation name(s) | Notes |
 |---|---|---|---|---|
-| Channel roles | provider / client | provider / client roles in the process interface | `LiabVar` / `AssetVars` in `DecSpec`; `X` / `Ys` in `Link` | `LiabVar` is the provider placeholder; `AssetVars` are client placeholders. The intended `Link` mapping is provider to `X`, clients to `Ys` in declaration order; runtime wiring is unverified. |
+| Channel roles | provider / client | provider / client roles in the process interface | `LiabVar` / `AssetVars` in `DecSpec`; `X` / `Ys` in `Link` | `LiabVar` is the declaration's provider-role name; `AssetVars` are client-role names. Intended `Link` mapping: provider channel to `X`, client channels to `Ys` in declaration order. `LinkSpec.X` / `Ys` are typed as `identity.ADT`, unlike the `symbol.ADT` placeholder representation; runtime resolution is unverified. |
 | Named-process invocation | `Call` | `a ← p b` and `proc(a ← p b) → proc(P[a/x, b/y])` | `CallSpec`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, `NewChnlPH` | The publication supports invocation and substitution; OrgLang continuation and argument mapping remain open. The inspected executor has no `Call` branch. |
 | Provider handoff | `Link` | No equivalent established in the inspected excerpt | `LinkSpec`, `ProcTermQN`, `X`, `Ys` | Transfers provider responsibility for an existing channel; the old incarnation has no ordinary continuation. No complete adapter/executor path was found. |
 | Forwarded message action | `pub` (publish/send) | `msg` | `PubRec`, `ValExp` | `msg` is the send/message side; implementation stores the action in `ValExp`. |
@@ -220,7 +221,7 @@ A process declaration is represented by `DecSpec`:
 - `LiabVar` — provider-channel placeholder.
 - `AssetVars` — client-channel placeholders.
 
-In Section 7, `ContExp` names the continuation expression for `Call`; `NewChnlPH` names a channel placeholder whose allocation or supply is not yet established. For process-expression `Link`, `X` denotes the provider-channel placeholder being handed off and `Ys` the client-channel placeholders passed to the new process. These are Go/AST field names used to discuss the inspected representation, not OrgLang keywords or independent definitions of the intended semantics.
+In Section 7, `ContExp` names the continuation expression for `Call`; `NewChnlPH` names a channel placeholder whose allocation or supply is not yet established. For process-expression `Link`, `X` is intended to identify the existing provider channel being handed off, and `Ys` the client channels passed to the new process. However, `LinkSpec.X` and `LinkSpec.Ys` are typed as `identity.ADT`, not `symbol.ADT`; the AST therefore does not represent them using the same type as the channel placeholders elsewhere. Here “placeholder” describes their intended language-level role, not a confirmed implementation representation. The actual resolution path remains unverified.
 
 Comments in `proc/termdec/core/core.go` support these readings. For process-expression `Link`, the intended mapping is `X` → `LiabVar` and `Ys[i]` → `AssetVars[i]` in declaration order. These are implementation field names; the language-level description uses provider and client roles.
 
