@@ -76,25 +76,7 @@ The placeholder is a name in the call's semantic environment, not the channel or
 
 The pool's public channel has a transaction type of the form `Up` followed by some continuation that ultimately ends in `Down`. **Agreed working interpretation:** access through the pool's public channel gives the client a private channel for the duration of the critical section. Exclusivity is scoped to this private channel and the interaction conducted through it; it does not, by itself, imply a global lock that prevents all other clients from interacting with the pool. Reaching `Down` marks the end of this protocol-bounded critical section, and the client can no longer continue the interaction along that channel continuation after that point. This must be understood in light of channel identity: each interaction generates a new channel identifier for continuing the interaction, and this succession of identifiers is reflected in the channel's type. Thus, in one sense, the channel is continually changing; unavailability after `Down` does not by itself specify whether some underlying channel resource is closed, returned to the pool, or otherwise handled. Further guarantees should be derived from the exact `Up` / continuation / `Down` semantics, not assumed from the analogy alone.
 
-This pool-level protocol is conceptually distinct from the private communication channel associated with a particular callee incarnation and from the argument channels passed to `Call`.
-
-### 4.2 Callee's private communication channel
-
-The callee's private communication channel is distinct from the argument channels passed to the call. The accepted custody rule for argument channels does **not** decide when this private channel is allocated.
-
-Two designs remain possible:
-
-### Option A — allocate at call initiation
-
-The engine creates the private channel when it records the call, even if the callee cannot yet be created. The call remains pending. Semantics would need to say what it means for the channel to exist before its peer process does.
-
-### Option B — allocate when the call is serviced
-
-The engine keeps the call pending without creating the private channel. When service is possible, it creates the incarnation and channel, binds the endpoints, and completes the call.
-
-Neither option has been selected. Both preserve the agreed completion boundary: the call completes only when a fresh incarnation exists, required channels are bound, and the callee is ready to execute.
-
-The next useful question is whether process semantics needs to name, pass, or interact with the private channel before the callee is ready. Until evidence establishes that need, there is no reason to force a choice.
+This pool-level protocol is conceptually distinct from the process's provider channel and from the argument channels passed to `Call`. The provider channel is the sole channel associated with the new process incarnation for communication with its client; the current model introduces no separate callee-private communication channel.
 
 ## 5. Explicitly deferred topics
 
@@ -119,6 +101,6 @@ The next question is how a new process incarnation is associated with the pool r
 
 **Creation and start of servicing after pool selection:** the engine searches for the first eligible pool using the pool-search rule above. Only after a suitable pool has been found does the engine create the new process incarnation together with its provider channel; the selected pool does not create the incarnation itself. The selected pool is associated with the incarnation and begins servicing its provider channel immediately, without a separate readiness-wait stage. The engine's message delivering the provider channel to the caller and the selected pool's start of servicing are unordered: neither event is required to precede the other. The precise point at which the new incarnation's body becomes ready to execute relative to these events is left unspecified, since the current semantic model does not depend on that ordering. If no eligible pool is found, the current model does not specify what happens next; failure and cancellation semantics remain deferred. Pool selection, any agreements that guide the search, incarnation creation, delivery of the provider channel, and the start of servicing are conceptually distinct stages, with no ordering imposed between channel delivery and servicing start. This is distinct from interacting with the pool through its public transaction channel, which has been agreed to be unrelated to `Call` itself.
 
-Once the pool-association question is clearer, return to the open question of when the callee's private communication channel is allocated. The observable result of a serviced call is already constrained by the channel-placeholder rule in §3.3. A separate `Spawn` operation should be reconsidered only if later semantic evidence establishes a role not covered by `Call` and its servicing transition.
+The observable result of a serviced call is constrained by the channel-placeholder rule in §3.3 and by the provider-channel delivery rule above. A separate `Spawn` operation should be reconsidered only if later semantic evidence establishes a role not covered by `Call` and its servicing transition.
 
 Implementation study is a later phase, after the semantic model is sufficiently stable.
