@@ -32,7 +32,7 @@ The issue comments are the strongest current evidence for the conceptual separat
 - Creating a process incarnation is described as an internal engine operation that services `Call`.
 - An agreement between pools may make service possible, but the agreement itself does not create the process.
 - Resource provisioning, reservation, and the exact point of incarnation creation are unresolved.
-- A public structural channel as an offer/template, with a private linear channel per invocation, is proposed but not established.
+- The issue discussion concerns a public channel of the pool. It does not establish that individual processes have public channels; that remains an open design question.
 
 Relevant comments: [Call versus internal spawning](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290893), [pool agreements and transactions](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290639), [transactional types and process creation](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290369), [offer channel proposal](https://github.com/orglang/go-workspace/issues/85#issuecomment-6231176672), and [end-to-end service scenario](https://github.com/orglang/go-workspace/issues/85#issuecomment-6232198226).
 
@@ -66,7 +66,17 @@ The motivation is semantic stability: channel type or protocol state may change,
 
 The placeholder is a name in the call's semantic environment, not the channel or endpoint resource itself. The precise representation and binding mechanics are outside this phase.
 
-## 4. Open design question: the callee's private communication channel
+## 4. Pool public channel and callee's private communication channel
+
+### 4.1 Public channel of the pool
+
+**Agreed clarification:** the public channel discussed in issue #85 is the pool's public channel, not a public channel belonging to each process. Whether individual processes should have public channels remains open.
+
+The pool's public channel has a session type of the form `Up` followed by some continuation that ultimately ends in `Down`. The working analogy is a critical section: the protocol describes a bounded interaction with the pool, rather than merely naming a process that can be called. The analogy is informative but does not, by itself, settle guarantees such as mutual exclusion, atomicity, or scheduling; those must follow from the exact `Up` / continuation / `Down` semantics.
+
+This pool-level protocol is conceptually distinct from the private communication channel associated with a particular callee incarnation and from the argument channels passed to `Call`.
+
+### 4.2 Callee's private communication channel
 
 The callee's private communication channel is distinct from the argument channels passed to the call. The accepted custody rule for argument channels does **not** decide when this private channel is allocated.
 
