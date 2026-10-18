@@ -21,6 +21,8 @@
 
 This document describes OrgLang processes and session types, compares the intended language model with the supplied publication, and records evidence from `orglang/go-engine`.
 
+Pool and transaction semantics are not formalized here, although pool-level process creation is considered where necessary to understand the boundary between invocation and spawning.
+
 It is a research draft, not a normative language specification. The publication is evidence for the rules it states, but is not automatically an authoritative specification of OrgLang. Implementation behavior is evidence about the implementation, not proof of a language-level rule.
 
 ### Evidence status
