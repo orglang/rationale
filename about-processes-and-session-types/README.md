@@ -191,7 +191,7 @@ These interpretations are supported by comments in `proc/termdec/core/core.go`. 
 
 A process definition is represented by `DefSpec{ProcQN, ProcES}`; `DefRec` contains a `Ref`. The inspected `Create`/`Retrieve` implementation in `proc/termdef/core/core.go` appears to be a stub, so this representation alone does not establish the persistence contract.
 
-Keep these names distinct until their relationships are demonstrated by code. In particular, `LinkSpec.X` and `LinkSpec.Ys` are `identity.ADT` values, not channel placeholders (`symbol.ADT`). The author has clarified their intended language-level meaning as caller-side channel placeholders; the Go field types are an implementation discrepancy, not the semantic definition:
+Keep these names distinct until their relationships are demonstrated by code. In particular, `LinkSpec.X` and `LinkSpec.Ys` are `identity.ADT` values, not channel placeholders (`symbol.ADT`). In the intended language-level semantics, they denote caller-side channel placeholders; the Go field types are an implementation discrepancy, not the semantic definition:
 
 - `TermQN`: qualified name associated with a declaration;
 - `ProcQN`: qualified name associated with a definition;
