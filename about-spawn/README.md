@@ -66,7 +66,18 @@ The motivation is semantic stability: channel type or protocol state may change,
 
 The placeholder is a name in the call's semantic environment, not the channel or endpoint resource itself. The exact message mechanism and binding details are outside this phase.
 
-### 3.4 Contrast with `Link` (working rule)
+### 3.4 External and internal calls: `Call` and `Link`
+
+**Agreed conceptual distinction:** the current model can be understood as having two kinds of call:
+
+- **External call (`Call`):** creates a fresh incarnation with a fresh provider channel, and transfers the specified argument channels into it. The caller receives the new provider channel through the call's channel-placeholder mechanism.
+- **Internal call (`Link`):** creates a fresh incarnation while atomically transferring the existing provider channel and all specified `clientChannels` to it. The new incarnation inherits the provider channel's current protocol state unchanged, starts at the beginning of the named process body, and is ready to execute when the atomic transition completes. The old incarnation loses all channels and cannot continue executing; its resulting lifecycle status remains unnamed.
+
+Both kinds use the same pool-selection algorithm. The selected pool starts servicing the provider channel immediately after the relevant transition completes. The outcome when no eligible pool is found remains unspecified for both kinds.
+
+This distinction is a semantic summary of the working rules, not a claim that the source language necessarily uses the terms “external call” and “internal call.”
+
+### 3.5 Evidence and detailed working rules for `Link`
 
 **Evidence — provisional rationale:** [Processes and session types, `Link` section](https://github.com/orglang/rationale/blob/main/about-processes-and-session-types/README.md) describes `Link` as starting a fresh incarnation of the named process while passing an existing `providerChannel` and the listed `clientChannels` in declaration order. The intended handoff transfers provider-side responsibility for the existing channel to the new incarnation. That rationale explicitly marks the handoff contract as provisional; it is not treated here as authoritative proof of runtime behavior.
 
