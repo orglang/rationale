@@ -35,7 +35,7 @@ OrgLang processes communicate through **channels**. A channel is the shared comm
 
 A **session type** describes the allowed protocol from an endpoint's point of view; the complementary endpoint may describe complementary actions. A **residual session type** is the remaining part of that protocol after prior interaction steps. The request/response example and the meaning of a **residual session type** are introduced in Section 3.
 
-**Linearity** is a term used for a usage/ownership discipline in the channel model. The exact object to which linearity applies and its formal invariant must be grounded in the language rules or publication; do not treat a particular formulation as established solely from the `Link` operation.
+**Linearity** is the channel usage/ownership discipline. For `Call`, the agreed language rule is that distinct formal channel parameters cannot be mapped to the same existing channel: the mapping must be injective, because channel use is linear. The full formal invariant and its application to other constructs still need to be written down; do not infer them solely from the `Link` operation.
 
 ### Quick glossary
 
@@ -52,7 +52,7 @@ A **session type** describes the allowed protocol from an endpoint's point of vi
 | Channel placeholder | A syntactic name intended to be associated with a channel; not the channel resource itself. |
 | Session type | The protocol describing which interaction is allowed on a channel. |
 | Residual session type | The part of that protocol still to be performed at the current point. |
-| Linearity | A usage/ownership discipline; the precise invariant and its object require confirmation from the formal rules. |
+| Linearity | Channel usage/ownership discipline; for `Call`, distinct formal channel parameters must map to distinct existing channels. The full formal invariant remains to be written down. |
 | Polarity | An implementation-level positive/negative/neutral classification used by the type checker; not a complete explanation of operational behavior. |
 | Snapshot | An implementation concept that may relate to the publication's `configuration` and `environment`; the exact mapping is an open hypothesis, not an established equivalence. |
 | Turn | Do not treat as a general language-level concept unless a distinct meaning is established. The implementation uses turn-like records for pending communication/exchange state; their precise semantics remain open. |
@@ -138,7 +138,7 @@ This section distinguishes two kinds of uncertainty:
 
 **Before:** the caller is executing a `Call` expression, with its current channel environment and a continuation `ContExp` (the implementation field for the expression the caller should continue with).
 
-**Transition (agreed language rule):** resolve the named process and explicitly map every channel parameter in its declaration to an existing channel supplied in the call's environment/arguments. Then start a fresh incarnation with those channel associations. `Call` itself does not implicitly allocate a replacement channel for an omitted parameter.
+**Transition (agreed language rule):** resolve the named process and explicitly map every channel parameter in its declaration to an existing channel supplied in the call's environment/arguments. Then start a fresh incarnation with those channel associations. Distinct formal channel parameters must map to distinct existing channels; mapping two parameters to the same channel is disallowed by linearity. `Call` itself does not implicitly allocate a replacement channel for an omitted parameter.
 
 **After (agreed language rule):** the new incarnation executes independently. The original caller remains active and its continuation `ContExp` can proceed without waiting for the new incarnation to finish. Failure or termination of the called incarnation does not by itself stop or cancel the caller. Existing channels passed as arguments retain their identity; any dependencies mediated by those shared channels are governed by their protocols.
 
@@ -170,7 +170,7 @@ These operations are distinct unless evidence establishes a more precise semanti
 
 | Operation | Primary role | Intended process-control effect | Intended channel effect | Semantic/evidential status | Implementation status |
 |---|---|---|---|---|
-| `Call` | Invoke a named process. | A fresh incarnation starts; the caller's `ContExp` can proceed without waiting for that incarnation to finish, and callee failure does not automatically stop or cancel the caller. | Every channel parameter is explicitly mapped to an existing channel; `Call` does not implicitly allocate a replacement channel. Exact argument order and implementation mapping remain open. | Agreed language rules for continuation independence, error independence, and explicit channel mapping. | Unverified; no executor branch found in the inspected dispatcher. |
+| `Call` | Invoke a named process. | A fresh incarnation starts; the caller's `ContExp` can proceed without waiting for that incarnation to finish, and callee failure does not automatically stop or cancel the caller. | Every channel parameter is explicitly mapped to an existing channel, with distinct parameters mapped to distinct channels by linearity; `Call` does not implicitly allocate a replacement channel. Exact argument order and implementation mapping remain open. | Agreed language rules for continuation independence, error independence, and explicit channel mapping. | Unverified; no executor branch found in the inspected dispatcher. |
 | `Link` | Hand off provider responsibility. | A fresh incarnation takes over; the old incarnation has no ordinary continuation. | The existing `providerChannel` (`X`) and its client connection stay the same. | Inferred target contract; lifecycle and representation open. | Unverified; no complete executor path found. |
 | `Fwd` | Connect two existing channel interactions. | No named-process incarnation or named-process continuation transfer is implied. | Relates existing endpoints; no global renaming is implied. | Intended rule open beyond the documented example. | Partial; full symmetric behavior not established. |
 
@@ -395,7 +395,7 @@ A formal reduction rule should be added after the relevant typing, executor, ada
 
 The list is ordered by investigation priority, not by semantic importance.
 
-1. **Call:** What is the exact argument order/syntax for explicitly mapping each formal channel parameter to an existing channel? How do `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH` encode that mapping in the AST and runtime? Where are name resolution, recursion checks, and type checks enforced? The language rule does not permit implicit channel allocation to fill an omitted parameter.
+1. **Call:** What is the exact argument order/syntax for explicitly mapping each formal channel parameter to an existing, distinct channel? How do `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH` encode that mapping in the AST and runtime? Where are name resolution, recursion checks, and type checks enforced? The language rule forbids both omitted mappings and mapping distinct formal parameters to the same channel.
 2. **Link:** Where should `X` / `Ys` be resolved, and what lifecycle, failure, and scheduling guarantees apply when provider responsibility transfers?
 3. **Fwd:** What are the exact transition rules for positive, negative, and neutral polarity, including pending turns and continuation state?
 4. **Representation and execution:** Are the conversion asymmetries in Section 12 reachable, and what focused tests establish their impact? Check the relevant adapter, executor, and scheduling paths together.
