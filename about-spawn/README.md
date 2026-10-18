@@ -38,15 +38,45 @@ The same section says that the contract's authoritative language source and impl
 
 The existing rationale distinguishes a process-expression `SpawnSpec`, a pool API `SpawnSpec2`, and a separate prototype reduction associated with `proto/rast2`. These representations must not be treated as interchangeable merely because they share the name “spawn.” The current executor's lack of a `Spawn` branch is implementation evidence, not a complete definition of intended language semantics.
 
+## Evidence from issue discussion and implementation
+
+### Issue #85 discussion
+
+**Observed — issue comments, provisional rather than normative.** The comments transferred from #84 make the intended separation more specific:
+
+- `Call` inside a process is described as the trigger for requesting particular work, identified by `qn`; it is explicitly distinguished from a separate `spawn` message.
+- The engine-level act of creating a process incarnation is described as an internal operation that services `Call`.
+- An inter-pool agreement may make service possible under specified conditions, but the agreement itself does not create the process.
+- The details of resource provisioning and reservation, the point at which the incarnation is created, and behavior when service is unavailable remain unresolved.
+- The comments also preserve an unresolved alternative: if no existing agreement enables service, the caller may wait for an agreement to change, or a transaction may be initiated to change it. Neither behavior is selected as final semantics.
+
+Sources: [issue comment on the relationship between `Call` and spawning](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290893), [comment on transactional types and process spawning](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290639), and [end-to-end scenario for servicing `Call`](https://github.com/orglang/go-workspace/issues/85#issuecomment-6232198226).
+
+This discussion is the strongest current evidence for the intended conceptual relationship: `Call` is the process-level request/trigger, while creation of the incarnation is an internal engine operation. Since the comments explicitly label this material as working hypotheses rather than a specification, the relationship should be recorded as **provisional**, not treated as settled.
+
+### Implementation representations
+
+**Observed — process-expression AST.** In [`proc/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/main/proc/termexp/core/core.go), `CallSpec` contains `CommChnlPH`, `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, and `ContExp`. The same file's `SpawnSpec` contains `CommChnlPH`, `ProcTermQN`, `NewChnlPHs`, and `ContExp`. These shapes overlap, but differ in their channel fields and do not by themselves define the semantic relation between the operations.
+
+**Observed — pool API representation.** In [`pool/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/main/pool/termexp/core/core.go), `SpawnSpec2` instead contains a reference to a process term (`ProcTermRef`) and references to process incarnations (`ProcCompRefs`). In [`pool/termexp/adapter/tc.go`](https://github.com/orglang/go-engine/blob/main/pool/termexp/adapter/tc.go), this pool-level representation is adapted to the SDK's `Spawn` operation. This is evidence of a pool API operation that names a process definition and existing process incarnations; it is not evidence that it has the same transition rule as process-expression `SpawnSpec`.
+
+**Observed — incomplete execution path.** The process executor in [`proc/compexec/core/core.go`](https://github.com/orglang/go-engine/blob/main/proc/compexec/core/core.go) retains a commented-out legacy `SpawnSpecOld` branch. The inspected source does not establish a complete active execution semantics for process-expression `SpawnSpec`. The existence of an SDK adapter for pool-level `SpawnSpec2` must not be mistaken for a complete implementation of the language-level process operation.
+
+**Consequence.** There are at least two distinguishable representations called `Spawn`: a process-expression AST node and a pool API operation. The current evidence does not justify collapsing them into one operation, nor does it show that either is the internal operation servicing `Call`.
+
 ## Working interpretation
 
-**Preliminary hypothesis.** `Call` and `Spawn` may belong to different semantic layers:
+**Current working hypothesis, supported by issue discussion but not yet normative.** `Call` is the process-level trigger/request for a named process. The engine coordinates servicing that call; when the required conditions are met, an internal creation operation starts a fresh incarnation and binds the relevant channels. The pool layer and its agreements may constrain whether and how the call can be serviced, but an agreement is not itself a process creation event.
 
-- `Call` is the language-level process-invocation operation with an intended contract about named-process resolution, channel mapping, a fresh incarnation, and caller continuation.
-- `Spawn` may be an engine-level mechanism that participates in realizing a request to create an incarnation, potentially at the process–pool boundary.
-- The relationship between these layers is not established. In particular, it is not yet known whether `Spawn` is the internal fulfillment step for `Call`, a lower-level API used by more than one construct, or an independent operation with a distinct contract.
+The word `spawn` is ambiguous across the inspected materials. It may refer to a process-expression AST construct, a pool API operation, or an abstract internal creation step. The evidence does not yet establish that these are the same semantic operation. In particular:
 
-This hypothesis avoids inventing a second language-level “request” while also avoiding the unsupported claim that `Call` and `Spawn` are identical or that one is implemented through the other.
+- Do not model a separate `spawn` message as the caller's request; the issue discussion explicitly distinguishes this from `Call`.
+- Do not state that `Call` is implemented through the AST-level `SpawnSpec` or pool-level `SpawnSpec2`; no such implementation mapping has been established.
+- Do not infer that pool agreement itself creates an incarnation.
+- Do not choose between waiting for a changed agreement and initiating a transaction to obtain one; both are still discussed as alternatives.
+- Do not specify resource reservation order or the precise moment of creation before the pool/transaction model is designed.
+
+This interpretation narrows the investigation: the immediate task is to determine whether OrgLang needs a semantically distinct `Spawn` at all, and if so, what role the existing AST and pool API representations play. That can be resolved only by reconciling the intended process semantics with the distinct implementation abstractions and the future pool contract.
 
 ## Design constraints established so far
 
@@ -54,7 +84,7 @@ The following constraints define the scope of the investigation:
 
 1. Define only the minimum contract at the process–pool boundary; defer pool and transaction semantics to separate work.
 2. Treat `spawn` as an engine-level operation for now. Do not infer source-language syntax from an AST type name.
-3. Use the existing rationale's intended `Call` contract as the current semantic baseline, while retaining its evidence and implementation caveats.
+3. Use the existing rationale's intended `Call` contract as the current semantic baseline, while retaining its evidence and implementation caveats. Current issue discussion provisionally treats `Call` as the process-level trigger and incarnation creation as an internal engine operation.
 4. Keep process-level semantics, engine operations, pool API behavior, and prototype reductions distinct unless evidence establishes a mapping.
 5. Record uncertainty rather than silently resolving it from implementation details or from the publication's different calculus.
 
@@ -62,8 +92,8 @@ The following constraints define the scope of the investigation:
 
 The next investigation should compare the relevant definitions and call paths across sources, then resolve the following dependencies in order:
 
-1. **Semantic identity:** what does each occurrence of `Spawn` denote in the AST, pool API, and prototype? Are these separate operations or representations of one contract?
-2. **Relation to `Call`:** does the language-level `Call` contract delegate to an engine-level `Spawn`, or is their relationship merely conceptual? What evidence would establish that mapping?
+1. **Semantic identity:** what does each occurrence of `Spawn` denote in the process AST, pool API, and prototype? Are these separate operations or representations of one contract?
+2. **Relation to `Call`:** issue discussion provisionally describes `Call` as the trigger and creation as an internal engine operation. Is there a distinct semantic operation corresponding to any current `Spawn` representation, or is `Spawn` merely an implementation/API label? What evidence would establish the mapping?
 3. **Input and output:** what does the engine-level operation receive, and what observable result does it produce? Candidate results such as a fresh channel, an incarnation reference, or a state transition must remain hypotheses until supported.
 4. **Boundary preconditions:** which conditions are guaranteed by process semantics, and which belong to the future pool contract?
 5. **Unavailability and failure:** what does the process-level contract require when an incarnation cannot be created? Waiting, failure, and other outcomes remain open; no pool policy is assumed here.
