@@ -35,23 +35,25 @@ A **session type** describes the protocol allowed on one endpoint of a channel. 
 
 ### Terminology correspondence: OrgLang, publication, and implementation
 
-| Concept | OrgLang language-level term | Publication notation / term | Implementation name(s) | Evidence and caveat |
+| Concept | OrgLang language-level term | Publication notation / term | Implementation name(s) |
 |---|---|---|---|---|
-| Channel roles | provider / client | provider / client roles in the process interface | `LiabVar` / `AssetVars` in `DecSpec`; `X` / `Ys` in the intended `Link` description | `LiabVar` is the provider-channel placeholder; `AssetVars` are client-channel placeholders. For `Link`, `X` maps to the provider slot and `Ys[i]` to client slots in declaration order. The AST field types for `X` / `Ys` do not match placeholder-symbol types, so this mapping is intended semantics, not confirmed runtime wiring. |
-| Named-process invocation | `Call` | `a ← p b` and the substitution rule `proc(a ← p b) → proc(P[a/x, b/y])` | `CallSpec`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, `NewChnlPH` | The publication supports named-process invocation and substitution. It does not establish OrgLang's continuation behavior or the precise argument mapping; the executor has no `Call` branch in the inspected version. |
-| Provider handoff | `Link` | No equivalent established by the inspected publication excerpt | `LinkSpec`, `ProcTermQN`, `X`, `Ys` | Intended behavior is a handoff of provider responsibility for an existing channel, with no ordinary continuation in the old incarnation. No complete adapter/executor path was found. Do not equate it with `Call` or `Fwd`. |
-| Forwarded message action | `pub` (publish/send) | `msg` | `PubRec`, `ValExp` | The publication's `msg` corresponds to the send/message side. The inspected implementation stores a publication action in `ValExp`; full forwarding correctness is not established. |
-| Forwarded service action | `sub` (subscribe/wait/serve) | `srv` | `SubRec`, `ContExp` | The publication's `srv` corresponds to the service/waiting side. The inspected implementation stores a subscription continuation in `ContExp`; exact exchange-state invariants remain open. |
-| Protocol remaining at a point | residual session type | Remaining protocol after an interaction step | Current session-type value / checker context (`LinearVars`) | The term is defined in Section 3. The implementation's exact state invariant and how it is updated across all actions remain under investigation. |
-| Polarity | positive / negative / neutral classification | `+` / `−` in the cited forwarding rules | Type-checker polarity assignments in `proc/typeexp/core/core.go` | The code assigns positive polarity to `One`, `Tensor`, `Plus`; negative to `Lolli`, `With`; neutral to `Up`, `Down`, and type-level `Link`. This is observed checker behavior, not a complete operational semantics. |
+| Channel roles | provider / client | provider / client roles in the process interface | `LiabVar` / `AssetVars` in `DecSpec`; `X` / `Ys` in `Link` | `LiabVar` is the provider placeholder; `AssetVars` are client placeholders. The intended `Link` mapping is provider to `X`, clients to `Ys` in declaration order; runtime wiring is unverified. |
+| Named-process invocation | `Call` | `a ← p b` and `proc(a ← p b) → proc(P[a/x, b/y])` | `CallSpec`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, `NewChnlPH` | The publication supports invocation and substitution; OrgLang continuation and argument mapping remain open. The inspected executor has no `Call` branch. |
+| Provider handoff | `Link` | No equivalent established in the inspected excerpt | `LinkSpec`, `ProcTermQN`, `X`, `Ys` | Transfers provider responsibility for an existing channel; the old incarnation has no ordinary continuation. No complete adapter/executor path was found. |
+| Forwarded message action | `pub` (publish/send) | `msg` | `PubRec`, `ValExp` | `msg` is the send/message side; implementation stores the action in `ValExp`. |
+| Forwarded service action | `sub` (subscribe/wait/serve) | `srv` | `SubRec`, `ContExp` | `srv` is the service/waiting side; implementation stores the continuation in `ContExp`. |
+| Protocol remaining at a point | residual session type | Remaining protocol after an interaction step | Current session-type value / checker context (`LinearVars`) | Defined in Section 3; state-update invariants remain open. |
+| Polarity | positive / negative / neutral | `+` / `−` in the forwarding rules | Type-checker assignments in `proc/typeexp/core/core.go` | Positive: `One`, `Tensor`, `Plus`; negative: `Lolli`, `With`; neutral: `Up`, `Down`, type-level `Link`. |
 
-This table is a navigation aid, not a claim that the three vocabularies align perfectly. Where the implementation path is incomplete, the table records the intended correspondence and its evidence limit.
+The table gives the main terminology mapping. Unresolved semantics and implementation gaps are collected in Section 7 (intended behavior) and Sections 13–14 (implementation evidence and open questions).
 
-The document distinguishes three evidence levels:
+### Evidence labels
 
-- **Confirmed**: directly supported by the inspected implementation or its comments.
-- **Tentative**: a plausible interpretation, but the complete call path or invariant has not been verified.
-- **Open**: the inspected implementation does not establish the contract.
+- **Observed:** directly visible in the inspected source or its comments.
+- **Intended:** the language-level behavior this document describes.
+- **Open:** the source does not establish the behavior or required invariant.
+
+These labels separate source observations from intended semantics; they are not confidence scores.
 
 ## 3. A small example: following a channel
 
@@ -64,7 +66,7 @@ Imagine two processes that communicate over one channel. The **residual session 
 | Response transferred | The receive is complete. Residual: finish. | The send is complete. Residual: finish. |
 | Protocol finished | Finished. | Finished. |
 
-The arrows mean “then”; they are explanatory notation, not literal OrgLang syntax. “Transferred” means the matching send/receive actions have both taken place, not merely that one side has started its action. This is a **conceptual trace**, not a formal typing rule. It illustrates that each endpoint's residual type advances according to that endpoint's own action. A channel is not just a wire carrying arbitrary messages: its session type limits which interaction is allowed next.
+The arrows mean “then”; they are explanatory notation, not literal OrgLang syntax. “Transferred” means the matching send/receive actions have both taken place, not merely that one side has started its action. This is a conceptual trace showing how each endpoint's residual type advances according to its own action. A channel is not just a wire carrying arbitrary messages: its session type limits which interaction is allowed next.
 
 ## 4. Process declarations and definitions
 
@@ -129,11 +131,9 @@ This section distinguishes two kinds of uncertainty:
 
 ### `Fwd`
 
-**Purpose:** connect the interaction on one existing channel to the interaction on another. Forwarding is an interaction between channel endpoints, not a global renaming of channel identifiers and not, by itself, a named-process invocation.
+**Purpose:** connect the interaction on one existing channel to the interaction on another. This is an endpoint-level connection, not a named-process invocation. The publication illustrates it with a unit message pending on `c` and a receiver waiting on `d`; see Section 8 for the trace.
 
-**Operational intuition:** forwarding connects interactions across two existing channels; it is not a global renaming of channel names. The publication illustrates this with a sender that has a unit message pending on `c` and a receiver waiting on `d`. See Section 8 for the publication's forwarding example and trace.
-
-**Intended but underspecified:** a complete OrgLang transition rule must account for the positive and negative channel polarities and establish how any neutral-polarity case is handled; it must also cover all pending-turn cases and the resulting continuation state. Section 2 defines polarity, and Section 9 records the type checker's observed assignments. The current evidence does not establish that `Fwd` handles all three classifications. Here a *turn* means a recorded pending communication action or exchange state that the executor may match against an action from the other endpoint; the precise invariants remain open. The publication example gives useful intuition, but it does not settle every OrgLang case; the inspected executor contains TODOs and has not been shown to implement them all correctly.
+**Intended but underspecified:** a complete OrgLang transition rule must account for the positive and negative channel polarities and establish how any neutral-polarity case is handled; it must also cover all pending-turn cases and the resulting continuation state. Section 2 defines polarity, and Section 9 records the type checker's observed assignments. The current evidence does not establish that `Fwd` handles all three classifications. Here a *turn* means a recorded pending communication action or exchange state that the executor may match against an action from the other endpoint; the precise invariants remain open. The publication example does not settle every OrgLang case. The inspected executor contains TODOs; its full behavior remains unverified.
 
 ### Summary
 
@@ -185,7 +185,7 @@ The publication's Example 9 gives a concrete positive-polarity trace. A sender p
 
 The important point is that forwarding is shown as an interaction between a forwarding message and a waiting service, not as a global renaming of every occurrence of `d` to `c`. The trace also shows that the receiver may need another evaluation step to begin listening again after its service has been redirected.
 
-Neither this example nor the other discussion in this section establishes that OrgLang's `Link` is equivalent to `Call` followed by `Fwd`.
+
 
 ## Part III. Implementation evidence and open questions
 
@@ -324,6 +324,10 @@ These are source-level discrepancies to validate with focused tests and call-pat
 
 ## 13. Operational semantics: conservative scope
 
+### Scope of uncertainty
+
+The following cautions apply throughout this document: AST presence alone does not establish runtime support; publication rules do not automatically define OrgLang semantics; and an inspected code path does not establish end-to-end behavior unless the relevant typing, adapter, scheduling, and execution paths are verified together. These are general evidence limits. The operation-specific unresolved questions are listed once below and should be treated as the canonical open-question list.
+
 A formal reduction relation should distinguish at least:
 
 - an expression that is ready to execute;
@@ -338,13 +342,13 @@ The first fully formalized implementation-level rules should be limited to const
 
 ### Named-process operations: implementation evidence
 
-This subsection is the canonical summary of execution support and process-creation uncertainties. Section 12 separately lists adapter and serialization discrepancies.
+This subsection is the canonical implementation summary for `Call`, `Link`, and process creation. Section 12 separately lists adapter and serialization discrepancies. The unresolved questions themselves are collected in Section 14.
 
 The inspected `takeWith` dispatcher has execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. It has no branch for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release` in the inspected version. This is a finding about the current dispatcher, not by itself a conclusion that the language design is defective.
 
-The inspected `call` scenario in `test/e2e/pool_test.go` is inconclusive: the top-level `TestPool` does not run the subtest, its result assertion is a TODO, and the callee declaration has no corresponding process body. The process-definition persistence methods inspected so far also appear to be stubs. Thus the repository evidence does not demonstrate a successful `Call` transition or settle the mapping of additional channel arguments. Section 12 records the separate adapter field-loss issues.
+The inspected `call` scenario in `test/e2e/pool_test.go` is inconclusive: the top-level `TestPool` does not run the subtest, its result assertion is a TODO, and the callee declaration has no corresponding process body. The process-definition persistence methods inspected so far also appear to be stubs. Thus the repository evidence does not demonstrate a successful `Call` transition. See Section 14 for the unresolved argument-mapping question.
 
-For `Link`, the intended language-level operands `X` and `Ys` are caller-side channel placeholders. The inspected AST types these fields as `identity.ADT` channel identifiers rather than `symbol.ADT` placeholder names. No complete adapter or executor path for `Link` was found in the inspected code. This is a possible representation inconsistency if placeholder resolution is expected at this stage; the correct fix cannot be chosen without tracing where resolution should occur. `Call` has an explicit `ContExp`, whereas `Link` does not, so their intended control-flow contracts should not be unified merely because both name a process.
+For `Link`, `X` and `Ys` are intended as caller-side channel placeholders, but the AST types them as `identity.ADT` channel identifiers rather than `symbol.ADT` placeholder names. No complete adapter or executor path was found. `Call` has an explicit `ContExp`; `Link` does not, so their control-flow contracts differ. See Section 14 for the remaining `Link` lifecycle and representation questions.
 
 The pool API has a `Spawn` operation that carries a process declaration reference and optional references to existing process incarnations. This implementation-level API name is not evidence that OrgLang exposes a user-written `Spawn` operation. The available code contains several incomplete approaches that must remain distinct:
 
@@ -358,21 +362,19 @@ The publication's cut rule describes allocating a fresh channel, starting `P[a/x
 
 The executor contains a `Fwd` branch. When no turn is pending, positive polarity registers a `PubRec` carrying `FwdRec`, while negative polarity registers a `SubRec` carrying `FwdRec`; other branches inspect polarity and the pending turn kind. The code contains TODOs for channel-side metadata, and a negative-polarity branch comments on a type mismatch. The ordinary send/receive handlers inspected so far expect `RecvRec`/`SendRec` payloads and do not handle `FwdRec` in those switches. It remains unverified whether another part of scheduling and exchange handling covers this case. This suggests the implementation may be unfinished, but does not prove that `Fwd` is broken.
 
-A formal reduction rule should be added only after the relevant typing, executor, adapter, and scheduling paths have been checked end-to-end.
+A formal reduction rule should be added after the relevant typing, executor, adapter, and scheduling paths have been checked together.
 
 ## 14. Open questions for the next verification pass
 
-1. What is the precise relationship among TermQN, ProcQN, ProcTermQN, declaration references, and expression identity?
-2. What is the intended relationship among process-level invocation, pool-level Spawn, and the pool model?
-3. For Call, what are the role and ordering of additional channel arguments, and how do they map to formal channel parameters?
-4. Where should name resolution, recursion checks, and type checks be enforced?
-5. Are type-level Link, Up, and Down resolved before the currently observed type-checking cases?
-6. What are the contracts of Acqure, Accept, Detach, and Release?
-7. What are the full invariants for ChnlBS, provider/client orientation, and linear-context updates?
-8. Are the conversion asymmetries listed above reachable in actual execution, and which tests can establish their impact?
-9. What exact transition semantics do subscription/publication and exchange-turn records implement?
-10. Must all branches of a Case preserve equivalent linear contexts, and where is that enforced?
-11. What lifecycle, failure, and scheduling guarantees apply when Link transfers control?
+1. **Call:** What is the role and ordering of additional channel arguments, and how do they map to formal channel parameters? Where are name resolution, recursion checks, and type checks enforced?
+2. **Link:** Where should `X` / `Ys` be resolved, and what lifecycle, failure, and scheduling guarantees apply when provider responsibility transfers?
+3. **Fwd:** What are the exact transition rules for positive, negative, and neutral polarity, including pending turns and continuation state?
+4. **Process creation:** What is the intended relationship among process-level invocation, pool-level `Spawn`, and the pool model? What is the role of recursion through process definitions?
+5. **Type constructors:** Are type-level `Link`, `Up`, and `Down` resolved before the observed checker cases?
+6. **Other constructors:** What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
+7. **Linear context:** What are the invariants for `ChnlBS`, provider/client orientation, and updates across operations? Must all `Case` branches preserve equivalent linear contexts?
+8. **Representation and execution:** Are the conversion asymmetries in Section 12 reachable, and what tests establish their impact?
+9. **Publication/subscription state:** What transition semantics do publication, subscription, and exchange-turn records implement?
 
 ## 15. Non-goals
 
