@@ -208,7 +208,7 @@ The publication also gives the following forwarding rules. The mode parameter `m
     proc(d⁺ ← c⁺) → !⁺msg(d⁺, c⁺)   id: forward+
     proc(d⁻ ← c⁻) → !⁻srv(d⁻, c⁻)   id: forward−
 
-In OrgLang, the publication's `msg` action corresponds to `pub` (publish/send a message), and `srv` corresponds to `sub` (subscribe/wait to receive or serve). In the inspected implementation, `PubRec` stores a `ValExp` (publication/message action) and `SubRec` stores a `ContExp` (subscription/service continuation). The `Fwd` executor examines channel polarity and pending communication turns, redirecting the relevant turn; if none is pending, it records a publication or subscription turn carrying a forwarding record. Some source branches still contain TODOs, so this is not a complete correctness proof.
+The publication's `msg` action is tentatively aligned here with OrgLang's `pub` (publish/send a message), and `srv` with `sub` (subscribe/wait to receive or serve); these mappings remain provisional rather than established synonyms. In the inspected implementation, `PubRec` stores a `ValExp` (publication/message action) and `SubRec` stores a `ContExp` (subscription/service continuation). The `Fwd` executor examines channel polarity and pending communication turns, redirecting the relevant turn; if none is pending, it records a publication or subscription turn carrying a forwarding record. Some source branches still contain TODOs, so this is not a complete correctness proof.
 
 ### Reading the publication's forwarding example
 
@@ -244,7 +244,7 @@ Comments in `proc/termdec/core/core.go` support these readings. For process-expr
 
 A process definition is represented by `DefSpec{ProcQN, ProcES}`; `DefRec` contains a `Ref`. The inspected `Create`/`Retrieve` implementation in `proc/termdef/core/core.go` appears to be a stub, so this representation alone does not establish the persistence contract.
 
-Keep these names distinct until their relationships are demonstrated by code. In particular, `LinkSpec.X` and `LinkSpec.Ys` are `identity.ADT` values, not channel placeholders (`symbol.ADT`). In the intended language-level semantics, they denote caller-side channel placeholders; the Go field types are an implementation discrepancy, not the semantic definition:
+Keep these names distinct until their relationships are demonstrated by code. The field-type mismatch described above is an implementation discrepancy, not the semantic definition. Related identifiers include:
 
 - `TermQN`: qualified name associated with a declaration;
 - `ProcQN`: qualified name associated with a definition;
