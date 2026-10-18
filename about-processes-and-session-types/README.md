@@ -244,11 +244,15 @@ The current process-level `CheckSpec` and `CheckRec` implementations explicitly 
 One concrete source discrepancy exists in `pool/typeexp/core/tc.go`: the `DownSpec` conversion constructs and returns `UpRec` rather than `DownRec`. Also, the `PlusSpec` conversion composes a value key but does not check/return the `Compose` error in the same way as neighboring branches. These are implementation findings only; they should be validated with focused tests and should not be used to define the intended type semantics.
 ## 10. Typing interface
 
-The execution path in `proc/compexec/core/core.go` loads the current execution snapshot, builds a type environment from relevant process declarations and type definitions, derives a context from the snapshot's linear channel variables, and calls `checkType` before dispatching the expression to the executor.
+### What type checking does
 
-The snapshot is documented as an execution configuration and contains a `CompRef` plus a `LinearVars` map. This suggests that typing is performed against the current linear-channel context, but the full typing judgment and all context-splitting invariants need to be stated only after checking every constructor and helper.
+Before an expression is executed, the implementation checks whether the current channel protocols fit the operation. For example, a send action should only be used when the channel's current protocol permits sending; a close action should only be used when that interaction is ready to finish. These are intuitive explanations, not complete formal rules.
 
-Observed operator/type correspondences include:
+In the implementation, `proc/compexec/core/core.go` loads the current execution snapshot, gathers relevant process declarations and type definitions, builds the type-checking context, and calls `checkType` before dispatching the expression. The snapshot is the saved state of the current computation; its `LinearVars` map records the channel variables tracked by the checker. The exact invariants of this context still need verification.
+
+### How to read the correspondence table
+
+The table records which session-type constructor the inspected checker expects for each process operator. “Provider-side” and “client-side” identify the two channel roles described in Section 2; they do not mean that the whole process has two provider channels. A match in this table is evidence about the checker, not a complete language rule.
 
 | Process operator | Provider-side expectation | Client-side expectation | Evidence status |
 |---|---|---|---|
@@ -259,24 +263,26 @@ Observed operator/type correspondences include:
 | `Close` / `Wait` | `One` on the corresponding endpoint side | `One` on the corresponding endpoint side | exact side-specific conditions should be rechecked |
 | `Fwd` | compatibility/polarity checks exist | full symmetric behavior not established | partial |
 
-This table is intentionally not a formal typing judgment. In particular, it does not specify context splitting, freshness, substitution, or all premises.
+This table is intentionally not a formal typing judgment. It leaves out the exact conditions that must hold before a rule applies, how channel variables are divided between subexpressions (often called *context splitting*), and how names are substituted or checked for freshness.
 
-The inspected `CheckSpec`/`CheckRec` handling explicitly covers `One`, `Tensor`, `Lolli`, `Plus`, and `With`; `Link`, `Up`, and `Down` appear to reach an unsupported-constructor panic in the default branch. Whether normal execution resolves or unfolds these constructors before this code is reached is an open question, not yet a confirmed runtime bug.
+The inspected checker explicitly handles `One`, `Tensor`, `Lolli`, `Plus`, and `With`. Its default branch appears to panic for `Link`, `Up`, and `Down`, which means those forms are not handled at that point in the code. Whether normal execution resolves or unfolds these constructors before this code is reached is an open question, not yet a confirmed runtime bug.
 
 ## 11. Execution and communication
 
-At a high level, the inspected `Take` path is:
+At a high level, the inspected execution path follows six steps. The names in parentheses are implementation details:
 
-1. Load the current execution snapshot.
-2. Collect the process declarations/type definitions needed by the current expression.
-3. Build the type context and run `checkType`.
-4. Dispatch the expression through `takeWith`.
-5. Persist the resulting modification/effects.
-6. If a next expression is scheduled, continue from the updated reference and expression; otherwise return.
+1. Read the saved state of the computation (the execution snapshot).
+2. Gather the process declarations and type definitions needed for the current action.
+3. Check that the action fits the channel protocols currently in force (`checkType`).
+4. Run the matching handler for the action (`takeWith`).
+5. Save the resulting state changes and effects.
+6. If the action produced a next expression, schedule or continue with it; otherwise return.
+
+This outline is a map of the observed code path, not a complete definition of when a process blocks, resumes, or owns a channel.
 
 The inspected `takeWith` contains execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. The current `LabSpec` AST includes `ContExp`, but its message adapter does not preserve that field; whether a label-selection continuation is semantically required remains open. It does not contain branches for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release`; those constructors have no execution branch in this dispatcher in the inspected version. This is a statement about the inspected implementation, not by itself a conclusion that the language design is defective. `Spawn` and the call mechanism are interdependent because both may rely on the unresolved model of process creation and pools. Consequently, no complete operational rule for `Call` or `Spawn` is specified here. Recursion may arise from cyclic dependencies among process definitions rather than requiring a separate recursive-call construct. This does not imply that `Link` and `Call` should be unified: `Call` has an explicit `ContExp`, whereas `Link` does not, and their operational rules must account for that distinction. Channel forwarding (`Fwd`) remains a distinct operation.
 
-Communication is not necessarily completed in one pass. For example, when the counterpart of a `Close`/`Wait` or a send/receive interaction is not yet available, the execution path can register a subscription and return without completing that interaction. When the peer is found, the implementation updates exchange state, allocates channel identifiers, updates linear-variable records, and may schedule the continuation.
+Communication may take more than one execution step. If the matching action from the other side is not yet available—for example, the corresponding `Wait` for a `Close`, or a receive for a send—the current action may register that it is waiting and return. When the other side becomes available, the implementation updates the exchange state and channel records, and may schedule the continuation. The precise ordering and ownership rules are still open.
 
 This is an implementation-level description. The exact transition relation, message ownership, and invariants for subscriptions, publications, and exchange turns still need to be formalized from all producer/consumer call paths.
 
