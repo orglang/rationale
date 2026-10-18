@@ -30,6 +30,8 @@ A **session type** describes the protocol from the point of view of one endpoint
 | Residual session type | The part of that protocol still to be performed at the current point. |
 | Linearity | The invariant that each channel has exactly one provider and one client. |
 | Polarity | An implementation-level positive/negative/neutral classification used by the type checker; not a complete explanation of operational behavior. |
+| Snapshot | A saved view of the computation's state at a particular execution point. |
+| Turn | A recorded pending communication action or exchange state that may be matched with an action from the other endpoint. |
 
 The document distinguishes three evidence levels:
 
@@ -61,7 +63,7 @@ For now, it is enough to recognize four broad kinds of process action:
 - **Communication:** send or receive a value/channel, or select and handle a labelled choice.
 - **Finishing:** close an interaction or wait for the other side to finish.
 - **Connecting interactions:** forward between channels.
-- **Process control:** invoke a named process with `Call`, or transfer control with `Link`.
+- **Process control:** `Call` invokes a named process while the caller has a continuation; `Link` hands provider responsibility for an existing channel to a new process incarnation. Their intended transitions and unresolved details are in Section 7.
 
 The repository also contains AST constructors for `Spawn`, `Acqure`, `Accept`, `Detach`, and `Release`. Their presence in the syntax tree does not establish their user-facing status or runtime behavior. The full constructor/field inventory is in Part III.
 
@@ -69,9 +71,9 @@ The repository also contains AST constructors for `Spawn`, `Acqure`, `Accept`, `
 
 A session type describes what may happen next at one end of a channel. In the running example, the client must send a request and later receive a response. The provider must receive the request and later send the response. These are complementary views of the same conversation; each endpoint's residual type changes as its next action is completed (see Sections 2–3).
 
-A protocol can also pass a channel between processes. The sender gives the other process a channel it can use to communicate; the receiver gains access to that channel for the rest of its process. The implementation names the relevant session-type forms `Tensor` and `Lolli`. These constructors describe both the transfer of a channel and the protocol that remains after the transfer. Their exact typing conditions and the way each name corresponds to a direction are recorded in Part III rather than assumed here.
+A protocol can also pass a channel between processes. The sender gives the other process a channel it can use to communicate; the receiver gains access to that channel for the rest of its process. The implementation names the relevant session-type forms `Tensor` and `Lolli`. At a high level, these are the two complementary forms used to describe channel transfer together with the protocol that remains after the transfer. The names alone do not tell the reader which endpoint performs which action: their observed polarity assignments and the exact typing conditions are recorded in Part III, and the direction mapping remains deliberately unstated here.
 
-Protocols may also allow a choice between labelled alternatives. The implementation uses `Plus` and `With` for these forms, and `One` for a finished protocol. The implementation contains `Up` and `Down` too, but their meaning in OrgLang is still being investigated. Type-level `Link` refers to another type definition; it is different from the process expression `Link`, which is described in Section 7.
+Protocols may also allow a choice between labelled alternatives: the implementation uses `Plus` and `With` for the two complementary type forms associated with such choices. `One` represents a finished protocol. The implementation contains `Up` and `Down` too, but their meaning in OrgLang is still being investigated; see Part III for the observed checker coverage and open questions. Type-level `Link` refers to another type definition; it is different from the process expression `Link`, which is described in Section 7.
 
 This introduction explains why these forms are useful; it is not a complete theory of session types. Part III contains the constructor inventory, observed polarity assignments, checker coverage, and open questions.
 
@@ -255,7 +257,7 @@ One concrete source discrepancy exists in `pool/typeexp/core/tc.go`: the `DownSp
 
 Before an expression is executed, the implementation checks whether the current channel protocols fit the operation. For example, a send action should only be used when the channel's current protocol permits sending; a close action should only be used when that interaction is ready to finish. These are intuitive explanations, not complete formal rules.
 
-In the implementation, `proc/compexec/core/core.go` loads the current execution snapshot, gathers relevant process declarations and type definitions, builds the type-checking context, and calls `checkType` before dispatching the expression. The snapshot is the saved state of the current computation; its `LinearVars` map records the channel variables tracked by the checker. The exact invariants of this context still need verification.
+In the implementation, `proc/compexec/core/core.go` loads the current execution snapshot (a saved view of the computation's state at that execution point), gathers relevant process declarations and type definitions, builds the type-checking context, and calls `checkType` before dispatching the expression. Its `LinearVars` map records the channel variables tracked by the checker. The exact invariants of this context still need verification.
 
 ### How to read the correspondence table
 
@@ -289,7 +291,7 @@ This is an outline of the observed path, not a complete definition of when a pro
 
 Communication may take more than one execution step. If the matching action from the other side is not yet available—for example, the corresponding `Wait` for a `Close`, or a receive for a send—the current action may register that it is waiting and return. When the other side becomes available, the implementation updates the exchange state and channel records, and may schedule the continuation. The precise ordering and ownership rules are still open.
 
-The exact transition relation, message ownership, and invariants for subscriptions, publications, and exchange turns still need to be formalized from all producer/consumer call paths.
+The exact transition relation, message ownership, and invariants for subscriptions, publications, and exchange turns still need to be formalized from all producer/consumer call paths. Here, a publication (`pub`) is the send/message side and a subscription (`sub`) is the waiting/service side in the terminology used by this implementation; the exact state invariants remain open.
 
 ## 12. Representation and serialization caveats
 
