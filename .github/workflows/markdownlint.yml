@@ -6,11 +6,6 @@ on:
       - "**/*.md"
       - ".markdownlint-cli2.jsonc"
       - ".github/workflows/markdownlint.yml"
-  push:
-    paths:
-      - "**/*.md"
-      - ".markdownlint-cli2.jsonc"
-      - ".github/workflows/markdownlint.yml"
 
 permissions:
   contents: read
