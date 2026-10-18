@@ -234,7 +234,13 @@ The publication describes the forwarding message as persistent when the session 
 
 Neither this example nor the other discussion in this section establishes that OrgLang's `Link` is equivalent to `Call` followed by `Fwd`.
 
-### `Fwd`: intended behavior and implementation status
+### `Fwd`: intended meaning
+
+In simple terms, `Fwd` connects the interaction on one channel to the interaction on another. It lets a participant waiting on one channel continue through the other channel, so communication can proceed between the parties without treating forwarding as a global renaming of channel identifiers. The exact operational steps depend on the polarity of the forwarding operation.
+
+The publication's example illustrates the idea: one process sends a unit value on channel `c`, while another is waiting on channel `d`. A forwarding operation relating `d` and `c` allows that waiting interaction to reach the message on `c`, after which the receiving process continues. This is the intended reading of the example, not yet a claim that every execution order is correctly handled by the OrgLang implementation.
+
+### `Fwd`: implementation status
 
 The publication describes `Fwd` as polarity-sensitive forwarding. Its positive-polarity rule uses a forwarding message (`msg`), while its negative-polarity rule uses a forwarding service (`srv`). Example 9 shows a waiting service being redirected so it can receive a message on the other channel.
 
