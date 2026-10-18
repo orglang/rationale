@@ -97,6 +97,20 @@ In simple terms, `Fwd` connects the interaction on one channel to the interactio
 
 The publication's example illustrates the idea: one process sends a unit value on channel `c`, while another is waiting on channel `d`. A forwarding operation relating `d` and `c` allows that waiting interaction to reach the message on `c`, after which the receiving process continues. This is the intended reading of the example, not yet a claim that every execution order is correctly handled by the OrgLang implementation.
 
+### Comparing `Call`, `Link`, and `Fwd`
+
+A short comparison helps keep the three ideas separate:
+
+| Operation | What changes? | Does the invoking process continue normally? | What happens to channels? |
+|---|---|---|---|
+| `Call` | A fresh incarnation of a named process starts. | Yes, according to the current intended OrgLang model. | The caller supplies channels according to the process interface; the exact argument mapping remains open. |
+| `Link` | A fresh incarnation takes over providing the caller's existing provider channel, and control transfers to it. | No ordinary continuation is specified. | The provider channel and its client connection stay the same; provider-side responsibility transfers. |
+| `Fwd` | Interaction on one channel is connected to interaction on another. | This is not defined as a named-process call or a continuation transfer. | It relates two existing channel interactions; it is not a global rename of channel identifiers. |
+
+For example, if a process needs a helper to perform work and then continue, that is the intended shape of `Call`. If a process has reached a point where another process should take over its provider-side conversation, that is the intended shape of `Link`. If two channel interactions need to be connected so a message or service can pass between them, that is the role of `Fwd`.
+
+These are language-level descriptions. The implementation evidence later in the document does not yet establish complete execution paths for all three operations.
+
 ### User-facing operations and internal process creation
 
 - **Call:** invokes a named process; in the current OrgLang model, the caller continues after the call.
