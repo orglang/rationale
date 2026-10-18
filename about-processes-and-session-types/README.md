@@ -191,6 +191,12 @@ The first two effects are part of the intended semantics clarified so far. The p
 
 The transition preserves linearity: every channel has exactly one provider and one client. This rule does not specify when the old incarnation's remaining state is reclaimed, or define scheduling and failure behavior.
 
+### `Fwd`: intended meaning
+
+In simple terms, `Fwd` connects the interaction on one channel to the interaction on another. It lets a participant waiting on one channel continue through the other channel, so communication can proceed between the parties without treating forwarding as a global renaming of channel identifiers. The exact operational steps depend on the polarity of the forwarding operation.
+
+The publication's example illustrates the idea: one process sends a unit value on channel `c`, while another is waiting on channel `d`. A forwarding operation relating `d` and `c` allows that waiting interaction to reach the message on `c`, after which the receiving process continues. This is the intended reading of the example, not yet a claim that every execution order is correctly handled by the OrgLang implementation.
+
 ### Why Call, Link, and Fwd are distinct
 
 - **Call:** starts a fresh incarnation; the caller continues.
@@ -206,6 +212,8 @@ The inspected call example in test/e2e/pool_test.go is inconclusive: its result 
 For Link, the intended meaning is that X and Ys name placeholders in the invoking process, but the inspected AST types these fields as identity.ADT channel identifiers rather than symbol.ADT placeholder names. No complete adapter or executor path for Link was found in the inspected code. This is a likely representation inconsistency if placeholder resolution is expected at this stage; the intended fix should not be chosen without tracing where resolution is meant to occur.
 
 Pool-level Spawn remains distinct: its inspected API carries a process declaration reference and optional references to existing process incarnations. This is evidence about the current pool API, not a reason to define process-level Call and Spawn as the same operation.
+
+`Fwd` is also represented in the inspected executor. When no turn is pending, positive polarity registers a `PubRec` carrying `FwdRec`, while negative polarity registers a `SubRec` carrying `FwdRec`; other branches inspect polarity and the pending turn kind. However, the code contains TODOs for channel-side metadata, and a negative-polarity branch comments on a type mismatch. The ordinary send/receive handlers inspected so far expect `RecvRec`/`SendRec` payloads and do not handle `FwdRec` in those switches. We have not established whether another part of the scheduling and exchange path handles this case. This suggests the implementation may be unfinished, but does not prove that `Fwd` is broken. Its completeness remains an open question.
 
 ## 10. Comparison with the supplied publication
 
@@ -230,27 +238,7 @@ The publication's Example 9 gives a concrete positive-polarity trace. A sender p
 
 The important point is that forwarding is shown as an interaction between a forwarding message and a waiting service, not as a global renaming of every occurrence of `d` to `c`. The trace also shows that the receiver may need another evaluation step to begin listening again after its service has been redirected.
 
-The publication describes the forwarding message as persistent when the session type admits contraction. In that case, multiple clients of `d` can be forwarded to `c` independently. This persistence is conditional and should not be generalized to linear channels or to types that do not admit contraction.
-
 Neither this example nor the other discussion in this section establishes that OrgLang's `Link` is equivalent to `Call` followed by `Fwd`.
-
-### `Fwd`: intended meaning
-
-In simple terms, `Fwd` connects the interaction on one channel to the interaction on another. It lets a participant waiting on one channel continue through the other channel, so communication can proceed between the parties without treating forwarding as a global renaming of channel identifiers. The exact operational steps depend on the polarity of the forwarding operation.
-
-The publication's example illustrates the idea: one process sends a unit value on channel `c`, while another is waiting on channel `d`. A forwarding operation relating `d` and `c` allows that waiting interaction to reach the message on `c`, after which the receiving process continues. This is the intended reading of the example, not yet a claim that every execution order is correctly handled by the OrgLang implementation.
-
-### `Fwd`: implementation status
-
-The publication describes `Fwd` as polarity-sensitive forwarding. Its positive-polarity rule uses a forwarding message (`msg`), while its negative-polarity rule uses a forwarding service (`srv`). Example 9 shows a waiting service being redirected so it can receive a message on the other channel.
-
-In the inspected OrgLang executor, the no-pending cases register a `PubRec` carrying `FwdRec` for positive polarity and a `SubRec` carrying `FwdRec` for negative polarity. Other branches inspect the polarity and the kind of pending turn. This is consistent with a polarity-sensitive forwarding mechanism, rather than a global replacement of channel names.
-
-**Implementation status: incomplete or at least not fully verified.** The inspected code contains TODOs, including channel-side metadata, and a negative-polarity branch comments on a type mismatch. In addition, the ordinary send/receive handlers inspected so far expect `RecvRec`/`SendRec` payloads and do not handle `FwdRec` in those switches. We have not established whether another part of the execution path handles this case.
-
-This is evidence that the implementation may be unfinished, but it is not proof that `Fwd` is broken: the complete scheduling and exchange paths have not been traced. For this research note, keep the publication's intended behavior separate from the implementation observations and mark implementation completeness as an open question. Further code investigation can wait until another semantic question makes it necessary.
-
-Neither the publication example nor the inspected implementation proves that OrgLang's `Link` is equivalent to `Call` followed by `Fwd`.
 
 ## 11. Other implementation observations
 
