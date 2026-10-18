@@ -141,15 +141,17 @@ This section distinguishes two kinds of uncertainty:
 
 **Intended but underspecified:** `Fwd` needs a complete transition rule for channel polarity, pending turns, and continuation state. Polarity is defined in Section 2; Section 9 records the checker's observed assignments. A *turn* is a recorded pending communication action or exchange state that may be matched with an action from the other endpoint. The publication example and inspected executor do not settle all OrgLang cases; see Section 14 for the canonical open question.
 
-### Summary
+### Summary: compare the three operations
 
-| Operation | Process state after the operation | Channel identity and connection | Caller continuation |
-|---|---|---|---|
-| `Call` | A fresh named-process incarnation starts independently. | Existing argument channels retain their identity; the channel exposed through `NewChnlPH` has unresolved allocation/mapping details. | Continues with `ContExp`. |
-| `Link` | A fresh named-process incarnation takes over provider responsibility. | Existing provider channel `X` and its client connection stay the same. | No ordinary continuation. |
-| `Fwd` | No named-process incarnation is implied by the operation itself. | Relates two existing channel interactions; no global rename is implied. | Not specified as a named-process continuation transfer. |
+These operations are not interchangeable. `Call` starts a named-process incarnation and preserves a continuation for the caller; `Link` starts a named-process incarnation that takes over provider responsibility, with no ordinary continuation for the old incarnation; `Fwd` connects two existing channel interactions and does not itself imply a named-process invocation.
 
-The table is the short reference. The detailed claims above are intended semantics; the later sections distinguish what the publication supports and what the current implementation actually demonstrates.
+| Operation | Primary role | Process-control effect | Channel effect | Evidence status |
+|---|---|---|---|---|
+| `Call` | Invoke a named process. | A fresh incarnation starts; the caller continues with `ContExp`. | Existing argument channels retain their identity. Allocation and mapping involving `NewChnlPH` remain unresolved. | Intended high-level contract; wiring is open. |
+| `Link` | Hand off provider responsibility. | A fresh incarnation takes over; the old incarnation has no ordinary continuation. | The existing provider channel `X` and its client connection stay the same. | Intended high-level contract; lifecycle and representation are open. |
+| `Fwd` | Connect two existing channel interactions. | No named-process incarnation or named-process continuation transfer is implied. | Relates existing endpoints; no global renaming is implied. | Partial implementation evidence; full transition rule is open. |
+
+Use this table as the quick comparison, and the operation-specific subsections above for the intended transitions and preconditions. Part II gives publication context; Part III records implementation evidence. Those evidence sources are not alternative definitions of the intended behavior.
 
 ## Part II. Comparison with the publication
 
