@@ -59,17 +59,27 @@ A **session type** describes the allowed protocol from an endpoint's point of vi
 
 ### Terminology correspondence: OrgLang, publication, and implementation
 
-| Concept | OrgLang language-level term | Publication notation / term | Implementation name(s) | Notes |
-|---|---|---|---|---|
-| Channel roles | provider / client | provider / client roles in the process interface | `LiabVar` / `AssetVars` in `DecSpec`; `X` / `Ys` in `Link` | `LiabVar` is the declaration's provider-role name; `AssetVars` are client-role names. For process-expression `Link`, the intended mapping is **`providerChannel` (`X`)** to `LiabVar` and **`clientChannels` (`Ys`)** to `AssetVars` in declaration order. `LinkSpec.X` / `Ys` are typed as `identity.ADT`, unlike the `symbol.ADT` placeholder representation; runtime resolution is unverified. |
-| Named-process invocation | `Call` | `a ← p b` and `proc(a ← p b) → proc(P[a/x, b/y])` | `CallSpec`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, `NewChnlPH` | The publication supports invocation and substitution; OrgLang continuation and argument mapping remain open. The inspected executor has no `Call` branch. |
-| Provider handoff | `Link` | No equivalent established in the inspected excerpt | `LinkSpec`, `ProcTermQN`, `X`, `Ys` | Transfers provider responsibility for an existing channel; the old incarnation has no ordinary continuation. No complete adapter/executor path was found. |
-| Forwarded message action | `pub` (publish/send) | `msg` | `PubRec`, `ValExp` | `msg` is the send/message side; implementation stores the action in `ValExp`. |
-| Forwarded service action | `sub` (subscribe/wait/serve) | `srv` | `SubRec`, `ContExp` | `srv` is the service/waiting side; implementation stores the continuation in `ContExp`. |
-| Protocol remaining at a point | residual session type | Remaining protocol after an interaction step | Current session-type value / checker context (`LinearVars`) | Defined in Section 3; state-update invariants remain open. |
-| Polarity | positive / negative / neutral | `+` / `−` in the forwarding rules | Type-checker assignments in `proc/typeexp/core/core.go` | Positive: `One`, `Tensor`, `Plus`; negative: `Lolli`, `With`; neutral: `Up`, `Down`, type-level `Link`. |
+Use one row for one proposed correspondence. **Mapping status** describes the strength of that correspondence, not the semantic/evidential status of a claim or the implementation status. Use three values:
 
-The table gives the main terminology mapping. Preserve mismatches among OrgLang terminology, publication terminology, and implementation names instead of treating them as synonyms by default. Intended behavior is described in Section 7; implementation findings and remaining questions are separated in Part III.
+- **Confirmed** — the correspondence is supported by sufficient evidence.
+- **Provisional** — evidence supports the correspondence, but it still needs verification.
+- **Unresolved** — no correspondence is established, or sources appear to conflict. Describe any discrepancy in **Notes**.
+
+| OrgLang term / concept | Publication term / notation | Implementation name | Mapping status | Notes |
+|---|---|---|---|---|
+| Provider channel placeholder | Provider-role channel parameter in the process interface | `LiabVar` in `DecSpec` | Provisional | The implementation comment supports this interpretation; verify the full resolution path. |
+| Client channel placeholders | Client-role channel parameters in the process interface | `AssetVars` in `DecSpec` | Provisional | The implementation comment supports this interpretation; verify the full resolution path. |
+| Process-expression `Link` provider channel (`X`) | No equivalent established in the inspected excerpt | `LinkSpec.X` | Unresolved | Intended to denote the existing provider channel, but the field is typed as `identity.ADT`, not a channel-placeholder symbol. Runtime resolution is unverified. |
+| Process-expression `Link` client channels (`Ys`) | No equivalent established in the inspected excerpt | `LinkSpec.Ys` | Unresolved | Intended to denote client channels in declaration order; representation and runtime resolution are unverified. |
+| `Call` | `a ← p b`; publication substitution rule | `CallSpec`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, `NewChnlPH` | Provisional | The publication supports invocation and substitution, but the exact OrgLang argument mapping and continuation semantics remain open. The inspected executor has no `Call` branch. |
+| Provider handoff via process-expression `Link` | No equivalent established | `LinkSpec` | Unresolved | Intended to transfer provider responsibility for an existing channel; no complete adapter/executor path was found. |
+| Send/publish action (`pub`) | `msg` | `PubRec`, `ValExp` | Provisional | The names align with the send/message side in the described forwarding trace; end-to-end state semantics remain open. |
+| Service/wait action (`sub`) | `srv` | `SubRec`, `ContExp` | Provisional | The names align with the service/waiting side in the described forwarding trace; end-to-end state semantics remain open. |
+| Residual session type | Remaining protocol after an interaction step | Current session-type value / checker context (`LinearVars`) | Unresolved | Conceptual correspondence only; state-update invariants remain open. |
+| Session-type polarity | `+` / `−` in forwarding rules | Type-checker assignments in `proc/typeexp/core/core.go` | Provisional | The implementation assignments are observed; their exact relationship to publication polarity and operational behavior remains to be verified. |
+
+Preserve mismatches among OrgLang terminology, publication terminology, and implementation names instead of treating them as synonyms by default. Intended behavior is described in Section 7; implementation findings and remaining questions are separated in Part III.
+
 
 
 
