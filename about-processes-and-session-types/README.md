@@ -71,7 +71,7 @@ Use one row for one proposed correspondence. **Mapping status** describes the st
 | Client channel placeholders | Client-role channel parameters in the process interface | `AssetVars` in `DecSpec` | Provisional | The implementation comment supports this interpretation; verify the full resolution path. |
 | Process-expression `Link` provider channel (`X`) | No equivalent established in the inspected excerpt | `LinkSpec.X` | Unresolved | Intended to denote the existing provider channel, but the field is typed as `identity.ADT`, not a channel-placeholder symbol. Runtime resolution is unverified. |
 | Process-expression `Link` client channels (`Ys`) | No equivalent established in the inspected excerpt | `LinkSpec.Ys` | Unresolved | Intended to denote client channels in declaration order; representation and runtime resolution are unverified. |
-| `Call` | `a ← p b`; publication substitution rule | `CallSpec`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, `NewChnlPH` | Provisional | The publication supports invocation and substitution, but the exact OrgLang argument mapping and continuation semantics remain open. The inspected executor has no `Call` branch. |
+| `Call` | `a ← p b`; publication substitution rule | `CallSpec`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, `NewChnlPH` | Provisional | The publication supports invocation and substitution. The intended OrgLang contract preserves the caller's continuation without waiting for the called incarnation to finish; exact argument mapping and the role of `NewChnlPH` remain open. The inspected executor has no `Call` branch. |
 | Provider handoff via process-expression `Link` | No equivalent established | `LinkSpec` | Unresolved | Intended to transfer provider responsibility for an existing channel; no complete adapter/executor path was found. |
 | Send/publish action (`pub`) | `msg` | `PubRec`, `ValExp` | Provisional | The names align with the send/message side in the described forwarding trace; end-to-end state semantics remain open. |
 | Service/wait action (`sub`) | `srv` | `SubRec`, `ContExp` | Provisional | The names align with the service/waiting side in the described forwarding trace; end-to-end state semantics remain open. |
@@ -140,9 +140,9 @@ This section distinguishes two kinds of uncertainty:
 
 **Intended transition:** resolve the named process and the caller-supplied channel placeholders, then start a fresh incarnation of the named process with the channels required by its declaration.
 
-**After:** the new incarnation can execute independently. The original caller remains active and continues with `ContExp`. Existing channels passed as arguments retain their identity.
+**After (intended):** the new incarnation can execute independently. The original caller remains active and its continuation `ContExp` can proceed without waiting for the new incarnation to finish. Existing channels passed as arguments retain their identity; any dependencies mediated by those shared channels are governed by their protocols.
 
-**Status:** the high-level control-flow contract is intended, but channel wiring remains underspecified. The unresolved argument mapping and the role of `NewChnlPH` are listed in Section 14. This description does not assume that `Call` is implemented using `Spawn`.
+**Status:** this records the intended OrgLang control-flow contract: the caller's continuation does not wait for the called incarnation to finish. Exact argument mapping, channel wiring, and the role of `NewChnlPH` remain underspecified and are listed in Section 14. This is a candidate language rule to retain unless contradicted by the language design; it is not verified by the current executor, which has no `Call` branch. This description does not assume that `Call` is implemented using `Spawn`.
 
 ### `Link`
 
@@ -170,7 +170,7 @@ These operations are distinct unless evidence establishes a more precise semanti
 
 | Operation | Primary role | Intended process-control effect | Intended channel effect | Semantic/evidential status | Implementation status |
 |---|---|---|---|---|
-| `Call` | Invoke a named process. | A fresh incarnation starts; the caller continues with `ContExp`. | Existing argument channels retain their identity. Allocation and mapping involving `NewChnlPH` remain unresolved. | Inferred target contract; details open. | Unverified; no executor branch found in the inspected dispatcher. |
+| `Call` | Invoke a named process. | A fresh incarnation starts; the caller's `ContExp` can proceed without waiting for that incarnation to finish. | Existing argument channels retain their identity. Allocation and mapping involving `NewChnlPH` remain unresolved. | Candidate language rule for continuation independence; channel wiring details open. | Unverified; no executor branch found in the inspected dispatcher. |
 | `Link` | Hand off provider responsibility. | A fresh incarnation takes over; the old incarnation has no ordinary continuation. | The existing `providerChannel` (`X`) and its client connection stay the same. | Inferred target contract; lifecycle and representation open. | Unverified; no complete executor path found. |
 | `Fwd` | Connect two existing channel interactions. | No named-process incarnation or named-process continuation transfer is implied. | Relates existing endpoints; no global renaming is implied. | Intended rule open beyond the documented example. | Partial; full symmetric behavior not established. |
 
