@@ -226,13 +226,13 @@ In OrgLang, the publication's msg maps to pub, and srv maps to sub. In the inspe
 
 ### Reading the publication's forwarding example
 
-The publication's Example 9 gives a concrete positive-polarity trace. A sender publishes hi on c; a receiver is waiting on d; and a forwarding process connects the two. The receiver first becomes a service waiting on d. The forwarding process then produces a forwarding message for the pair (d, c). When that forwarding message meets the service waiting on d, the service is redirected to wait on c; the sender's pending message can then be received, and the receiver continues as P.
+The publication's Example 9 gives a concrete positive-polarity trace. A sender publishes the unit value `()` on `c`; a receiver is waiting on `d`; and a forwarding process connects the two. The receiver first becomes a service waiting on `d`. The forwarding process then produces a forwarding message for the pair `(d, c)`. When that forwarding message meets the service waiting on `d`, the service is redirected to wait on `c`; the sender's pending unit message can then be received, and the receiver continues as `P`.
 
-The important point is that forwarding is shown as an interaction between a forwarding message and a waiting service, not as a global renaming of every occurrence of d to c. The trace also shows that the receiver may need another evaluation step to begin listening again after its service has been redirected.
+The important point is that forwarding is shown as an interaction between a forwarding message and a waiting service, not as a global renaming of every occurrence of `d` to `c`. The trace also shows that the receiver may need another evaluation step to begin listening again after its service has been redirected.
 
-The publication states that the forwarding message is persistent when the session type admits contraction. In that case, multiple clients of d can be forwarded to c independently. This persistence is conditional: it must not be generalized to linear channels or to types that do not admit contraction.
+The publication states that the forwarding message is persistent when the session type admits contraction. In that case, multiple clients of `d` can be forwarded to `c` independently. This persistence is conditional: it must not be generalized to linear channels or to types that do not admit contraction.
 
-The second, flip example is useful context but establishes a different point. It illustrates how a process can construct the output stream by reusing a message of type 1 on u; that message is not consumed by an ordinary receive in the displayed trace. It is not, by itself, an additional forwarding rule. In particular, neither example establishes that OrgLang's Link is equivalent to Call followed by Fwd.
+Neither this example nor the other discussion in this section establishes that OrgLang's `Link` is equivalent to `Call` followed by `Fwd`.
 
 This evidence supports reading Fwd as polarity-sensitive forwarding/mediation, not as generic global replacement of channel identifiers. It does not prove that Link is operationally equivalent to Call followed by Fwd.
 
