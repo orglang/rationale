@@ -197,7 +197,7 @@ A call creates a fresh process incarnation and starts its body independently. Th
 2. Add a fresh process incarnation running that instantiated body.
 3. Continue the invoking process with `ContExp`.
 
-The exact field-by-field mapping from `CallSpec` to declaration parameters is not established here; it should not be inferred solely from field names. The key semantic point is that the callee's execution and the caller's continuation both remain active after the call transition.
+The exact field-by-field mapping from `CallSpec` to declaration parameters is not confirmed. An illustrative `call` scenario in `test/e2e/pool_test.go` suggests the following interpretation: `BindChnlPH` names a channel through which the caller's continuation communicates with the callee's provider endpoint, while `ValChnlPHs` supplies existing channels for the callee's `AssetVars`, in declaration order. In that scenario, the caller's `ContExp` waits on `BindChnlPH`, and the supplied channel argument comes from the caller's `AssetVars`. However, the test leaves its result assertion as a TODO, and the inspected execution path does not implement `Call`; treat this mapping as a hypothesis to verify, not a confirmed contract. The intended semantic point remains that the callee's execution and the caller's continuation both remain active after the call transition.
 
 #### `Link`
 
@@ -290,7 +290,7 @@ The existing client can continue the same protocol on the same channel because t
 3. What is the intended semantic relationship between named-process invocation, process creation (`Spawn`), and the pool model, and which parts belong to each layer?
 4. (Partly resolved.) The intended `Link` transition is stated in the rule above. Remaining open: lifecycle of the old incarnation's state, and any failure/scheduling guarantees beyond the abstract transition.
 5. Where should name resolution, recursion checks, and type checks be enforced? The language-level meaning of `LinkSpec.X` and `Ys` is settled: they name placeholders in the invoking process; the Go field-type discrepancy is an implementation issue.
-6. The publication's named-process call form has no explicit continuation, while OrgLang's `CallSpec` includes `ContExp`. Is this continuation part of the intended call semantics, and if so, what does it represent and when does it run?
+6. (Resolved at the language-design level.) OrgLang `Call` starts a new incarnation while the caller continues through `ContExp`. Still open: confirm the field-by-field mapping of `BindChnlPH` and `ValChnlPHs` to the callee's declaration parameters; the current test only suggests a mapping and does not assert the result.
 7. Are type-level `Link`, `Up`, and `Down` resolved before the currently observed type-checking cases?
 8. What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
 9. What are the full invariants for `ChnlBS`, provider/client orientation, and linear-context updates?
