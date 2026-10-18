@@ -68,6 +68,8 @@ The placeholder is a name in the call's semantic environment, not the channel or
 
 ## 4. Pool public channel and callee's private communication channel
 
+**Agreed separation:** servicing a `Call` and interacting through the pool's public channel are unrelated mechanisms. A `Call` does not, by itself, require a transaction through the pool's public channel or entry into its critical section; conversely, the pool's `Up … Down` protocol does not imply a `Call` or process-incarnation creation.
+
 ### 4.1 Public channel of the pool
 
 **Agreed clarification:** the public channel discussed in issue #85 is the pool's public channel, not a public channel belonging to each process. Whether individual processes should have public channels remains open.
