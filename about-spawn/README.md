@@ -74,7 +74,7 @@ The placeholder is a name in the call's semantic environment, not the channel or
 
 **Important distinction:** `Call` creates a fresh incarnation together with a fresh provider channel. `Link` instead creates a fresh incarnation that takes over the existing provider channel, along with its specified client channels; it must not be described as allocating an unrelated provider channel. Applying the same pool search to `Link` is a working design decision, not evidence that the existing rationale or implementation already guarantees this behavior.
 
-**Open:** the precise handoff of provider-side responsibility and protocol state, and how the selected pool begins servicing the existing provider channel under `Link`, still require semantic clarification. No additional ordering or failure guarantees are implied here.
+**Agreed:** the handoff of provider-side responsibility under `Link` is mandatory: once the new incarnation takes over the existing provider channel, the old incarnation must stop servicing that channel. The channel is not concurrently serviced by both incarnations. **Open:** the precise transition point and the transfer of protocol state, and how the selected pool begins servicing the existing provider channel, still require semantic clarification. No additional ordering or failure guarantees are implied here.
 
 ## 4. Pool public channel and callee's private communication channel
 
