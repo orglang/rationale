@@ -194,9 +194,9 @@ Keep these names distinct until their relationships are demonstrated by code. In
 
 Do not assume these identifiers are interchangeable.
 
-### Appendix A. Detailed AST and session-type inventory
+### AST and session-type inventory
 
-#### A.1 Process-expression AST inventory
+#### Process-expression AST inventory
 
 The inspected process AST defines the following constructors and fields:
 
@@ -219,7 +219,7 @@ The inspected process AST defines the following constructors and fields:
 
 The table is a syntax inventory, not a claim that all constructors are executable.
 
-#### A.2 Session-type AST and checker coverage
+#### Session-type AST and checker coverage
 
 The process session-type AST contains these constructors:
 
