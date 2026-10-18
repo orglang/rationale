@@ -17,15 +17,18 @@ Claims below are marked **Evidence**, **Agreed**, or **Open**. Issue comments ar
 
 ### 2.1 Existing rationale: `Call`
 
-**Evidence — [Processes and session types, Section 7](https://github.com/orglang/rationale/blob/main/about-processes-and-session-types/README.md).** `Call` is described as invocation of a named process. Its intended contract resolves the named process, maps declared channel parameters to existing channels, starts a fresh process incarnation with separate execution state and a channel environment, injects a distinct provider channel for communication with the caller, and allows the caller's continuation to proceed once the incarnation has started. Explicitly mapped channels are transferred to the new incarnation; distinct formal parameters must map to distinct channels under linearity.
-
-The rationale notes that the authoritative language source and implementation mapping remain unverified. It does not establish that `Call` is implemented using `Spawn`.
+**Evidence — [Processes and session types, Section 7](https://github.com/orglang/rationale/blob/design/spawn-semantics/about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-operations).** The canonical document records the current intended `Call` contract. Its authoritative language source and implementation mapping remain unverified; this evidence does not establish that `Call` is implemented using `Spawn`, nor does it settle the pool-selection mechanism described in Section 6.
 
 ### 2.2 Existing rationale: publication cut/spawn rule
 
-**Evidence — [Section 8](https://github.com/orglang/rationale/blob/main/about-processes-and-session-types/README.md).** The publication's rule `x ← P ; Q` allocates a fresh channel, starts a process running `P` with that channel substituted for `x`, and continues the original process as `Q` with the same channel substituted.
+**Publication rule.** The supplied calculus gives the cut/spawn rule:
 
-**Limit.** This is a rule from a particular calculus. It does not establish that OrgLang uses the same rule or requires channel allocation and process creation to happen at the same moment.
+    proc(x ← P ; Q) 7→ proc([a/x]P), proc([a/x]Q) (a fresh)
+    cut: allocate channel & spawn
+
+Here `P` is the body of the process being spawned and `Q` is the original process's continuation. The rule allocates a fresh channel `a`, substitutes it for `x` in both expressions, and runs the two resulting processes so they can communicate over that shared channel. It therefore combines fresh-channel allocation and process spawning in this particular calculus.
+
+**Limit as OrgLang evidence.** This clarifies the publication's rule only. It does not establish that OrgLang uses the same rule, that channel allocation and process creation must happen at the same moment, or how OrgLang's `SpawnSpec` represents the body and continuation. Lifecycle and scheduling behavior remain open.
 
 ### 2.3 Issue #85 discussion
 
@@ -54,6 +57,8 @@ This document does not restate those contracts. Use Section 2 above for the supp
 **Agreed clarification:** the public channel discussed in issue #85 is the pool's public channel, not a public channel belonging to each process. Whether individual processes should have public channels remains open.
 
 The pool's public channel has a transaction type of the form `Up` followed by some continuation that ultimately ends in `Down`. **Agreed working interpretation:** access through the pool's public channel gives the client a private channel for the duration of the critical section. Exclusivity is scoped to this private channel and the interaction conducted through it; it does not, by itself, imply a global lock that prevents all other clients from interacting with the pool. Reaching `Down` marks the end of this protocol-bounded critical section, and the client can no longer continue the interaction along that channel continuation after that point. This must be understood in light of channel identity: each interaction generates a new channel identifier for continuing the interaction, and this succession of identifiers is reflected in the channel's type. Thus, in one sense, the channel is continually changing; unavailability after `Down` does not by itself specify whether some underlying channel resource is closed, returned to the pool, or otherwise handled. Further guarantees should be derived from the exact `Up` / continuation / `Down` semantics, not assumed from the analogy alone.
+
+**TODO:** Decide whether the detailed `Up … Down` protocol explanation belongs in `about-transaction/README.md`, then move the protocol mechanics there and keep only the process/pool boundary distinction here.
 
 This pool-level protocol is conceptually distinct from the process's provider channel and from the client channels passed to `Call`. The provider channel is the sole channel associated with the new process incarnation for communication with its client; the current model introduces no separate callee-private communication channel.
 
