@@ -48,7 +48,7 @@ A call has three conceptual stages:
 2. **Pending:** the engine has the request, but cannot yet service it. The caller remains suspended on the call; this does not stop the engine as a whole.
 3. **Serviced:** the engine creates a fresh incarnation, establishes the required channel bindings, and reaches the point at which the callee is ready to execute.
 
-**Agreed:** the call completes at stage 3. Merely accepting or recording the request is not completion. The caller does not wait for the callee's eventual termination. “Ready to execute” means the callee's body can be executed; it does not require that the body has already begun or completed its first instruction. At that point, the engine can hand execution to the callee, and the caller may proceed with its continuation.
+**Agreed:** the call completes at stage 3. Merely accepting or recording the request is not completion. The caller does not wait for the callee's eventual termination. “Ready to execute” means the callee's body can be executed; it does not require that the body has already begun or completed its first instruction. Once the call is serviced, both the callee's body and the caller's continuation are eligible to execute. Neither must execute its first instruction before the other can begin; this rule does not prescribe a scheduling priority or strict execution order.
 
 **Agreed:** every successfully serviced call creates a fresh process incarnation. Reuse of an existing incarnation is not implicit and would require a separate rule.
 
