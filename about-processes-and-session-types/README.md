@@ -129,7 +129,7 @@ This section distinguishes two kinds of uncertainty:
 
 ### `Link`
 
-**Before:** the invoking process is providing a service on the existing provider channel named by `X`. Here `X` is the provider-channel placeholder, and `Ys` is the list of client-channel placeholders supplied to the target process; these are operand names in the intended description, not yet confirmed runtime field semantics.
+**Before:** the invoking process provides a service on an existing channel, called **`providerChannel`** here (AST field `X`). The target process also receives a list of client channels, called **`clientChannels`** here (AST field `Ys`). These are semantic labels for the explanation; they do not confirm how the runtime resolves the fields.
 
 **Preconditions:** the target process definition is available and a fresh incarnation can be created. The channel supplied by `X` must have the same **current residual session type** as the target process's provider channel—not merely the same initial declared type. In plain terms, both sides must agree on what is supposed to happen next in the conversation. If the existing channel has already passed the request step, the new process must be ready for the response step, not for a new request.
 
