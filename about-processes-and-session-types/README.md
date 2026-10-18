@@ -166,16 +166,18 @@ This section states the intended OrgLang behavior independently of Go structures
 
 ### Call
 
-**In simple terms:** Call starts a fresh incarnation of the named process. The caller names a placeholder that will be bound to a fresh channel for communication with the callee. The callee receives the corresponding side of that channel according to the call/declaration contract. The callee starts executing independently, while the caller continues through its continuation.
+**Working correspondence with the publication:** OrgLang `Call` is best understood as corresponding to the named-process call `a ← p b` in Table 4.2, rather than to the cut/spawn term `x ← P ; Q`.
 
-**Preconditions and transition:**
+**In simple terms:** Call starts a fresh incarnation of a named process and provides the channels it needs according to the call/declaration contract. In OrgLang, the caller also continues through the call's continuation. This continuation behavior is part of the current OrgLang interpretation; it is not established by the publication's call row alone.
+
+**Preliminary OrgLang transition:**
 
 1. The named process definition is available, and a fresh incarnation can be created.
-2. Create a fresh channel and bind the caller's specified placeholder to the caller-side endpoint of that channel.
+2. The caller's specified placeholder is bound to a fresh channel for communication with the callee.
 3. Start a fresh incarnation of the named process and connect it through the corresponding endpoint, according to the call/declaration contract.
 4. Continue the caller with the call's continuation.
 
-The first two effects are part of the intended semantics clarified so far. The precise representation of channel endpoints, and the role and ordering of any additional channel arguments and their correspondence to formal channel parameters, remain open. This rule intentionally does not assign semantics to individual Go fields.
+The named-process invocation and channel-argument substitution align with the publication's `a ← p b` form. The fresh-channel details and caller continuation above are part of the current OrgLang interpretation, not conclusions from that publication row. The precise role and ordering of additional channel arguments and their correspondence to formal channel parameters remain open. This description intentionally does not assign semantics to individual Go fields.
 
 ### Link
 
@@ -219,7 +221,7 @@ The available code contains multiple incomplete approaches to spawning, which sh
 - The pool-level `SpawnSpec2` instead names a process declaration and optional existing process incarnations. Its `Spawn` method creates a new execution record in linear mode, but the inspected method does not itself instantiate a process body or wire up the fresh channel described by the publication's cut rule.
 - A separate prototype under `proto/rast2` has a `spawn` reduction that creates a fresh channel and two process entries. That resembles the publication's allocate-and-spawn shape, but it belongs to a different prototype representation; it does not establish the intended semantics of the current OrgLang AST or pool API.
 
-These are distinct pieces of implementation evidence, not a completed implementation path. In particular, the publication's `P` and `Q` have not yet been mapped reliably to the current `SpawnSpec` fields. Keep the current OrgLang `Spawn` semantics unspecified until that relationship and the intended role of the pool are clarified.
+These are distinct pieces of implementation evidence, not a completed implementation path. As a working hypothesis, OrgLang `Spawn` corresponds to the publication's cut/spawn term `x ← P ; Q`: `P` is the spawned process body, `Q` is the original process's continuation, and both use the same fresh channel. The current `SpawnSpec` fields have not yet been mapped reliably to those roles, so this is a guide for further analysis rather than a verified account of OrgLang's implementation.
 
 `Fwd` is also represented in the inspected executor. When no turn is pending, positive polarity registers a `PubRec` carrying `FwdRec`, while negative polarity registers a `SubRec` carrying `FwdRec`; other branches inspect polarity and the pending turn kind. However, the code contains TODOs for channel-side metadata, and a negative-polarity branch comments on a type mismatch. The ordinary send/receive handlers inspected so far expect `RecvRec`/`SendRec` payloads and do not handle `FwdRec` in those switches. We have not established whether another part of the scheduling and exchange path handles this case. This suggests the implementation may be unfinished, but does not prove that `Fwd` is broken. Its completeness remains an open question.
 
