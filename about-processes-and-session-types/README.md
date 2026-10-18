@@ -7,7 +7,7 @@
 **How to use this document:**
 - Start with Parts I and II for the conceptual model, intended behavior, and comparison with the supplied publication.
 - Use Part III when checking those descriptions against the current implementation.
-- Treat **Observed**, **Intended**, **Partial**, and **Open** as evidence labels, defined in Section 1. They distinguish kinds of claims; they do not imply that an end-to-end behavior has been verified.
+- Read Section 1 for the two independent status axes: semantic/evidential status and implementation status. A semantic claim may be well specified even when the implementation is incomplete or unverified.
 - Use Section 14 as the consolidated list of questions still requiring investigation.
 
 **Contents**
@@ -21,17 +21,17 @@
 
 This document focuses on processes and session types. Pool and transaction semantics are not formalized here, although pool-level process creation is considered where necessary to understand the boundary between invocation and spawning.
 
-**Evidence policy.** Claims are labelled consistently throughout: **Observed** means directly visible in the inspected source or comments; **Intended** means the language-level behavior this document describes; **Partial** means some implementation support is visible but the full path or invariant is unverified; **Open** means the available evidence does not settle the behavior. These labels distinguish source observations from semantic claims; they are not confidence scores.
+**Status policy.** Keep two axes separate. **Semantic/evidential status** describes what supports a claim: **Specified** means stated directly in the relevant language source or publication; **Observed** means directly visible in inspected source or comments; **Inferred** means a working interpretation derived from evidence but not directly specified; **Open** means the available evidence does not settle the question. **Implementation status** describes implementation coverage independently: **Implemented**, **Partial**, **Not implemented**, or **Unverified**. Use **Intended behavior** in prose for a proposed or target language-level contract, not as an evidence label. Do not infer implementation completeness from a semantic status, or semantic correctness from implementation evidence.
 
 ## 2. Core concepts
 
 OrgLang processes communicate through **channels**. A channel is the shared communication resource connecting two roles: the **provider** offers a service, and the **client** uses it. An **endpoint** is one participant's role-specific side of that channel—the provider endpoint or the client endpoint. In this document, “provider channel” and “client channel” describe a channel from the relevant process's role; they do not imply two separate channels. Each process has one provider channel of its own and may use other channels as a client.
 
-A named process is like a recipe. Each time it is started, that running copy is a **process incarnation**. A **channel placeholder** is a name in an expression or process interface that is intended to stand for a channel. It is a syntactic name, not the channel resource or endpoint itself; an environment or substitution must associate it with the relevant channel. The implementation may represent these layers with different Go types, and the mapping must be verified rather than inferred from field names alone.
+**Process** is the general umbrella term in this document; its precise referent follows context. A **named process** is the process identified by a name. A **process declaration** describes its interface, while a **process definition** supplies its behavior. Each start creates a concrete running copy called a **process incarnation**. These are related concepts, not interchangeable terms. A **channel placeholder** is a name in an expression or process interface that is intended to stand for a channel. It is a syntactic name, not the channel resource or endpoint itself; an environment or substitution must associate it with the relevant channel. The implementation may represent these layers with different Go types, and the mapping must be verified rather than inferred from field names alone.
 
-A **session type** describes the protocol allowed on one endpoint of a channel. The two endpoints describe complementary actions. The request/response example and the meaning of a **residual session type** are introduced in Section 3.
+A **session type** describes the allowed protocol from an endpoint's point of view; the complementary endpoint may describe complementary actions. A **residual session type** is the remaining part of that protocol after prior interaction steps. The request/response example and the meaning of a **residual session type** are introduced in Section 3.
 
-**Linearity** means that a channel has exactly one provider and exactly one client; there must not be two competing providers or two competing clients for the same channel. This is why `Link` transfers the provider's responsibility for an existing channel rather than creating a second provider for it.
+**Linearity** is a term used for a usage/ownership discipline in the channel model. The exact object to which linearity applies and its formal invariant must be grounded in the language rules or publication; do not treat a particular formulation as established solely from the `Link` operation.
 
 ### Quick glossary
 
@@ -40,14 +40,18 @@ A **session type** describes the protocol allowed on one endpoint of a channel. 
 | Channel | The shared communication resource used by a provider and a client. |
 | Endpoint | One role-specific side of a channel: provider endpoint or client endpoint. |
 | Provider / client | Roles on the same channel: offering a service / using it. |
-| Process incarnation | One running instance of a named process. |
+| Process | General umbrella term; interpret in context rather than equating it only with a name or a running instance. |
+| Named process | A process referred to by name. |
+| Process declaration | The process interface, including its provider-role and client-role channel placeholders. |
+| Process definition | The body or expression specifying process behavior. |
+| Process incarnation | One running instance of a process. |
 | Channel placeholder | A syntactic name intended to be associated with a channel; not the channel resource itself. |
 | Session type | The protocol describing which interaction is allowed on a channel. |
 | Residual session type | The part of that protocol still to be performed at the current point. |
-| Linearity | The invariant that each channel has exactly one provider and one client. |
+| Linearity | A usage/ownership discipline; the precise invariant and its object require confirmation from the formal rules. |
 | Polarity | An implementation-level positive/negative/neutral classification used by the type checker; not a complete explanation of operational behavior. |
-| Snapshot | A saved view of the computation's state at a particular execution point. |
-| Turn | A recorded pending communication action or exchange state that may be matched with an action from the other endpoint. |
+| Snapshot | An implementation concept that may relate to the publication's `configuration` and `environment`; the exact mapping is an open hypothesis, not an established equivalence. |
+| Turn | Do not treat as a general language-level concept unless a distinct meaning is established. The implementation uses turn-like records for pending communication/exchange state; their precise semantics remain open. |
 
 ### Terminology correspondence: OrgLang, publication, and implementation
 
@@ -99,7 +103,7 @@ The repository also contains AST constructors for `Spawn`, `Acqure`, `Accept`, `
 
 ## 6. Session types: the protocol for a channel
 
-A session type describes what may happen next at one end of a channel (Section 2). For the request/response example and residual session types, see Section 3.
+A session type describes the allowed protocol from one endpoint's point of view (Section 2). For the request/response example and residual session types, see Section 3.
 
 A protocol can also pass a channel between processes. The sender gives the other process a channel it can use to communicate; the receiver gains access to that channel for the rest of its process. The implementation names the relevant session-type forms `Tensor` and `Lolli`. At a high level, these are the two complementary forms used to describe channel transfer together with the protocol that remains after the transfer. The names alone do not tell the reader which endpoint performs which action: Section 9 records the observed polarity assignments and checker coverage, while Section 10 describes the typing interface. The exact direction mapping remains deliberately unstated here.
 
@@ -145,7 +149,7 @@ This section distinguishes two kinds of uncertainty:
 
 **Purpose:** connect the interaction on one existing channel to the interaction on another. This is an endpoint-level connection, not a named-process invocation. The publication illustrates it with a unit message pending on `c` and a receiver waiting on `d`; see Section 8 for the trace.
 
-**Intended but underspecified:** `Fwd` needs a complete transition rule for channel polarity, pending turns, and continuation state. Polarity is defined in Section 2; Section 9 records the checker's observed assignments. A *turn* is a recorded pending communication action or exchange state that may be matched with an action from the other endpoint. The publication example and inspected executor do not settle all OrgLang cases; see Section 14 for the canonical open question.
+**Intended but underspecified:** `Fwd` needs a complete transition rule for channel polarity, pending turns, and continuation state. Polarity is defined in Section 2; Section 9 records the checker's observed assignments. The implementation's turn-like records appear to represent pending communication/exchange state, but `turn` is not used here as a synonym for a communication step. The exact semantics remain open. The publication example and inspected executor do not settle all OrgLang cases; see Section 14 for the canonical open question.
 
 ### Summary: compare the three operations
 
@@ -283,19 +287,19 @@ One concrete source discrepancy exists in `pool/typeexp/core/tc.go`: the `DownSp
 
 Before an expression is executed, the implementation checks whether the current channel protocols fit the operation. For example, a send action should only be used when the channel's current protocol permits sending; a close action should only be used when that interaction is ready to finish. These are intuitive explanations, not complete formal rules.
 
-In the implementation, `proc/compexec/core/core.go` loads the current execution snapshot (a saved view of the computation's state at that execution point), gathers relevant process declarations and type definitions, builds the type-checking context, and calls `checkType` before dispatching the expression. Its `LinearVars` map records the channel variables tracked by the checker. The exact invariants of this context still need verification.
+In the implementation, `proc/compexec/core/core.go` loads the current execution snapshot (a saved view of computation state at that execution point; its relationship to the publication's `configuration` and `environment` is not yet established), gathers relevant process declarations and type definitions, builds the type-checking context, and calls `checkType` before dispatching the expression. Its `LinearVars` map records the channel variables tracked by the checker. The exact invariants of this context still need verification.
 
 ### How to read the correspondence table
 
 The table records which session-type constructor the inspected checker expects for each process operator. “Provider-side” and “client-side” identify the two channel roles described in Section 2; they do not mean that the whole process has two provider channels. A match in this table is evidence about the checker, not a complete language rule.
 
-| Process operator | Provider-side expectation | Client-side expectation | Evidence status |
+| Process operator | Provider-side expectation | Client-side expectation | Implementation evidence |
 |---|---|---|---|
 | `Send` | `Tensor` | `Lolli` | Observed |
 | `Recv` | `Lolli` | `Tensor` | Observed |
 | `Lab` | `Plus` | `With` | Observed |
 | `Case` | `With` | `Plus` | Observed |
-| `Close` / `Wait` | `One` on the corresponding endpoint side | `One` on the corresponding endpoint side | Open |
+| `Close` / `Wait` | `One` on the corresponding endpoint side | `One` on the corresponding endpoint side | Unverified |
 | `Fwd` | compatibility/polarity checks exist | full symmetric behavior not established | Partial |
 
 This table records checker observations, not complete typing rules. Exact side conditions, context splitting, substitution, and freshness conditions remain outside its scope.
@@ -346,7 +350,7 @@ A formal reduction relation should distinguish at least:
 - the resulting channel/linear-context update;
 - continuation scheduling and persistence.
 
-The current evidence supports treating execution as a stateful transition over an execution snapshot plus communication/exchange state. It does **not** yet justify importing a generic session-calculus semantics verbatim, nor asserting that each AST constructor has a complete reduction rule.
+The current evidence supports treating execution as a stateful transition over an execution snapshot plus communication/exchange state. The snapshot may relate to the publication's `configuration` and `environment`, but that mapping remains an inference to verify. It does **not** yet justify importing a generic session-calculus semantics verbatim, nor asserting that each AST constructor has a complete reduction rule.
 
 The first fully formalized implementation-level rules should be limited to constructors whose typing and execution branches have both been checked end-to-end. A complete implementation-level reduction rule for `Call` and resource-management constructs should remain unspecified until the execution paths have been verified and reconciled with the intended contract in Section 7. `Spawn` is deferred to the pool-level analysis. `Link` should be investigated alongside recursive process definitions/calls, not conflated with `Fwd`.
 
