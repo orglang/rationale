@@ -166,13 +166,15 @@ This section states the intended OrgLang behavior independently of Go structures
 
 ### Call
 
-**In simple terms:** `Call` invokes a named process. The calling process specifies the channels through which the new process can interact with its environment. In our current working model of OrgLang, the invoked process starts executing independently, while the caller continues after the `Call` expression.
+**In simple terms:** `Call` invokes a named process. The caller supplies channel placeholders or arguments according to the named process's declaration, so the new incarnation can interact with its environment through those channels. In our current working model of OrgLang, the invoked process starts executing independently, while the caller continues after the `Call` expression.
 
-This description captures the intended language-level behavior, not details of how channel endpoints are represented or passed. It is consistent with the publication's named-process call `a ← p b`, while the exact correspondence between all OrgLang arguments and the publication's channel parameters remains unspecified.
+This is the current intended language-level behavior, not a description of its implementation. It is consistent with the publication's named-process call `a ← p b`, but the exact mapping and ordering of OrgLang channel arguments remain unspecified. In particular, this definition does not assume that `Call` is implemented using `Spawn`.
 
 ### Link
 
-**In simple terms:** Link starts a fresh incarnation and hands it the existing provider channel of the invoking process. The channel and its client connection stay the same; the new incarnation takes over providing that channel. Control transfers to the new incarnation rather than continuing in the old one.
+**In simple terms:** `Link` starts a fresh incarnation of a named process and transfers control to it, without an ordinary continuation in the invoking process. The invoking process supplies `X` as its existing provider channel; the new incarnation takes over providing that same channel. The channel and its client connection stay the same.
+
+This is the intended language-level transition; it does not assume that `Link` is implemented using `Spawn`. Although `Link` has some similarities to a tail call and to `Call` combined with forwarding, neither equivalence has been established.
 
 **Preconditions and transition:**
 
@@ -195,7 +197,7 @@ The publication's example illustrates the idea: one process sends a unit value o
 - **Call:** invokes a named process; in the current OrgLang model, the caller continues after the call.
 - **Link:** starts a fresh incarnation and transfers provider ownership of an existing channel and control to it.
 - **Fwd:** remains a separate forwarding operation. The analogy Link ≈ Call + Fwd is an intuition only, not an established equivalence.
-- **Spawn:** for now, treat this as a possible internal process-creation mechanism, not as a user-facing OrgLang operation. The working hypothesis is that creating a new incarnation during `Call` or `Link` may use such a mechanism, but this has not been established as a language rule. The publication's `cut` rule describes allocate-and-spawn behavior; it does not imply that OrgLang programmers can write `Spawn` directly.
+- **Spawn:** treat this as a possible internal process-creation mechanism, not as a user-facing OrgLang operation. Whether, and how, `Call` or `Link` use that mechanism remains unverified. The publication's `cut` rule describes allocate-and-spawn behavior; it does not imply that OrgLang programmers can write `Spawn` directly.
 
 ### Implementation correspondence (evidence, not semantics)
 
