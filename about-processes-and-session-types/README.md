@@ -277,25 +277,24 @@ At a high level, the inspected execution path follows six steps. The names in pa
 5. Save the resulting state changes and effects.
 6. If the action produced a next expression, schedule or continue with it; otherwise return.
 
-This outline is a map of the observed code path, not a complete definition of when a process blocks, resumes, or owns a channel.
-
-The inspected `takeWith` contains execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. The current `LabSpec` AST includes `ContExp`, but its message adapter does not preserve that field; whether a label-selection continuation is semantically required remains open. It does not contain branches for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release`; those constructors have no execution branch in this dispatcher in the inspected version. This is a statement about the inspected implementation, not by itself a conclusion that the language design is defective. `Spawn` and the call mechanism are interdependent because both may rely on the unresolved model of process creation and pools. Consequently, no complete operational rule for `Call` or `Spawn` is specified here. One possibility is that recursion arises from cyclic dependencies among process definitions rather than requiring a separate recursive-call construct; this remains unverified. This does not imply that `Link` and `Call` should be unified: `Call` has an explicit `ContExp`, whereas `Link` does not, and their operational rules must account for that distinction. Channel forwarding (`Fwd`) remains a distinct operation.
+This is an outline of the observed path, not a complete definition of when a process blocks, resumes, or owns a channel. For the definitive inventory of which constructors have execution branches, and the evidence concerning `Call`, `Link`, and `Spawn`, see Section 13. For field loss and other conversion asymmetries, see Section 12.
 
 Communication may take more than one execution step. If the matching action from the other side is not yet available—for example, the corresponding `Wait` for a `Close`, or a receive for a send—the current action may register that it is waiting and return. When the other side becomes available, the implementation updates the exchange state and channel records, and may schedule the continuation. The precise ordering and ownership rules are still open.
 
-This is an implementation-level description. The exact transition relation, message ownership, and invariants for subscriptions, publications, and exchange turns still need to be formalized from all producer/consumer call paths.
+The exact transition relation, message ownership, and invariants for subscriptions, publications, and exchange turns still need to be formalized from all producer/consumer call paths.
 
 ## 12. Representation and serialization caveats
 
-The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. In the inspected version, `MsgFromExpSpec` has no `Link` branch; `MsgToExpSpec` has a `Call` branch, but reconstructs `CallSpec` without `CommChnlPH` and `ContExp`. The executor has no `Call` or `Link` branch. The `call` scenario in `test/e2e/pool_test.go` constructs a caller and a call expression, but the top-level `TestPool` does not run it (the subtest is commented out); the scenario also leaves its result assertion as a TODO and creates the callee declaration without defining a callee body. It therefore does not establish a successful call transition, even if run separately. These observations describe the current implementation and evidence limits; they do not establish that `Call` is independently implementable or that the missing branches are defects, because call semantics may depend on the unresolved `Spawn`/pool model. The adapter also contains these apparent asymmetries:
+The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. This section is the single inventory of observed conversion discrepancies; the separate question of which expressions the executor can run is covered in Section 13.
 
-- `MsgToExpSpec` reconstructs `CallSpec` without `CommChnlPH` and `ContExp`, although those fields exist in the AST constructor. In the current AST, `LabSpec` also has a `ContExp` field; the message conversion reconstructs `LabSpec` without it.
-- In case-expression conversions, label data appears to be read from a fixed `Lab` field rather than the current branch entry. This occurs in the message-to-AST conversion and in the stored-data-to-AST conversions for both specs and records.
+- `MsgFromExpSpec` has no `Link` branch.
+- `MsgToExpSpec` reconstructs `CallSpec` without `CommChnlPH` and `ContExp`. It also reconstructs `LabSpec` without its `ContExp`, although the AST contains that field.
+- In case-expression conversions, label data appears to be read from a fixed `Lab` field rather than the current branch entry. This occurs in message-to-AST conversion and in stored-data-to-AST conversions for both specs and records.
 - The send record conversion stores both continuation-channel and value-channel identifiers in one direction, but appears to restore only one in the reverse direction.
 - The receive record conversion appears not to preserve `ContChnlID` symmetrically.
 - Some receive conversions appear to write the communication-channel placeholder into the field that the reverse conversion reads as the newly bound channel. Specifically, `dataFromExpSpec` assigns `RecvSpecDS.Y` from `CommChnlPH`, although `dataToExpSpec` reads `Y` into `NewChnlPH`.
 
-These are source-level discrepancies to validate with focused tests and call-path analysis. Their observable runtime impact is not established by this document.
+These are source-level discrepancies to validate with focused tests and call-path analysis. Their observable runtime impact is not established by this document. The current call example also does not demonstrate a successful transition; the evidence and its limitations are summarized in Section 13.
 
 ## 13. Operational semantics: conservative scope
 
@@ -311,25 +310,29 @@ The current evidence supports treating execution as a stateful transition over a
 
 The first fully formalized implementation-level rules should be limited to constructors whose typing and execution branches have both been checked end-to-end. A complete implementation-level reduction rule for `Call` and resource-management constructs should remain unspecified until the execution paths have been verified and reconciled with the intended contract in Section 7. `Spawn` is deferred to the pool-level analysis. `Link` should be investigated alongside recursive process definitions/calls, not conflated with `Fwd`.
 
-### Named-process implementation evidence
+### Named-process operations: implementation evidence
 
-The current Go AST uses names such as CallSpec, LinkSpec, BindChnlPH/NewChnlPH, and ValChnlPHs. These names describe the present representation; they are not terms in the rules above.
+This subsection is the canonical summary of execution support and process-creation uncertainties. Section 12 separately lists adapter and serialization discrepancies.
 
-The inspected call example in test/e2e/pool_test.go is inconclusive: its result assertion is a TODO, the callee declaration has no corresponding process body, and the process-definition persistence methods inspected so far are stubs. The adapter maps external BindChnlPH to internal NewChnlPH and does not preserve ContExp when reconstructing CallSpec. Therefore, the current code does not confirm the Section 7 `Call` transition or the mapping of additional channel arguments.
+The inspected `takeWith` dispatcher has execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. It has no branch for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release` in the inspected version. This is a finding about the current dispatcher, not by itself a conclusion that the language design is defective.
 
-For Link, the intended meaning is that X and Ys name placeholders in the invoking process, but the inspected AST types these fields as identity.ADT channel identifiers rather than symbol.ADT placeholder names. No complete adapter or executor path for Link was found in the inspected code. This is a likely representation inconsistency if placeholder resolution is expected at this stage; the intended fix should not be chosen without tracing where resolution is meant to occur.
+The inspected `call` scenario in `test/e2e/pool_test.go` is inconclusive: the top-level `TestPool` does not run the subtest, its result assertion is a TODO, and the callee declaration has no corresponding process body. The process-definition persistence methods inspected so far also appear to be stubs. Thus the repository evidence does not demonstrate a successful `Call` transition or settle the mapping of additional channel arguments. Section 12 records the separate adapter field-loss issues.
 
-The pool API has a `Spawn` operation that carries a process declaration reference and optional references to existing process incarnations. Here, `Spawn` is an implementation-level API name; it is not evidence that the OrgLang source language exposes a user-written `Spawn` operation.
+For `Link`, the intended language-level operands `X` and `Ys` are caller-side channel placeholders. The inspected AST types these fields as `identity.ADT` channel identifiers rather than `symbol.ADT` placeholder names. No complete adapter or executor path for `Link` was found in the inspected code. This is a possible representation inconsistency if placeholder resolution is expected at this stage; the correct fix cannot be chosen without tracing where resolution should occur. `Call` has an explicit `ContExp`, whereas `Link` does not, so their intended control-flow contracts should not be unified merely because both name a process.
 
-The available code contains multiple incomplete approaches to spawning, which should not be merged into one inferred rule:
+The pool API has a `Spawn` operation that carries a process declaration reference and optional references to existing process incarnations. This implementation-level API name is not evidence that OrgLang exposes a user-written `Spawn` operation. The available code contains several incomplete approaches that must remain distinct:
 
-- The process-expression AST has a `SpawnSpec` with a communication-channel placeholder, a process-term name, new-channel placeholders, and a continuation. But the inspected process executor has no `SpawnSpec` execution branch; an older `SpawnSpecOld` branch remains commented out in the type-checking/execution code.
-- The pool-level `SpawnSpec2` instead names a process declaration and optional existing process incarnations. Its `Spawn` method creates a new execution record in linear mode, but the inspected method does not itself instantiate a process body or wire up the fresh channel described by the publication's cut rule.
-- A separate prototype under `proto/rast2` has a `spawn` reduction that creates a fresh channel and two process entries. That resembles the publication's allocate-and-spawn shape, but it belongs to a different prototype representation; it does not establish the intended semantics of the current OrgLang AST or pool API.
+- The process-expression AST has a `SpawnSpec` with a communication-channel placeholder, process-term name, new-channel placeholders, and continuation, but the inspected dispatcher has no execution branch for it; an older `SpawnSpecOld` branch remains commented out.
+- The pool-level `SpawnSpec2` names a process declaration and optional existing process incarnations. Its `Spawn` method creates a new execution record in linear mode, but the inspected method does not itself instantiate a process body or wire up the fresh channel described by the publication's cut rule.
+- A separate prototype under `proto/rast2` has a `spawn` reduction that creates a fresh channel and two process entries. This resembles the publication's allocate-and-spawn shape, but it is a different prototype representation and does not establish the semantics of the current AST or pool API.
 
-The publication's cut rule describes allocating a fresh channel, starting `P[a/x]`, and continuing the original process as `Q[a/x]`. This is useful comparison context, but it is not evidence that OrgLang exposes a standalone source-level `Spawn`; see the distinction in Section 7.
+The publication's cut rule describes allocating a fresh channel, starting `P[a/x]`, and continuing the original process as `Q[a/x]`. This is useful comparison context, not evidence that OrgLang exposes a standalone source-level `Spawn`. Recursion through cyclic dependencies among process definitions remains a hypothesis, not an established mechanism.
 
-`Fwd` is also represented in the inspected executor. When no turn is pending, positive polarity registers a `PubRec` carrying `FwdRec`, while negative polarity registers a `SubRec` carrying `FwdRec`; other branches inspect polarity and the pending turn kind. However, the code contains TODOs for channel-side metadata, and a negative-polarity branch comments on a type mismatch. The ordinary send/receive handlers inspected so far expect `RecvRec`/`SendRec` payloads and do not handle `FwdRec` in those switches. We have not established whether another part of the scheduling and exchange path handles this case. This suggests the implementation may be unfinished, but does not prove that `Fwd` is broken. Its completeness remains an open question.
+### Forwarding remains a separate open question
+
+The executor contains a `Fwd` branch. When no turn is pending, positive polarity registers a `PubRec` carrying `FwdRec`, while negative polarity registers a `SubRec` carrying `FwdRec`; other branches inspect polarity and the pending turn kind. The code contains TODOs for channel-side metadata, and a negative-polarity branch comments on a type mismatch. The ordinary send/receive handlers inspected so far expect `RecvRec`/`SendRec` payloads and do not handle `FwdRec` in those switches. It remains unverified whether another part of scheduling and exchange handling covers this case. This suggests the implementation may be unfinished, but does not prove that `Fwd` is broken.
+
+A formal reduction rule should be added only after the relevant typing, executor, adapter, and scheduling paths have been checked end-to-end.
 
 ## 14. Open questions for the next verification pass
 
