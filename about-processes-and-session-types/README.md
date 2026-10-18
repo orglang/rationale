@@ -18,6 +18,19 @@ A **session type** is the protocol for a channel: it says what kind of interacti
 
 **Linearity** means that a channel has exactly one provider and exactly one client; there must not be two competing providers or two competing clients for the same channel. This is why `Link` transfers the provider's responsibility for an existing channel rather than creating a second provider for it.
 
+### Quick glossary
+
+| Term | Meaning in this document |
+|---|---|
+| Channel | A connection used by two processes to communicate. |
+| Provider / client | The two roles on a channel: offering a service / using it. |
+| Process incarnation | One running instance of a named process. |
+| Channel placeholder | A name in an expression that stands for an actual channel. |
+| Session type | The protocol describing which interaction is allowed on a channel. |
+| Residual session type | The part of that protocol still to be performed at the current point. |
+| Linearity | The invariant that each channel has exactly one provider and one client. |
+| Polarity | An implementation-level positive/negative/neutral classification used by the type checker; not a complete explanation of operational behavior. |
+
 The document distinguishes three evidence levels:
 
 - **Confirmed**: directly supported by the inspected implementation or its comments.
@@ -83,7 +96,7 @@ This is only an orientation, not a complete typing definition. Detailed construc
 
 **Preconditions:** the target process definition is available and a fresh incarnation can be created. The channel supplied by `X` must have the same **current residual session type** as the target process's provider channel—not merely the same initial declared type. In plain terms, both sides must agree on what is supposed to happen next in the conversation. If the existing channel has already passed the request step, the new process must be ready for the response step, not for a new request.
 
-**Intended transition:** start a fresh incarnation of the named process, passing `X` as its provider channel and the channels named by `Ys` as its client channels, in declaration order. Transfer provider-side responsibility for the existing channel `X` to the new incarnation. The names `LiabVar` and `AssetVars` are Go implementation field names, explained in Part III; they are not needed to understand the language-level rule.
+**Intended transition:** start a fresh incarnation of the named process, passing `X` as its provider channel and the channels named by `Ys` as its client channels, in declaration order. Transfer provider-side responsibility for the existing channel `X` to the new incarnation.
 
 **After:** the channel itself and its existing client connection remain unchanged; the new incarnation provides that same channel. Control transfers to the new incarnation, and the old incarnation has no ordinary continuation.
 
@@ -169,7 +182,7 @@ A process declaration is represented by `DecSpec` with fields:
 - `LiabVar`: the provider-channel placeholder in the declaration;
 - `AssetVars`: the client-channel placeholders in the declaration.
 
-These interpretations are supported by comments in `proc/termdec/core/core.go`. For language-level `Link`, the intended mapping is that `X` supplies the channel for `LiabVar`, and `Ys[i]` supplies the channel for `AssetVars[i]` in declaration order. The names are implementation terminology only.
+These interpretations are supported by comments in `proc/termdec/core/core.go`. For language-level `Link`, the intended mapping is that `X` supplies the channel for `LiabVar`, and `Ys[i]` supplies the channel for `AssetVars[i]` in declaration order. These are implementation field names; the language-level description uses provider and client channels instead.
 
 A process definition is represented by `DefSpec{ProcQN, ProcES}`; `DefRec` contains a `Ref`. The inspected `Create`/ `Retrieve` implementation in `proc/termdef/core/core.go` appears to be a stub, so this representation alone does not establish the persistence contract.
 
@@ -182,9 +195,9 @@ Keep these names distinct until their relationships are demonstrated by code. In
 
 Do not assume these identifiers are interchangeable.
 
-### Detailed AST and session-type inventory
+### Appendix A. Detailed AST and session-type inventory
 
-#### Process-expression AST inventory
+#### A.1 Process-expression AST inventory
 
 The inspected process AST defines the following constructors and fields:
 
@@ -207,7 +220,7 @@ The inspected process AST defines the following constructors and fields:
 
 The table is a syntax inventory, not a claim that all constructors are executable.
 
-#### Session-type AST and checker coverage
+#### A.2 Session-type AST and checker coverage
 
 The process session-type AST contains these constructors:
 
