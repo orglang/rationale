@@ -111,7 +111,14 @@ The current contract makes no progress guarantee for pending calls: it does not 
 
 ## 6. Next semantic questions
 
-The next question is how a new process incarnation is associated with the pool responsible for servicing it. **Agreed working rule:** this association requires a separate mechanism; the servicing pool is not determined automatically from the caller's context. **Tentative direction:** the mechanism selects the pool to which the new process incarnation itself is bound, rather than merely selecting a pool as a property of the `Call` request. **Agreed working constraint:** an incarnation cannot be bound to multiple pools simultaneously; the mechanism selects at most one pool for an incarnation. This does not yet establish whether every incarnation must always have a pool binding or whether that binding can later change. The nature and timing of the mechanism remain open. Pool selection/association, any agreement between pools, and creation of the new incarnation are potentially distinct stages: an agreement may make service possible but does not itself create the process. This is distinct from interacting with the pool through its public transaction channel, which has been agreed to be unrelated to `Call` itself.
+The next question is how a new process incarnation is associated with the pool responsible for servicing it. **Agreed working rule:** this association requires a separate mechanism; the servicing pool is not determined automatically from the caller's context. **Tentative direction:** the mechanism selects the pool to which the new process incarnation itself is bound, rather than merely selecting a pool as a property of the `Call` request. **Agreed working constraint:** an incarnation cannot be bound to multiple pools simultaneously; the mechanism selects at most one pool for an incarnation. This does not yet establish whether every incarnation must always have a pool binding or whether that binding can later change.
+
+**Open creation/servicing split:** two models remain possible:
+
+- **Engine-first:** the engine creates the new process incarnation, then finds a pool that will service it.
+- **Pool-first:** the engine finds a suitable pool, and that pool itself creates the new process incarnation.
+
+These alternatives assign responsibility for incarnation creation differently. Neither is selected. Pool selection/association, any agreement between pools, and creation of the new incarnation may be distinct stages; an agreement may make service possible but does not itself create the process. This is distinct from interacting with the pool through its public transaction channel, which has been agreed to be unrelated to `Call` itself.
 
 Once the pool-association question is clearer, return to the open question of when the callee's private communication channel is allocated. The observable result of a serviced call is already constrained by the channel-placeholder rule in §3.3. A separate `Spawn` operation should be reconsidered only if later semantic evidence establishes a role not covered by `Call` and its servicing transition.
 
