@@ -33,14 +33,17 @@ Issue comments are provisional discussion, not normative rules. A rule from the 
 Three concepts are important to keep separate:
 
 - **Process incarnation:** a particular instance of a process body.
-- **Provider channel:** the channel through which the incarnation communicates with its client according to a session type.
+- **Provider endpoint:** the side of a channel belonging to the process that provides the service.
+- **Client endpoint:** the side of that channel belonging to the process that uses the service.
+- **Provider channel:** a channel viewed from the process that provides on it; its endpoint in that process is the provider endpoint.
+- **Client channel:** a channel viewed from the process that uses it; its endpoint in that process is the client endpoint. The same channel is the provider channel for one process and a client channel for the other; these labels do not name separate channel resources.
 - **Servicing pool:** the pool associated with the incarnation and responsible for servicing its provider channel.
 
 For `ExternalCall`, the current working model says that creating the incarnation and creating its fresh provider channel happen together. The selected pool is associated with that incarnation and services the provider channel; the pool does not itself create the incarnation.
 
 This is not a universal rule that channel creation and incarnation creation must always coincide. `InternalCall` creates a fresh target incarnation and injects an existing channel into it, so that channel may exist before the target incarnation is created. The precise language-level distinction between `ExternalCall` and `InternalCall` belongs in [Section 7 of the canonical document](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-operations).
 
-**Agreed separation:** servicing a process through its provider channel is distinct from interacting with a pool through the pool's public transaction channel. A `ExternalCall` does not, by itself, require a transaction through the pool's public channel or entry into its critical section. Conversely, the pool's `Up … Down` protocol does not imply a `ExternalCall` or process-incarnation creation.
+**Agreed separation:** servicing a process through its provider channel is distinct from interacting with a pool through the pool's public transaction channel. An `ExternalCall` does not, by itself, require a transaction through the pool's public channel or entry into its critical section. Conversely, the pool's `Up … Down` protocol does not imply a `ExternalCall` or process-incarnation creation.
 
 ## 3. Working model of `ExternalCall` and `InternalCall`
 
@@ -98,7 +101,7 @@ This must be understood in light of channel identity: each interaction generates
 
 **TODO:** Decide whether the detailed `Up … Down` protocol explanation belongs in `about-transaction/README.md`. If so, move the protocol mechanics there and keep only the process/pool boundary distinction here.
 
-This pool-level protocol is conceptually distinct from the process's provider channel and from the client channels passed to `ExternalCall`. The provider channel is the sole channel associated with the new process incarnation for communication with its client; the current model introduces no separate callee-private communication channel.
+This pool-level protocol is conceptually distinct from the process's provider channel and from the client channels passed to `ExternalCall`. The provider channel is the channel through which the new process incarnation provides service; its provider endpoint belongs to that incarnation, and the caller uses the corresponding client endpoint. The current model introduces no separate callee-private communication channel.
 
 ## 6. Evidence and rationale
 
