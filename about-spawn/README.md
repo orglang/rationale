@@ -75,6 +75,8 @@ The placeholder is a name in the call's semantic environment, not the channel or
 
 **Agreed clarification — process variables:** in the current model, there are no other process variables to transfer besides channel placeholders. Accordingly, `Link` does not imply transferring a separate set of local variables from the old incarnation; the relevant transferred state is the specified channels, including the existing provider channel and its unchanged protocol state.
 
+**Agreed clarification — channel placeholders:** a channel placeholder is not an independent value or channel resource. It denotes a channel through the process's channel environment. Accordingly, call and link semantics transfer or bind the channels denoted by the relevant placeholders, not the placeholders as separate runtime values.
+
 Both kinds use the same pool-selection algorithm. The selected pool starts servicing the provider channel immediately after the relevant transition completes. The outcome when no eligible pool is found remains unspecified for both kinds.
 
 **Terminology decision:** `external call` and `internal call` are intended as semantic terms in OrgLang, with `Call` denoting external call and `Link` denoting internal call. These terms name the two distinct call semantics, rather than serving only as explanatory prose. **Scope clarification:** “external” and “internal” describe the call's relation to the calling process, not whether the target belongs to the same or a different pool. Pool selection remains a separate mechanism and follows the same algorithm for both call kinds.
