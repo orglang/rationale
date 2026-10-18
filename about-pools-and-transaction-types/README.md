@@ -130,8 +130,8 @@ The existing transaction research document gives the following value forms. The 
 | `grant`c`` | A grant-marked value carrying identifier `c` | **Specified** in research document |
 | `revoke`c`` | A revoke-marked value carrying identifier `c` | **Specified** in research document |
 | `choice`c` { l }` | A choice-marked value carrying `c` and label (l) | **Specified** in research document |
-| `coop`c` { w·q }` | A cooperation-marked value carrying `c` and a weighted named process (q) | **Specified** in research document |
-| `isol`c` { w·q }` | An isolation-marked value carrying `c` and a weighted named process (q) | **Specified** in research document |
+| `coop(c) { w·q }` | A cooperation-marked value carrying `c` and a weighted named process `q` | **Specified** in research document |
+| `isol(c) { w·q }` | An isolation-marked value carrying `c` and a weighted named process `q` | **Specified** in research document |
 | `spawn(c) { q(a, b₁, b₂, …) }` | A spawn-marked value carrying `c`, a named process, and identifiers/arguments | **Specified** in research document |
 
 The notation distinguishes **placeholders** such as `x, y, z` from **identifiers** such as `a, b, c`. The research document says placeholders acquire meaning through substitution and that identifiers are substituted in their place. This is a useful proposed distinction, but the sources inspected do not fully specify identifier allocation, freshness, scope, lifetime, aliasing, or the exact representation of a placeholder at runtime. These details remain **Open**.
@@ -219,7 +219,7 @@ The research rule says the received label selects the corresponding branch and t
 
 The pool execution code maintains execution references, variable records, communication exchange records, and communication turns. In `Take`, the implementation computes a step modification and exchange modification, writes turns/exchange/variables in an explicit database transaction, then sends follow-up steps through a broker. The accept/acquire paths can wait for a complementary turn and, once paired, advance the type key and schedule continuations (**Observed** in [`pool/compexec/core.go`](https://github.com/orglang/go-engine/blob/main/pool/compexec/core.go)).
 
-This supports a limited statement: the implementation has a protocol-like pool communication mechanism with persisted state and continuations. It does **not** establish that the full research grammar is implemented, or that the communication operation has the same semantics as (V▷ K).
+This supports a limited statement: the implementation has a protocol-like pool communication mechanism with persisted state and continuations. It does **not** establish that the full research grammar is implemented, or that the communication operation has the same semantics as `V ▷ K`.
 
 This is evidence of a process-creation path, but not evidence that the `spawn(c) { q(...) }` value reduction is implemented end to end.
 
