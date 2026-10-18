@@ -43,7 +43,7 @@ For `ExternalCall`, the current working model says that creating the incarnation
 
 This is not a universal rule that channel creation and incarnation creation must always coincide. `InternalCall` creates a fresh target incarnation and injects an existing channel into it, so that channel may exist before the target incarnation is created. The precise language-level distinction between `ExternalCall` and `InternalCall` belongs in [Section 7 of the canonical document](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-operations).
 
-**Agreed separation:** servicing a process through its provider channel is distinct from interacting with a pool through the pool's public transaction channel. An `ExternalCall` does not, by itself, require a transaction through the pool's public channel or entry into its critical section. Conversely, the pool's `Up … Down` protocol does not imply a `ExternalCall` or process-incarnation creation.
+**Agreed separation:** servicing a process through its provider channel is distinct from interacting with a pool through the pool's public transaction channel. An `ExternalCall` does not, by itself, require a transaction through the pool's public channel or entry into its critical section. Conversely, the pool's `Up … Down` protocol does not imply an `ExternalCall` or process-incarnation creation.
 
 ## 3. Working model of `ExternalCall` and `InternalCall`
 
