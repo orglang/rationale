@@ -107,6 +107,8 @@ The following topics are outside the current phase and should not be mixed into 
 
 They can be revisited after the core successful-call semantics is clearer.
 
+The current contract makes no progress guarantee for pending calls: it does not promise that every pending call will eventually be serviced, nor impose a time bound on service. This is an omission of a guarantee at the current stage, not a claim that calls are intended to remain pending indefinitely.
+
 ## 6. Next semantic questions
 
 In order of dependency:
