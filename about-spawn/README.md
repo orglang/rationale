@@ -1,60 +1,73 @@
-# Spawn: semantic design notes
+# Spawn at the process–pool boundary
 
-> **Status: preliminary design draft.** This document records decisions made during design discussion and separates them from hypotheses and unresolved questions. It does not specify pool or transaction semantics.
+> **Status: preliminary research draft.** This document investigates the intended semantics of `spawn` in OrgLang. It separates source evidence, working hypotheses, and unresolved design questions. It is not a normative specification and does not define pool or transaction semantics.
 
-## Scope and method
+## Purpose and scope
 
-The goal is to define the semantic role of `spawn` at the boundary between process semantics and the future pool/transaction model. Process and session-type behavior is treated as existing context; pool and transactional types will be designed separately. The design should avoid silently importing implementation behavior into language semantics.
+The investigation focuses on the semantic boundary between process invocation and the future pool model. It aims to identify the minimum contract that process semantics requires from the pool-facing mechanism, without pre-empting the design of pools, transactions, resource allocation, or scheduling.
 
-Primary context:
-- [Processes and session types](https://github.com/orglang/rationale/blob/main/about-processes-and-session-types/README.md), especially Section 7 (intended semantics of `Call` and `Link`) and Section 8 (the publication's distinct cut/spawn rule).
-- [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85), including its discussion of the semantic model and the unresolved role of `Spawn`.
-- [Grilling design-interview method](https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md): resolve the current decision frontier in rounds, record recommendations, and defer dependent questions.
+The term `spawn` is treated as an engine-level operation for purposes of this investigation, not as proof that OrgLang has a standalone source-language construct named `spawn`. The existence of an AST constructor named `SpawnSpec` is evidence of a representation in the implementation, not by itself evidence of user-facing syntax or complete runtime semantics.
 
-## Decision register
+## Sources and evidential method
 
-### D1 — Scope of this design
+Primary sources:
 
-**Status: agreed.**
+- [Processes and session types](https://github.com/orglang/rationale/blob/main/about-processes-and-session-types/README.md), particularly Section 7 on the intended semantics of `Call` and `Link`, and Section 8 on the publication's cut/spawn rule.
+- [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85), including comments discussing the semantic model and the unresolved status of `Spawn`.
+- [Grilling method](https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md), used as a method for systematically identifying uncertainty and dependencies. Its interview format is not the format of this research document.
 
-Define `spawn` as a boundary between the process model and the future pool model. Specify the minimum contract required at that boundary, while leaving the semantics of pools and transactions themselves for separate work.
+Claims below are distinguished as **Observed** (directly present in a source), **Inferred** (a working interpretation of evidence), or **Open** (the sources do not settle the matter). Publication rules are evidence for what the publication specifies, but are not automatically OrgLang rules. Implementation names and structures likewise do not establish language semantics on their own.
 
-Consequences:
-- Process-level concepts such as process definitions, incarnations, channel environments, and session protocols may be used as established context.
-- Pool selection, transactional agreement, resource reservation, fairness, and other pool-level policies must not be invented here.
-- Where `spawn` depends on a future pool contract, record the dependency explicitly.
+## Evidence from the existing rationale
 
-### D2 — Is `spawn` a source-language construct?
+### The intended contract of `Call`
 
-**Status: agreed direction; exact semantic surface remains open.**
+**Observed — rationale, Section 7.** `Call` is described as invocation of a named process. The intended contract resolves the named process, maps its declared channel parameters to existing channels, starts a fresh process incarnation with separate execution state and a channel environment, injects a distinct provider channel for communication with the caller, and allows the caller's continuation to proceed once the incarnation has started. Explicitly mapped channels are transferred to the new incarnation; distinct formal parameters must map to distinct channels under linearity.
 
-For this design, treat `spawn` as an engine-level operation, not as a presumed standalone user-written language construct. The existence of an AST constructor named `SpawnSpec` does not establish that users directly write a `spawn` operation.
+The same section says that the contract's authoritative language source and implementation mapping remain unverified. It also explicitly avoids assuming that `Call` is implemented using `Spawn`.
 
-The semantic design may describe the abstract engine operation and its contract without deciding yet which source-language construct, if any, invokes it.
+**Implication.** The term “request to start a process” should not be introduced as a second abstract operation without evidence. At the language level, `Call` already expresses process invocation and its intended outcome includes a fresh incarnation. It is therefore plausible that a call is the language-level request whose fulfillment requires a lower-level process-creation mechanism. That is a useful hypothesis, not yet an established equivalence between `Call` and `Spawn`.
 
-### D3 — Meaning of `call`
+### The publication's cut/spawn rule
 
-**Status: interpretation grounded in the existing rationale; confirm edge cases during the next round.**
+**Observed — rationale, Section 8.** The publication's rule `x ← P ; Q` allocates a fresh channel, starts a process running `P` with that channel substituted for `x`, and continues the original process as `Q` with the same channel substituted. This is a particular rule combining channel allocation, process creation, and continuation.
 
-Section 7 of *Processes and session types* describes `Call` as named-process invocation: resolve the named process, explicitly map its declared channel parameters to existing channels, start a fresh process incarnation with its own execution state and channel environment, inject a distinct provider channel for communication with the caller, and allow the caller's continuation to proceed after the incarnation starts. Explicitly mapped channels are transferred to the new incarnation; distinct formal parameters must map to distinct channels under linearity.
+**Limitation.** This rule does not establish that OrgLang's `SpawnSpec` has the same semantics, that `Spawn` is a source-language construct, or that process-pool behavior is part of the publication's rule. Those correspondences require separate evidence.
 
-On this basis, `call` is not being treated as a request to reuse an arbitrary already-running incarnation. The fresh-incarnation behavior is the current intended contract in the rationale, although its authoritative language source and implementation remain unverified there.
+### Distinct implementation representations
 
-This distinction must be preserved: `Call` has process-invocation semantics, while this design investigates the separate engine-level `spawn` operation and its relationship to the pool boundary. Do not assume that `Call` is implemented using `Spawn`, or that their semantic contracts are identical.
+The existing rationale distinguishes a process-expression `SpawnSpec`, a pool API `SpawnSpec2`, and a separate prototype reduction associated with `proto/rast2`. These representations must not be treated as interchangeable merely because they share the name “spawn.” The current executor's lack of a `Spawn` branch is implementation evidence, not a complete definition of intended language semantics.
 
-## Current semantic questions
+## Working interpretation
 
-The following questions are intentionally unresolved until the relevant decisions are discussed:
+**Preliminary hypothesis.** `Call` and `Spawn` may belong to different semantic layers:
 
-1. What entity does the engine-level `spawn` operation accept: a named process definition, a process body, an allocation request, or another abstract value?
-2. What observable result does `spawn` produce, if any: a fresh channel, a process-incarnation reference, a success/failure outcome, or only a state transition?
-3. Which preconditions belong to process semantics, and which are delegated to the future pool/transaction contract?
-4. What happens when spawning cannot be serviced: waiting, a semantic failure, or another explicitly defined outcome?
-5. How are `Call`, process-expression `Link`, and engine-level `Spawn` related, without assuming one is implemented through another?
-6. How does the publication's cut rule (fresh channel allocation, spawned process, and continuation) inform OrgLang's intended semantics without being treated as proof that OrgLang has an equivalent source-level construct?
+- `Call` is the language-level process-invocation operation with an intended contract about named-process resolution, channel mapping, a fresh incarnation, and caller continuation.
+- `Spawn` may be an engine-level mechanism that participates in realizing a request to create an incarnation, potentially at the process–pool boundary.
+- The relationship between these layers is not established. In particular, it is not yet known whether `Spawn` is the internal fulfillment step for `Call`, a lower-level API used by more than one construct, or an independent operation with a distinct contract.
 
-These are design questions, not claims about current runtime behavior. Implementation observations should be recorded separately from language-level rules.
+This hypothesis avoids inventing a second language-level “request” while also avoiding the unsupported claim that `Call` and `Spawn` are identical or that one is implemented through the other.
 
-## Next round
+## Design constraints established so far
 
-Resolve the semantic identity and input/output contract of engine-level `spawn` before deciding its failure and scheduling behavior. The next round should ask only questions whose prerequisites are settled by D1–D3.
+The following constraints define the scope of the investigation:
+
+1. Define only the minimum contract at the process–pool boundary; defer pool and transaction semantics to separate work.
+2. Treat `spawn` as an engine-level operation for now. Do not infer source-language syntax from an AST type name.
+3. Use the existing rationale's intended `Call` contract as the current semantic baseline, while retaining its evidence and implementation caveats.
+4. Keep process-level semantics, engine operations, pool API behavior, and prototype reductions distinct unless evidence establishes a mapping.
+5. Record uncertainty rather than silently resolving it from implementation details or from the publication's different calculus.
+
+## Open research agenda
+
+The next investigation should compare the relevant definitions and call paths across sources, then resolve the following dependencies in order:
+
+1. **Semantic identity:** what does each occurrence of `Spawn` denote in the AST, pool API, and prototype? Are these separate operations or representations of one contract?
+2. **Relation to `Call`:** does the language-level `Call` contract delegate to an engine-level `Spawn`, or is their relationship merely conceptual? What evidence would establish that mapping?
+3. **Input and output:** what does the engine-level operation receive, and what observable result does it produce? Candidate results such as a fresh channel, an incarnation reference, or a state transition must remain hypotheses until supported.
+4. **Boundary preconditions:** which conditions are guaranteed by process semantics, and which belong to the future pool contract?
+5. **Unavailability and failure:** what does the process-level contract require when an incarnation cannot be created? Waiting, failure, and other outcomes remain open; no pool policy is assumed here.
+6. **Channel allocation:** which source, if any, requires a fresh channel to be created as part of spawning? Do not generalize the publication's cut rule without evidence.
+7. **Lifecycle and observability:** when is creation considered complete, what can the caller observe, and what happens to the continuation? These details must be derived from the relevant OrgLang contract rather than assumed from the publication.
+
+These are research questions rather than an interview checklist. Conclusions should be recorded alongside their source and evidential status, and only promoted to semantic rules when the evidence supports them.
