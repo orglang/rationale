@@ -58,7 +58,7 @@ A call has three conceptual stages:
 
 The motivation is semantic stability: channel type or protocol state may change, so concurrent use by the caller could invalidate assumptions under which the eventual callee receives the channel. Upon successful service, the channels enter the new incarnation's environment.
 
-This rule settles the caller's permission to use the channels, but not the engine's internal ownership representation or whether it may inspect or transform held channels.
+**Agreed clarification — escrow/depository model:** while the call is pending, the engine is a custodian of the argument channels, not a participant in their protocols. It preserves the channels for later transfer; it does not interact over them, inspect their protocol state, or change that state. The caller cannot use them during custody. Once the call is serviced, the channels are bound into the fresh incarnation's environment and the pending-call custody ends. The analogy is limited to safekeeping and separation of control; it does not import additional legal or transactional obligations from real-world escrow.
 
 ## 4. Open design question: the callee's private communication channel
 
@@ -94,8 +94,7 @@ They can be revisited after the core successful-call semantics is clearer.
 In order of dependency:
 
 1. **Private-channel timing:** determine whether the private communication channel needs to exist or be observable before the callee is ready.
-2. **Custody contract:** clarify what it means for the engine to hold argument channels, without revisiting the already agreed prohibition on caller-side use while pending.
-3. **Observable result of a serviced call:** specify what the caller receives or can use after successful service, without conflating this with a pool API return value.
-4. **Semantic identity of `Spawn`:** once the call contract is clearer, determine whether a distinct semantic operation called `Spawn` is needed.
+2. **Observable result of a serviced call:** specify what the caller receives or can use after successful service, without conflating this with a pool API return value.
+3. **Semantic identity of `Spawn`:** once the call contract is clearer, determine whether a distinct semantic operation called `Spawn` is needed.
 
 Implementation study is a later phase, after the semantic model is sufficiently stable.
