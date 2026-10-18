@@ -246,10 +246,10 @@ So `P` is the body of the process being spawned, while `Q` is the continuation o
 
 This clarifies the publication's intended meaning, but it does not yet tell us exactly how OrgLang's `SpawnSpec` represents `P` and `Q`, how the channel is represented in OrgLang, or how process-pool lifecycle and scheduling work. Those questions remain open, especially because the inspected implementation attempts are incomplete. Treat this as the publication's semantics, not yet as a complete OrgLang `Spawn` semantics.
 
-The author also supplied these publication forwarding rules:
+The author also supplied these publication forwarding rules. The mode parameter `m` is omitted here to keep the discussion focused on forwarding rather than channel modes:
 
-    proc(d⁺ m ← c⁺ m) → !⁺mmsg(d⁺m, c⁺m)   id: forward+
-    proc(d⁻ m ← c⁻ m) → !⁻msrv(d⁻m, c⁻m)   id: forward−
+    proc(d⁺ ← c⁺) → !⁺msg(d⁺, c⁺)   id: forward+
+    proc(d⁻ ← c⁻) → !⁻srv(d⁻, c⁻)   id: forward−
 
 In OrgLang, the publication's msg maps to pub, and srv maps to sub. In the inspected implementation, PubRec stores a ValExp (publication/message action) and SubRec stores a ContExp (subscription/service continuation). The Fwd executor examines channel polarity and pending communication turns, redirecting the relevant turn; if none is pending, it records a publication or subscription turn carrying a forwarding record. Some source branches still contain TODOs, so this is not a complete correctness proof.
 
