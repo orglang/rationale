@@ -214,7 +214,7 @@ Process invocation and incarnation creation are distinct from the pool mechanism
 
 | Operation | Primary role | Intended process-control effect | Intended channel effect | Semantic/evidential status | Implementation status |
 |---|---|---|---|---|
-| `ExternalCall` | Create and invoke a named-process incarnation with a fresh provider channel. | A fresh incarnation starts while the caller's continuation may proceed. | Explicit parameter mapping; a fresh provider channel is delivered outward to the caller. | Agreed intended contract; implementation mapping remains open. | Unverified; no executor branch found. |
+| `ExternalCall` | Create and invoke a named-process incarnation with a fresh provider channel. | The caller's continuation becomes eligible only after it receives that channel. | Explicit parameter mapping; a fresh provider channel is delivered outward to the caller. | Agreed intended contract; implementation mapping remains open. | Unverified; no executor branch found. |
 | `InternalCall` | Create a named-process incarnation by injecting an existing channel inward. | A fresh incarnation takes over; the old incarnation has no ordinary continuation. | The existing channel resource and its client endpoint remain connected; provider responsibility transfers to the new incarnation. | Inferred target contract; lifecycle and representation open. | Unverified; no complete executor path found. |
 | `Fwd` | Connect two existing channel interactions. | No named-process incarnation or named-process continuation transfer is implied. | Relates existing endpoints; no global renaming is implied. | Intended rule open beyond the documented example. | Partial; full symmetric behavior not established. |
 
@@ -352,7 +352,7 @@ These are checker observations, not complete typing rules; side conditions, cont
 
 **Potential checker issue:** the `CaseSpec` branch in `proc/compexec/core/core.go` checks each choice using context maps that may be shared and mutated by recursive checks. A prior branch may therefore affect the next branch's starting context. This is a hypothesis, not a confirmed bug; test multiple labels with distinct continuations and verify whether branch-local contexts or equivalent linear outcomes are required.
 
-The constructor-coverage gap is described in Section 9. Whether normal execution resolves or unfolds `Link`, `Up`, and `Down` before the checker reaches this code remains open; it is not yet a confirmed runtime bug.
+The constructor-coverage gap is described in Section 9. Whether normal execution resolves or unfolds `Link`, `Up`, and `Down` before the checker reaches this code remains open; see Section 14, item 6. It is not yet a confirmed runtime bug.
 
 ## 11. Execution and communication
 
@@ -382,7 +382,7 @@ The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and
 - The receive record conversion appears not to preserve `ContChnlID` symmetrically.
 - Some receive conversions appear to write the communication-channel placeholder into the field that the reverse conversion reads as the newly bound channel. Specifically, `dataFromExpSpec` assigns `RecvSpecDS.Y` from `CommChnlPH`, although `dataToExpSpec` reads `Y` into `NewChnlPH`.
 
-These are source-level discrepancies to validate with focused tests and call-path analysis. Their observable runtime impact is not established by this document. The current call example also does not demonstrate a successful transition; the evidence and its limitations are summarized in Section 13.
+These are source-level discrepancies to validate with focused tests and call-path analysis. Their observable runtime impact is not established by this document. The inspected call-related test does not demonstrate a successful transition; the execution findings and limitations are summarized in Section 13.
 
 ## 13. What the execution path establishes
 
