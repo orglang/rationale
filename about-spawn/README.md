@@ -1,3 +1,4 @@
+<!-- Canonical semantics: ../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-operations -->
 # Spawn at the process–pool boundary
 
 > **Status: preliminary semantic research.** This document records the current evidence, agreed working rules, and unresolved choices. It is not yet a normative specification.
