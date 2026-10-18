@@ -76,7 +76,6 @@ Use one row for one proposed correspondence. **Mapping status** describes the st
 | Send/publish action (`pub`) | `msg` | `PubRec`, `ValExp` | Provisional | The names align with the send/message side in the described forwarding trace; end-to-end state semantics remain open. |
 | Service/wait action (`sub`) | `srv` | `SubRec`, `ContExp` | Provisional | The names align with the service/waiting side in the described forwarding trace; end-to-end state semantics remain open. |
 | Residual session type | Remaining protocol after an interaction step | Current session-type value / checker context (`LinearVars`) | Unresolved | Conceptual correspondence only; state-update invariants remain open. |
-| Session-type polarity | `+` / `−` in forwarding rules | Type-checker assignments in `proc/typeexp/core/core.go` | Provisional | The implementation assignments are observed; their exact relationship to publication polarity and operational behavior remains to be verified. |
 
 Preserve mismatches among OrgLang terminology, publication terminology, and implementation names instead of treating them as synonyms by default. Intended behavior is described in Section 7; implementation findings and remaining questions are separated in Part III.
 
