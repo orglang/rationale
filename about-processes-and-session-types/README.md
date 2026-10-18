@@ -34,7 +34,7 @@ Imagine two processes that communicate over one channel:
 4. The client receives the response.
 5. Both sides eventually finish the protocol.
 
-This is a **conceptual trace**, not literal OrgLang source code. It illustrates the central idea: a channel is not just a wire carrying arbitrary messages. Its session type describes which interaction is allowed next. After each step, the protocol advances to a new residual session type. After the request has been sent and received, for example, the remaining protocol describes the response phase rather than the request phase.
+This is a **conceptual trace**, not literal OrgLang source code. It illustrates the central idea: a channel is not just a wire carrying arbitrary messages. Its session type limits which interaction is allowed next; the meaning of that type as the conversation progresses is explained in Section 2.
 
 ## 4. Process declarations and definitions
 
@@ -83,7 +83,7 @@ This is only an orientation, not a complete typing definition. Detailed construc
 
 **Preconditions:** the target process definition is available and a fresh incarnation can be created. The channel supplied by `X` must have the same **current residual session type** as the target process's provider channel—not merely the same initial declared type. In plain terms, both sides must agree on what is supposed to happen next in the conversation. If the existing channel has already passed the request step, the new process must be ready for the response step, not for a new request.
 
-**Intended transition:** start a fresh incarnation of the named process, passing `X) as its provider channel and the channels named by `Ys` as its client channels, in declaration order. Transfer provider-side responsibility for the existing channel `X` to the new incarnation. The names `LiabVar` and `AssetVars` are Go implementation field names, explained in Part III; they are not needed to understand the language-level rule.
+**Intended transition:** start a fresh incarnation of the named process, passing `X` as its provider channel and the channels named by `Ys` as its client channels, in declaration order. Transfer provider-side responsibility for the existing channel `X` to the new incarnation. The names `LiabVar` and `AssetVars` are Go implementation field names, explained in Part III; they are not needed to understand the language-level rule.
 
 **After:** the channel itself and its existing client connection remain unchanged; the new incarnation provides that same channel. Control transfers to the new incarnation, and the old incarnation has no ordinary continuation.
 
@@ -169,7 +169,7 @@ A process declaration is represented by `DecSpec` with fields:
 - `LiabVar`: the provider-channel placeholder in the declaration;
 - `AssetVars`: the client-channel placeholders in the declaration.
 
-These interpretations are supported by comments in `proc/termdec/core/core.go`. For language-level `Link`, the intended mapping is that `X) supplies the channel for `LiabVar`, and `Ys[i]` supplies the channel for `AssetVars[i]` in declaration order. The names are implementation terminology only.
+These interpretations are supported by comments in `proc/termdec/core/core.go`. For language-level `Link`, the intended mapping is that `X` supplies the channel for `LiabVar`, and `Ys[i]` supplies the channel for `AssetVars[i]` in declaration order. The names are implementation terminology only.
 
 A process definition is represented by `DefSpec{ProcQN, ProcES}`; `DefRec` contains a `Ref`. The inspected `Create`/ `Retrieve` implementation in `proc/termdef/core/core.go` appears to be a stub, so this representation alone does not establish the persistence contract.
 
