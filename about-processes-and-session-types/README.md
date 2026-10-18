@@ -52,7 +52,7 @@ The arrows mean “then”; they are explanatory notation, not literal OrgLang s
 
 ## 4. Process declarations and definitions
 
-A **process declaration** describes the channels a process expects: one provider channel and any channels it uses as a client. A **process definition** gives the expression—the process body—that carries out the work. These are different things: a declaration can exist even when the repository does not establish that a usable body is stored or can be loaded. Go-specific names for these concepts are introduced in Part III.
+Recall the recipe analogy from Section 2: a named process is like a recipe, and each run is an incarnation of that process. A **process declaration** describes the recipe's interface—the channels it expects, including one provider channel and any channels it uses as a client. A **process definition** supplies the implementation—the expression or process body that carries out the work. The distinction matters because a declaration can exist even when the repository does not establish that a usable body is stored or can be loaded. Go-specific names for these concepts are introduced in Part III.
 
 ## 5. Process expressions: the main families
 
@@ -105,7 +105,7 @@ This introduction explains why these forms are useful; it is not a complete theo
 
 **Purpose:** connect the interaction on one existing channel to the interaction on another. Forwarding is an interaction between channel endpoints, not a global renaming of channel identifiers and not, by itself, a named-process invocation.
 
-**Operational intuition:** in the publication's example, a sender has a unit message pending on `c`, a receiver is waiting on `d`, and forwarding connects the waiting interaction on `d` to `c`. The waiting interaction can then receive the message on `c` and continue.
+**Operational intuition:** forwarding connects interactions across two existing channels; it is not a global renaming of channel names. The publication illustrates this with a sender that has a unit message pending on `c` and a receiver waiting on `d`. See Section 8 for the publication's forwarding example and trace.
 
 **Still unspecified:** a complete OrgLang transition rule covering both polarities, all pending-turn cases, and the resulting continuation state. The publication example illustrates the intended idea, but the inspected executor contains TODOs and has not been shown to implement every case correctly.
 
@@ -146,7 +146,7 @@ So `P` is the body of the process being spawned, while `Q` is the continuation o
 
 This clarifies the publication's intended meaning, but it does not yet tell us exactly how OrgLang's `SpawnSpec` represents `P` and `Q`, how the channel is represented in OrgLang, or how process-pool lifecycle and scheduling work. Those questions remain open, especially because the inspected implementation attempts are incomplete. Treat this as the publication's semantics, not yet as a complete OrgLang `Spawn` semantics.
 
-The author also supplied these publication forwarding rules. The mode parameter `m` is omitted here to keep the discussion focused on forwarding rather than channel modes:
+The publication also gives the following forwarding rules. The mode parameter `m` is omitted here to keep the discussion focused on forwarding rather than channel modes:
 
     proc(d⁺ ← c⁺) → !⁺msg(d⁺, c⁺)   id: forward+
     proc(d⁻ ← c⁻) → !⁻srv(d⁻, c⁻)   id: forward−
