@@ -184,7 +184,7 @@ A process declaration is represented by `DecSpec` with fields:
 
 These interpretations are supported by comments in `proc/termdec/core/core.go`. For language-level `Link`, the intended mapping is that `X` supplies the channel for `LiabVar`, and `Ys[i]` supplies the channel for `AssetVars[i]` in declaration order. These are implementation field names; the language-level description uses provider and client channels instead.
 
-A process definition is represented by `DefSpec{ProcQN, ProcES}`; `DefRec` contains a `Ref`. The inspected `Create`/ `Retrieve` implementation in `proc/termdef/core/core.go` appears to be a stub, so this representation alone does not establish the persistence contract.
+A process definition is represented by `DefSpec{ProcQN, ProcES}`; `DefRec` contains a `Ref`. The inspected `Create`/`Retrieve` implementation in `proc/termdef/core/core.go` appears to be a stub, so this representation alone does not establish the persistence contract.
 
 Keep these names distinct until their relationships are demonstrated by code. In particular, `LinkSpec.X` and `LinkSpec.Ys` are `identity.ADT` values, not channel placeholders (`symbol.ADT`). The author has clarified their intended language-level meaning as caller-side channel placeholders; the Go field types are an implementation discrepancy, not the semantic definition:
 
@@ -280,7 +280,7 @@ At a high level, the inspected execution path follows six steps. The names in pa
 
 This outline is a map of the observed code path, not a complete definition of when a process blocks, resumes, or owns a channel.
 
-The inspected `takeWith` contains execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. The current `LabSpec` AST includes `ContExp`, but its message adapter does not preserve that field; whether a label-selection continuation is semantically required remains open. It does not contain branches for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release`; those constructors have no execution branch in this dispatcher in the inspected version. This is a statement about the inspected implementation, not by itself a conclusion that the language design is defective. `Spawn` and the call mechanism are interdependent because both may rely on the unresolved model of process creation and pools. Consequently, no complete operational rule for `Call` or `Spawn` is specified here. Recursion may arise from cyclic dependencies among process definitions rather than requiring a separate recursive-call construct. This does not imply that `Link` and `Call` should be unified: `Call` has an explicit `ContExp`, whereas `Link` does not, and their operational rules must account for that distinction. Channel forwarding (`Fwd`) remains a distinct operation.
+The inspected `takeWith` contains execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. The current `LabSpec` AST includes `ContExp`, but its message adapter does not preserve that field; whether a label-selection continuation is semantically required remains open. It does not contain branches for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release`; those constructors have no execution branch in this dispatcher in the inspected version. This is a statement about the inspected implementation, not by itself a conclusion that the language design is defective. `Spawn` and the call mechanism are interdependent because both may rely on the unresolved model of process creation and pools. Consequently, no complete operational rule for `Call` or `Spawn` is specified here. One possibility is that recursion arises from cyclic dependencies among process definitions rather than requiring a separate recursive-call construct; this remains unverified. This does not imply that `Link` and `Call` should be unified: `Call` has an explicit `ContExp`, whereas `Link` does not, and their operational rules must account for that distinction. Channel forwarding (`Fwd`) remains a distinct operation.
 
 Communication may take more than one execution step. If the matching action from the other side is not yet available—for example, the corresponding `Wait` for a `Close`, or a receive for a send—the current action may register that it is waiting and return. When the other side becomes available, the implementation updates the exchange state and channel records, and may schedule the continuation. The precise ordering and ownership rules are still open.
 
@@ -332,20 +332,7 @@ The publication's cut rule describes allocating a fresh channel, starting `P[a/x
 
 `Fwd` is also represented in the inspected executor. When no turn is pending, positive polarity registers a `PubRec` carrying `FwdRec`, while negative polarity registers a `SubRec` carrying `FwdRec`; other branches inspect polarity and the pending turn kind. However, the code contains TODOs for channel-side metadata, and a negative-polarity branch comments on a type mismatch. The ordinary send/receive handlers inspected so far expect `RecvRec`/`SendRec` payloads and do not handle `FwdRec` in those switches. We have not established whether another part of the scheduling and exchange path handles this case. This suggests the implementation may be unfinished, but does not prove that `Fwd` is broken. Its completeness remains an open question.
 
-## 14. Other implementation observations
-
-The inspected process execution path loads an execution snapshot, collects declarations and type definitions, builds a type context, checks the expression, dispatches it, persists the resulting changes, and may schedule a continuation. The dispatcher currently has branches for Close, Wait, Send, Recv, Lab, Case, and Fwd, but not for Call, Spawn, Link, Acqure, Accept, Detach, or Release. This describes the inspected implementation, not by itself a conclusion about the language design.
-
-Other adapter discrepancies observed during inspection include:
-
-- MsgFromExpSpec has no Link branch.
-- MsgToExpSpec reconstructs CallSpec without CommChnlPH and ContExp; it also reconstructs LabSpec without its ContExp.
-- Case-expression conversions appear to read label data from a fixed Lab field rather than the current branch entry.
-- Some send/receive record conversions do not preserve channel fields symmetrically.
-
-These are source-level findings whose runtime impact has not been established. Focused tests and complete call-path analysis are needed before proposing implementation changes. This research task does not modify orglang/go-engine.
-
-## 15. Open questions for the next verification pass
+## 14. Open questions for the next verification pass
 
 1. What is the precise relationship among TermQN, ProcQN, ProcTermQN, declaration references, and expression identity?
 2. What is the intended relationship among process-level invocation, pool-level Spawn, and the pool model?
@@ -359,7 +346,7 @@ These are source-level findings whose runtime impact has not been established. F
 10. Must all branches of a Case preserve equivalent linear contexts, and where is that enforced?
 11. What lifecycle, failure, and scheduling guarantees apply when Link transfers control?
 
-## 16. Non-goals
+## 15. Non-goals
 
 This draft does not define pool or transaction semantics, resource-allocation policy, fairness, deadlock freedom, or a complete metatheory (such as preservation/progress). Those require a separate pass over the pool/transaction implementation.
 
