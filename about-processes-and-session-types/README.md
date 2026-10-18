@@ -8,6 +8,8 @@
 
 This document focuses on processes and session types. Pool and transaction semantics are not formalized here, although pool-level process creation is considered where necessary to understand the boundary between invocation and spawning.
 
+**Evidence policy.** Claims are labelled consistently throughout: **Observed** means directly visible in the inspected source or comments; **Intended** means the language-level behavior this document describes; **Partial** means some implementation support is visible but the full path or invariant is unverified; **Open** means the available evidence does not settle the behavior. These labels distinguish source observations from semantic claims; they are not confidence scores.
+
 ## 2. Core concepts
 
 OrgLang processes communicate through **channels**. Think of a channel as a connection between two roles: the **provider** offers a service, and the **client** uses it. Each process has one provider channel of its own and can use other channels as a client.
@@ -45,15 +47,9 @@ A **session type** describes the protocol allowed on one endpoint of a channel. 
 | Protocol remaining at a point | residual session type | Remaining protocol after an interaction step | Current session-type value / checker context (`LinearVars`) | Defined in Section 3; state-update invariants remain open. |
 | Polarity | positive / negative / neutral | `+` / `−` in the forwarding rules | Type-checker assignments in `proc/typeexp/core/core.go` | Positive: `One`, `Tensor`, `Plus`; negative: `Lolli`, `With`; neutral: `Up`, `Down`, type-level `Link`. |
 
-The table gives the main terminology mapping. Unresolved semantics and implementation gaps are collected in Section 7 (intended behavior) and Sections 13–14 (implementation evidence and open questions).
+The table gives the main terminology mapping. Intended behavior is described in Section 7; implementation findings and remaining questions are separated in Part III.
 
-### Evidence labels
 
-- **Observed:** directly visible in the inspected source or its comments.
-- **Intended:** the language-level behavior this document describes.
-- **Open:** the source does not establish the behavior or required invariant.
-
-These labels separate source observations from intended semantics; they are not confidence scores.
 
 ## 3. A small example: following a channel
 
@@ -79,7 +75,7 @@ For now, it is enough to recognize four broad kinds of process action:
 - **Communication:** send or receive a value/channel, or select and handle a labelled choice.
 - **Finishing:** close an interaction or wait for the other side to finish.
 - **Connecting interactions:** forward between channels.
-- **Process control:** `Call` invokes a named process while the caller has a continuation; `Link` hands provider responsibility for an existing channel to a new process incarnation. Their intended transitions and unresolved details are in Section 7.
+- **Process control:** `Call` invokes a named process while the caller has a continuation; process-expression `Link` hands provider responsibility for an existing channel to a new process incarnation. Intended transitions are described in Section 7.
 
 The repository also contains AST constructors for `Spawn`, `Acqure`, `Accept`, `Detach`, and `Release`. Their presence in the syntax tree does not establish their user-facing status or runtime behavior. The full constructor/field inventory is in Part III.
 
@@ -89,7 +85,7 @@ A session type describes what may happen next at one end of a channel (Section 2
 
 A protocol can also pass a channel between processes. The sender gives the other process a channel it can use to communicate; the receiver gains access to that channel for the rest of its process. The implementation names the relevant session-type forms `Tensor` and `Lolli`. At a high level, these are the two complementary forms used to describe channel transfer together with the protocol that remains after the transfer. The names alone do not tell the reader which endpoint performs which action: Section 9 records the observed polarity assignments and checker coverage, while Section 10 describes the typing interface. The exact direction mapping remains deliberately unstated here.
 
-Protocols may also allow a choice between labelled alternatives: the implementation uses `Plus` and `With` for the two complementary type forms associated with such choices. `One` represents a finished protocol. The implementation contains `Up` and `Down` too, but their meaning in OrgLang is still being investigated; see Section 9 for observed checker coverage and Section 14 for open questions. Type-level `Link` refers to another type definition; it is different from the process expression `Link`, which is described in Section 7.
+Protocols may also allow a choice between labelled alternatives: the implementation uses `Plus` and `With` for the two complementary type forms associated with such choices. `One` represents a finished protocol. The implementation contains `Up` and `Down` too, but their meaning in OrgLang is still being investigated; see Section 9 for observed checker coverage and Section 14 for open questions. The name `Link` is overloaded: **type-level `Link`** refers to another type definition, while **process-expression `Link`** hands off provider responsibility for a channel (Section 7).
 
 This introduction explains why these forms are useful; it is not a complete theory of session types. Part III contains the constructor inventory, observed polarity assignments, checker coverage, and open questions.
 
@@ -201,11 +197,7 @@ The main implementation locations inspected for this draft are:
 - `proc/termexp/adapter/tc.go`
 - `proc/termexp/core/ds.go`
 
-A process declaration is represented by `DecSpec` with fields:
-
-- `TermQN`: the declaration's qualified name;
-- `LiabVar`: the provider-channel placeholder in the declaration;
-- `AssetVars`: the client-channel placeholders in the declaration.
+A process declaration is represented by `DecSpec` with three relevant fields: `TermQN` is the declaration's qualified name, `LiabVar` is its provider-channel placeholder, and `AssetVars` is the list of client-channel placeholders.
 
 These interpretations are supported by comments in `proc/termdec/core/core.go`. For language-level `Link`, the intended mapping is that `X` supplies the channel for `LiabVar`, and `Ys[i]` supplies the channel for `AssetVars[i]` in declaration order. These are implementation field names; the language-level description uses provider and client channels instead.
 
@@ -243,7 +235,7 @@ The inspected process AST defines the following constructors and fields:
 | `DetachSpec` | see source | Contract open |
 | `ReleaseSpec` | see source | Contract open |
 
-The table is a syntax inventory, not a claim that all constructors are executable.
+The table is a syntax inventory; execution support is assessed separately in Section 13.
 
 #### Session-type AST and checker coverage
 
@@ -303,7 +295,7 @@ At a high level, the inspected execution path follows six steps. The names in pa
 5. Save the resulting state changes and effects.
 6. If the action produced a next expression, schedule or continue with it; otherwise return.
 
-This is an outline of the observed path, not a complete definition of when a process blocks, resumes, or owns a channel. For the definitive inventory of which constructors have execution branches, and the evidence concerning `Call`, `Link`, and `Spawn`, see Section 13. For field loss and other conversion asymmetries, see Section 12.
+This is an outline of the observed path, not a complete definition of when a process blocks, resumes, or owns a channel. The execution inventory is in Section 13; conversion asymmetries are listed in Section 12.
 
 Communication may take more than one execution step. If the matching action from the other side is not yet available—for example, the corresponding `Wait` for a `Close`, or a receive for a send—the current action may register that it is waiting and return. When the other side becomes available, the implementation updates the exchange state and channel records, and may schedule the continuation. The precise ordering and ownership rules are still open.
 
@@ -311,7 +303,7 @@ The exact transition relation, message ownership, and invariants for subscriptio
 
 ## 12. Representation and serialization caveats
 
-The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. This section is the single inventory of observed conversion discrepancies; the separate question of which expressions the executor can run is covered in Section 13.
+The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. This section lists conversion discrepancies; Section 13 separately records execution support.
 
 - `MsgFromExpSpec` has no `Link` branch.
 - `MsgToExpSpec` reconstructs `CallSpec` without `CommChnlPH` and `ContExp`. It also reconstructs `LabSpec` without its `ContExp`, although the AST contains that field.
@@ -324,9 +316,9 @@ These are source-level discrepancies to validate with focused tests and call-pat
 
 ## 13. Operational semantics: conservative scope
 
-### Scope of uncertainty
+### Evidence limits
 
-The following cautions apply throughout this document: AST presence alone does not establish runtime support; publication rules do not automatically define OrgLang semantics; and an inspected code path does not establish end-to-end behavior unless the relevant typing, adapter, scheduling, and execution paths are verified together. These are general evidence limits. The operation-specific unresolved questions are listed once below and should be treated as the canonical open-question list.
+AST presence alone does not establish runtime support; publication rules do not automatically define OrgLang semantics; and an inspected code path does not establish end-to-end behavior unless typing, adapters, scheduling, and execution are checked together. The operation-specific questions are listed in Section 14.
 
 A formal reduction relation should distinguish at least:
 
@@ -342,7 +334,7 @@ The first fully formalized implementation-level rules should be limited to const
 
 ### Named-process operations: implementation evidence
 
-This subsection is the canonical implementation summary for `Call`, `Link`, and process creation. Section 12 separately lists adapter and serialization discrepancies. The unresolved questions themselves are collected in Section 14.
+This subsection records implementation findings for `Call`, `Link`, and process creation. Section 12 lists conversion discrepancies; Section 14 is the canonical list of unresolved questions.
 
 The inspected `takeWith` dispatcher has execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. It has no branch for `Call`, `Spawn`, `Link`, `Acqure`, `Accept`, `Detach`, or `Release` in the inspected version. This is a finding about the current dispatcher, not by itself a conclusion that the language design is defective.
 
@@ -350,11 +342,11 @@ The inspected `call` scenario in `test/e2e/pool_test.go` is inconclusive: the to
 
 For `Link`, `X` and `Ys` are intended as caller-side channel placeholders, but the AST types them as `identity.ADT` channel identifiers rather than `symbol.ADT` placeholder names. No complete adapter or executor path was found. `Call` has an explicit `ContExp`; `Link` does not, so their control-flow contracts differ. See Section 14 for the remaining `Link` lifecycle and representation questions.
 
-The pool API has a `Spawn` operation that carries a process declaration reference and optional references to existing process incarnations. This implementation-level API name is not evidence that OrgLang exposes a user-written `Spawn` operation. The available code contains several incomplete approaches that must remain distinct:
+The pool API has a `Spawn` operation that carries a process declaration reference and optional references to existing process incarnations. This implementation-level API name is not evidence that OrgLang exposes a user-written `Spawn` operation. The repository contains three distinct `Spawn` representations; they should not be treated as one implementation:
 
-- The process-expression AST has a `SpawnSpec` with a communication-channel placeholder, process-term name, new-channel placeholders, and continuation, but the inspected dispatcher has no execution branch for it; an older `SpawnSpecOld` branch remains commented out.
-- The pool-level `SpawnSpec2` names a process declaration and optional existing process incarnations. Its `Spawn` method creates a new execution record in linear mode, but the inspected method does not itself instantiate a process body or wire up the fresh channel described by the publication's cut rule.
-- A separate prototype under `proto/rast2` has a `spawn` reduction that creates a fresh channel and two process entries. This resembles the publication's allocate-and-spawn shape, but it is a different prototype representation and does not establish the semantics of the current AST or pool API.
+- **Process-expression AST — `SpawnSpec`:** carries a communication-channel placeholder, process-term name, new-channel placeholders, and continuation. The inspected dispatcher has no execution branch; an older `SpawnSpecOld` branch remains commented out.
+- **Pool API — `SpawnSpec2`:** names a process declaration and optional existing process incarnations. Its `Spawn` method creates a new execution record in linear mode, but does not itself instantiate a process body or wire the fresh channel described by the publication's cut rule.
+- **Separate prototype — `proto/rast2` `spawn` reduction:** creates a fresh channel and two process entries. This resembles the publication's allocate-and-spawn shape, but is a separate prototype, not evidence for the current AST or pool API.
 
 The publication's cut rule describes allocating a fresh channel, starting `P[a/x]`, and continuing the original process as `Q[a/x]`. This is useful comparison context, not evidence that OrgLang exposes a standalone source-level `Spawn`. Recursion through cyclic dependencies among process definitions remains a hypothesis, not an established mechanism.
 
