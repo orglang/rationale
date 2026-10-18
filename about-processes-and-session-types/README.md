@@ -14,7 +14,7 @@ OrgLang processes communicate through **channels**. Think of a channel as a conn
 
 A named process is like a recipe. Each time it is started, that running copy is a **process incarnation**. A **channel placeholder** is a name in the process expression that stands for a channel; while the process runs, an environment tells us which actual channel each placeholder refers to.
 
-A **session type** is the protocol for a channel: it says what kind of interaction is allowed next. The **residual session type** is the part of that protocol still to be performed at the current moment. For example, imagine a channel whose protocol is “send a request, then receive a response, then finish.” Before the request, its residual type describes the whole sequence. After the request has been sent and received, the residual type describes only “receive a response, then finish.” This matters for `Link`: the new process must be ready to continue the conversation **from its current point**, not restart the protocol from the beginning.
+A **session type** describes the protocol from the point of view of one endpoint: which action that endpoint may perform next. The two endpoints therefore describe complementary actions. The **residual session type** is the part of that endpoint's protocol still to be performed at the current moment. For example, the client-side view may say “send a request, then receive a response, then finish,” while the provider-side view says “receive a request, then send a response, then finish.” After the request has been sent by the client and received by the provider, their residual types differ: the client must **receive** the response, while the provider must **send** it. After the response is sent and received, both residual types describe finishing. This is a conceptual example, not OrgLang syntax or a claim about a particular type constructor. It matters for `Link`: the new process must be ready to continue the provider endpoint's protocol **from its current point**, not restart it from the beginning.
 
 **Linearity** means that a channel has exactly one provider and exactly one client; there must not be two competing providers or two competing clients for the same channel. This is why `Link` transfers the provider's responsibility for an existing channel rather than creating a second provider for it.
 
@@ -39,15 +39,16 @@ The document distinguishes three evidence levels:
 
 ## 3. A small example: following a channel
 
-Imagine two processes that communicate over one channel:
+Imagine two processes that communicate over one channel. The table tracks the protocol from **each endpoint's point of view**. The client and provider have complementary actions, so their residual session types are not necessarily written as the same sequence.
 
-1. The client sends a request.
-2. The server receives that request.
-3. The server sends a response.
-4. The client receives the response.
-5. Both sides eventually finish the protocol.
+| Point in the interaction | Client-side action / residual type | Provider-side action / residual type |
+|---|---|---|
+| Before the request | Next: send request. Residual: send request → receive response → finish. | Next: receive request. Residual: receive request → send response → finish. |
+| Request transferred | The send is complete. Next: receive response. Residual: receive response → finish. | The receive is complete. Next: send response. Residual: send response → finish. |
+| Response transferred | The receive is complete. Residual: finish. | The send is complete. Residual: finish. |
+| Protocol finished | Finished. | Finished. |
 
-This is a **conceptual trace**, not literal OrgLang source code. It illustrates the central idea: a channel is not just a wire carrying arbitrary messages. Its session type limits which interaction is allowed next; the meaning of that type as the conversation progresses is explained in Section 2.
+The arrows mean “then”; they are explanatory notation, not literal OrgLang syntax. “Transferred” means the matching send/receive actions have both taken place, not merely that one side has started its action. This is a **conceptual trace**, not a formal typing rule. It illustrates that each endpoint's residual type advances according to that endpoint's own action. A channel is not just a wire carrying arbitrary messages: its session type limits which interaction is allowed next.
 
 ## 4. Process declarations and definitions
 
