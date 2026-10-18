@@ -91,17 +91,17 @@ The observable result of a serviced call is constrained by the canonical channel
 
 <a id="4-pool-public-channel-and-callees-private-communication-channel"></a>
 
-**Agreed clarification:** the public channel discussed in [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85) is the pool's public channel, not a public channel belonging to each process. Whether individual processes should have public channels remains **Open**.
+**Agreed clarification:** the public channel discussed in [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85) is the pool's public transaction channel (called the pool's public channel below), not a public channel belonging to each process. Whether individual processes should have public channels remains **Open**.
 
-The pool's public channel has a transaction type of the form `Up` followed by a continuation that ultimately ends in `Down`.
+The pool's public transaction channel has a transaction type of the form `Up` followed by a continuation that ultimately ends in `Down`.
 
-**Agreed working interpretation:** access through the pool's public channel gives the client a private channel for the duration of the critical section. Exclusivity is scoped to this private channel and the interaction conducted through it; it does not, by itself, imply a global lock that prevents all other clients from interacting with the pool. Reaching `Down` marks the end of this protocol-bounded critical section, and the client can no longer continue the interaction along that channel continuation after that point.
+**Agreed working interpretation:** access through the pool's public transaction channel gives the client a private channel for the duration of the critical section. Exclusivity is scoped to this private channel and the interaction conducted through it; it does not, by itself, imply a global lock that prevents all other clients from interacting with the pool. Reaching `Down` marks the end of this protocol-bounded critical section, and the client can no longer continue the interaction along that channel continuation after that point.
 
 This must be understood in light of channel identity: each interaction generates a new channel identifier for continuing the interaction, and this succession of identifiers is reflected in the channel's type. Thus, in one sense, the channel is continually changing. Unavailability after `Down` does not by itself specify whether an underlying channel resource is closed, returned to the pool, or otherwise handled. Further guarantees should be derived from the exact `Up` / continuation / `Down` semantics, not assumed from the analogy alone.
 
 **TODO:** Decide whether the detailed `Up … Down` protocol explanation belongs in `about-transaction/README.md`. If so, move the protocol mechanics there and keep only the process/pool boundary distinction here.
 
-This pool-level protocol is conceptually distinct from the process's provider channel and from the client channels passed to `ExternalCall`. The provider channel is the channel through which the new process incarnation provides service; its provider endpoint belongs to that incarnation, and the caller uses the corresponding client endpoint. The current model introduces no separate callee-private communication channel.
+This pool-level protocol is conceptually distinct from the process's provider channel and from the channels mapped to the new incarnation's client-role parameters in `ExternalCall`. The provider channel is the channel through which the new process incarnation provides service; its provider endpoint belongs to that incarnation, and the caller uses the corresponding client endpoint. The current model introduces no separate callee-private communication channel.
 
 ## 6. Evidence and rationale
 
