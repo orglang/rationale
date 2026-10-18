@@ -71,7 +71,7 @@ Use one row for one proposed correspondence. **Mapping status** describes the st
 | Client channel placeholders | Client-role channel parameters in the process interface | `AssetVars` in `DecSpec` | Provisional | The implementation comment supports this interpretation; verify the full resolution path. |
 | Process-expression `Link` provider channel (`X`) | No equivalent established in the inspected excerpt | `LinkSpec.X` | Unresolved | Intended to denote the existing provider channel, but the field is typed as `identity.ADT`, not a channel-placeholder symbol. Runtime resolution is unverified. |
 | Process-expression `Link` client channels (`Ys`) | No equivalent established in the inspected excerpt | `LinkSpec.Ys` | Unresolved | Intended to denote client channels in declaration order; representation and runtime resolution are unverified. |
-| `Call` | `a ← p b`; publication substitution rule | `CallSpec`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, `NewChnlPH` | Provisional | The publication supports invocation and substitution. The intended OrgLang contract preserves the caller's continuation without waiting for the called incarnation to finish; exact argument mapping and the role of `NewChnlPH` remain open. The inspected executor has no `Call` branch. |
+| `Call` | `a ← p b`; publication substitution rule | `CallSpec`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, `NewChnlPH` | Provisional | The publication supports invocation and substitution. The agreed OrgLang rule preserves the caller's continuation without waiting for the called incarnation to finish, and every channel parameter must be explicitly mapped to an existing channel. The implementation mapping remains unverified; the inspected executor has no `Call` branch. |
 | Provider handoff via process-expression `Link` | No equivalent established | `LinkSpec` | Unresolved | Intended to transfer provider responsibility for an existing channel; no complete adapter/executor path was found. |
 | Send/publish action (`pub`) | `msg` | `PubRec`, `ValExp` | Provisional | The names align with the send/message side in the described forwarding trace; end-to-end state semantics remain open. |
 | Service/wait action (`sub`) | `srv` | `SubRec`, `ContExp` | Provisional | The names align with the service/waiting side in the described forwarding trace; end-to-end state semantics remain open. |
@@ -138,11 +138,11 @@ This section distinguishes two kinds of uncertainty:
 
 **Before:** the caller is executing a `Call` expression, with its current channel environment and a continuation `ContExp` (the implementation field for the expression the caller should continue with).
 
-**Intended transition:** resolve the named process and the caller-supplied channel placeholders, then start a fresh incarnation of the named process with the channels required by its declaration.
+**Transition (agreed language rule):** resolve the named process and explicitly map every channel parameter in its declaration to an existing channel supplied in the call's environment/arguments. Then start a fresh incarnation with those channel associations. `Call` itself does not implicitly allocate a replacement channel for an omitted parameter.
 
 **After (intended):** the new incarnation can execute independently. The original caller remains active and its continuation `ContExp` can proceed without waiting for the new incarnation to finish. Existing channels passed as arguments retain their identity; any dependencies mediated by those shared channels are governed by their protocols.
 
-**Status:** this records the intended OrgLang control-flow contract: the caller's continuation does not wait for the called incarnation to finish. Exact argument mapping, channel wiring, and the role of `NewChnlPH` remain underspecified and are listed in Section 14. This is a candidate language rule to retain unless contradicted by the language design; it is not verified by the current executor, which has no `Call` branch. This description does not assume that `Call` is implemented using `Spawn`.
+**Status:** the language-level rules agreed here are that the caller's continuation does not wait for the called incarnation to finish, and every channel parameter must be explicitly mapped to an existing channel. The precise argument order/syntax and how the implementation field `NewChnlPH` represents this mapping remain open. These language rules are not verified by the current executor, which has no `Call` branch. This description does not assume that `Call` is implemented using `Spawn`.
 
 ### `Link`
 
@@ -170,7 +170,7 @@ These operations are distinct unless evidence establishes a more precise semanti
 
 | Operation | Primary role | Intended process-control effect | Intended channel effect | Semantic/evidential status | Implementation status |
 |---|---|---|---|---|
-| `Call` | Invoke a named process. | A fresh incarnation starts; the caller's `ContExp` can proceed without waiting for that incarnation to finish. | Existing argument channels retain their identity. Allocation and mapping involving `NewChnlPH` remain unresolved. | Candidate language rule for continuation independence; channel wiring details open. | Unverified; no executor branch found in the inspected dispatcher. |
+| `Call` | Invoke a named process. | A fresh incarnation starts; the caller's `ContExp` can proceed without waiting for that incarnation to finish. | Every channel parameter is explicitly mapped to an existing channel; `Call` does not implicitly allocate a replacement channel. Exact argument order and implementation mapping remain open. | Agreed language rule for continuation independence and explicit channel mapping. | | Unverified; no executor branch found in the inspected dispatcher. |
 | `Link` | Hand off provider responsibility. | A fresh incarnation takes over; the old incarnation has no ordinary continuation. | The existing `providerChannel` (`X`) and its client connection stay the same. | Inferred target contract; lifecycle and representation open. | Unverified; no complete executor path found. |
 | `Fwd` | Connect two existing channel interactions. | No named-process incarnation or named-process continuation transfer is implied. | Relates existing endpoints; no global renaming is implied. | Intended rule open beyond the documented example. | Partial; full symmetric behavior not established. |
 
@@ -238,7 +238,7 @@ A process declaration is represented by `DecSpec`:
 - `LiabVar` — provider-channel placeholder.
 - `AssetVars` — client-channel placeholders.
 
-In Section 7, `ContExp` names the continuation expression for `Call`; `NewChnlPH` names a channel placeholder whose allocation or supply is not yet established. For process-expression `Link`, `X` is intended to identify the existing provider channel being handed off, and `Ys` the client channels passed to the new process. However, `LinkSpec.X` and `LinkSpec.Ys` are typed as `identity.ADT`, not `symbol.ADT`; the AST therefore does not represent them using the same type as the channel placeholders elsewhere. Here “placeholder” describes their intended language-level role, not a confirmed implementation representation. The actual resolution path remains unverified.
+In Section 7, `ContExp` names the continuation expression for `Call`; `NewChnlPH` is an implementation field whose relationship to the agreed explicit mapping of parameters to existing channels remains unverified. Its name alone does not establish that `Call` allocates a channel. For process-expression `Link`, `X` is intended to identify the existing provider channel being handed off, and `Ys` the client channels passed to the new process. However, `LinkSpec.X` and `LinkSpec.Ys` are typed as `identity.ADT`, not `symbol.ADT`; the AST therefore does not represent them using the same type as the channel placeholders elsewhere. Here “placeholder” describes their intended language-level role, not a confirmed implementation representation. The actual resolution path remains unverified.
 
 Comments in `proc/termdec/core/core.go` support these readings. For process-expression `Link`, the intended mapping is `providerChannel` (`X`) → `LiabVar` and `clientChannels[i]` (`Ys[i]`) → `AssetVars[i]` in declaration order. These are implementation field names; the language-level description uses provider and client roles.
 
@@ -267,7 +267,7 @@ The inspected process AST defines these constructors. Field names below are thos
 - **`CaseSpec`** — `CommChnlPH`, `ContExps`: offer branches indexed by labels.
 - **`LinkSpec`** — `ProcTermQN`, `X`, `Ys` (`identity.ADT`): named-process construct without `ContExp`, unlike `CallSpec`.
 - **`FwdSpec`** — `CommChnlPH`, `ContChnlPH`: forward between endpoints.
-- **`CallSpec`** — `CommChnlPH`, `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp`: candidate named-process call representation. Unlike the publication form `a ← p b₁ … bₙ`, it carries a continuation and distinct channel placeholders whose roles remain unsettled.
+- **`CallSpec`** — `CommChnlPH`, `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp`: implementation representation for named-process call. It carries a continuation and distinct channel-placeholder fields; how these fields encode the agreed explicit mapping to existing channels remains unverified.
 - **`SpawnSpec`** — `CommChnlPH`, `ProcTermQN`, `NewChnlPHs`, `ContExp`: present in the AST; process semantics are deferred pending pool-level analysis.
 - **`AcqureSpec`** — contract open; spelling preserved as in source.
 - **`AcceptSpec`**, **`DetachSpec`**, **`ReleaseSpec`** — contracts open; see source for fields.
@@ -395,7 +395,7 @@ A formal reduction rule should be added after the relevant typing, executor, ada
 
 The list is ordered by investigation priority, not by semantic importance.
 
-1. **Call:** What is the role and ordering of additional channel arguments, and how do they map to formal channel parameters? What is the role of `NewChnlPH`—is its channel allocated, supplied by the caller, or injected by the runtime? Where are name resolution, recursion checks, and type checks enforced?
+1. **Call:** What is the exact argument order/syntax for explicitly mapping each formal channel parameter to an existing channel? How do `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH` encode that mapping in the AST and runtime? Where are name resolution, recursion checks, and type checks enforced? The language rule does not permit implicit channel allocation to fill an omitted parameter.
 2. **Link:** Where should `X` / `Ys` be resolved, and what lifecycle, failure, and scheduling guarantees apply when provider responsibility transfers?
 3. **Fwd:** What are the exact transition rules for positive, negative, and neutral polarity, including pending turns and continuation state?
 4. **Representation and execution:** Are the conversion asymmetries in Section 12 reachable, and what focused tests establish their impact? Check the relevant adapter, executor, and scheduling paths together.
