@@ -7,6 +7,7 @@ These standards guide human and agent review of research documentation. They com
 - Define a term before relying on it, or link to its canonical definition at first use.
 - Keep one canonical explanation for each concept. In glossaries, tables, summaries, and open-question lists, prefer a concise summary plus a cross-reference over a second full definition.
 - Separate intended language semantics from publication claims and implementation observations. Code structure or field names alone do not establish language semantics.
+- A user-confirmed intended contract records the agreed direction of the research document; it does not, by itself, establish formal language semantics. Label it as an intended or agreed contract until an authoritative language source supports a stronger claim.
 - Label uncertainty explicitly. Do not silently turn a hypothesis into a fact or smooth over disagreements between sources.
 - Distinguish the status of a claim from implementation coverage. Apply status labels to specific claims, not to a term as a whole.
 
