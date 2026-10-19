@@ -59,7 +59,13 @@ Do not promote a candidate rule to a language rule merely because it is describe
 
 The correspondence between OrgLang, the publication, and implementation identifiers is tracked separately in the terminology table. Its mapping status describes the correspondence, not the certainty of an individual claim or the completeness of the implementation.
 
-Use **Confirmed**, **Provisional**, or **Unresolved** for mappings. Preserve mismatches rather than silently treating similarly named concepts as equivalent.
+Use **Confirmed**, **Provisional**, or **Unresolved** for mappings:
+
+- **Confirmed** — the correspondence is supported by sufficient evidence.
+- **Provisional** — evidence supports the correspondence, but it still needs verification.
+- **Unresolved** — no correspondence is established, or sources appear to conflict. Describe any discrepancy in the mapping table's **Notes** column.
+
+Preserve mismatches rather than silently treating similarly named concepts as equivalent.
 
 ## 2. Core concepts
 
@@ -97,11 +103,7 @@ A **session type** describes the allowed protocol from the provider endpoint's p
 
 ### Terminology correspondence: OrgLang, publication, and implementation
 
-Use one row for one proposed correspondence. **Mapping status** describes the strength of that correspondence, not the evidence status of a claim or the implementation status. Use three values:
-
-- **Confirmed** — the correspondence is supported by sufficient evidence.
-- **Provisional** — evidence supports the correspondence, but it still needs verification.
-- **Unresolved** — no correspondence is established, or sources appear to conflict. Describe any discrepancy in **Notes**.
+Use one row for one proposed correspondence. **Mapping status** describes the strength of that correspondence, not the evidence status of a claim or the implementation status. Apply the mapping-status definitions in [Section 1](#1-scope-and-evidence).
 
 | OrgLang term / concept | Publication term / notation | Implementation name | Mapping status | Notes |
 |---|---|---|---|---|
