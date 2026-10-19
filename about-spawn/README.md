@@ -3,11 +3,11 @@
 
 > **Status: preliminary semantic research.** This document explains the working model at the boundary between process creation and pool servicing. It records current working rules and their rationale; it is not yet a normative specification.
 
-> **Canonical language contract:** the intended language-level semantics of `ExternalCall` and `InternalCall` are maintained in [Processes and session types, Section 7 — Intended semantics of named-process calls](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). This document explains the process–pool boundary and the evidence and open questions around it; it does not duplicate those contracts.
+> **Canonical language contract:** the intended language-level semantics of `ExternalCall` and `InternalCall` are maintained in [Processes and session types, Section 7 — Intended semantics of named-process calls](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). This document focuses on the process–pool boundary, its supporting evidence, and its open questions. The canonical document defines the language-level contracts.
 
 ## 1. Purpose and mental model
 
-When a process invokes `ExternalCall`, the language-level operation requests service for a named process. The engine may need to create a fresh process incarnation and arrange for a pool to service the new incarnation's provider channel. These are related steps, but they are not the same thing:
+When a process invokes `ExternalCall`, the language-level operation requests service for a named process. The engine may need to perform two distinct tasks: create a fresh process incarnation and arrange for a pool to service the new incarnation's provider channel.
 
 - **`ExternalCall`** creates a fresh incarnation and delivers its fresh provider channel outward to the caller.
 - **`InternalCall`** creates a fresh incarnation and injects an existing channel inward into it.
@@ -26,7 +26,7 @@ Use the same claim-status vocabulary as the canonical [Processes and session typ
 - **Inferred** means the claim is a working interpretation or rule derived from available evidence, not directly established as a language rule.
 - **Open** means the available evidence does not settle the claim or verification remains incomplete.
 
-Use **Evidence** to identify the source or observation supporting a claim, not as a claim-status label. Keep implementation coverage separate from claim status. Issue comments are provisional discussion, not normative rules; a rule from the cited publication's calculus is not automatically an OrgLang rule.
+Use **Evidence** to identify the source or observation supporting a claim; use **Confirmed**, **Inferred**, and **Open** for claim status. Keep implementation coverage separate from claim status. Treat issue comments as provisional discussion. A rule from the cited publication's calculus requires separate evidence before it can be treated as an OrgLang rule.
 
 ## 2. The process–pool boundary
 
@@ -39,7 +39,7 @@ Three concepts are important to keep separate:
 - **Client channel:** a channel viewed from the process that uses it; its endpoint in that process is the client endpoint. The same channel is the provider channel for one process and a client channel for the other; these labels do not name separate channel resources.
 - **Servicing pool:** the pool associated with the incarnation and responsible for servicing its provider channel.
 
-For `ExternalCall`, the current working model says that the engine creates a fresh incarnation together with a fresh provider channel, then associates the incarnation with a selected pool for servicing. The pool does not itself create the incarnation. The pool-selection mechanism and transaction-type model are documented in [Pools and transaction types](../about-pools-and-transaction-types/README.md) and Section 4 below.
+For `ExternalCall`, the current working model says that the engine creates a fresh incarnation together with a fresh provider channel, then associates the incarnation with a selected pool for servicing. The engine creates the incarnation; the selected pool services its provider channel. The pool-selection mechanism and transaction-type model are documented in [Pools and transaction types](../about-pools-and-transaction-types/README.md) and Section 4 below.
 
 The relevant boundary detail is channel provenance: `ExternalCall` uses a fresh provider channel, while `InternalCall` may inject a channel that predates the new incarnation. The language-level contracts for both forms are maintained in [Section 7 of the canonical document](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
@@ -59,11 +59,11 @@ The language-level contracts and the distinction between `ExternalCall` and `Int
 
 ### 4.2 Eligibility
 
-**Inferred:** a candidate pool's transaction type provides the eligibility signal for whether it can service a process with a given name. The encoding and interpretation of that signal, and any additional runtime validation, belong to [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types) and remain **Open**. This section retains the selection rule, not the transaction-type model.
+**Inferred:** a candidate pool's transaction type provides the eligibility signal for whether it can service a process with a given name. The encoding and interpretation of that signal, and any additional runtime validation, belong to [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types) and remain **Open**. This section describes the pool-selection rule. The transaction-type model is documented in [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types).
 
 ### 4.3 Search order
 
-**Inferred:** for simplicity, pool selection searches for the first eligible pool, starting with the pool containing the caller and continuing through pools with which agreements are established. Agreements determine which further pools are considered; each candidate pool's own transaction type determines whether it is eligible. This is a working search model, not a confirmed language rule.
+**Inferred:** for simplicity, pool selection searches for the first eligible pool, starting with the pool containing the caller and continuing through pools with which agreements are established. Agreements determine which further pools are considered; each candidate pool's own transaction type determines whether it is eligible. This remains an inferred working search model; available evidence has not confirmed it as a language rule.
 
 ### 4.4 Creation and start of servicing after selection
 
@@ -107,7 +107,7 @@ The issue comments are the strongest current evidence for the conceptual separat
 
 - `ExternalCall` inside a process is the trigger for requesting work identified by `qn`; it is distinguished from a separate `spawn` message.
 - Creating a process incarnation is described as an internal engine operation that services `ExternalCall`.
-- An agreement between pools may make service possible, but the agreement itself does not create the process.
+- An agreement between pools may enable service. Process-incarnation creation is a separate engine operation.
 - Resource provisioning, reservation, and the exact point of incarnation creation are unresolved.
 
 Relevant comments: [Call versus internal spawning](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290893), [pool agreements and transactions](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290639), [transactional types and process creation](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290369), and [end-to-end service scenario](https://github.com/orglang/go-workspace/issues/85#issuecomment-6232198226).
