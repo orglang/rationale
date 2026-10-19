@@ -23,6 +23,7 @@ Use this workflow to turn an incomplete model into a reviewable specification. T
 - Make assumptions explicit and reversible; ask before relying on an assumption that could materially change the design.
 - Keep deferred questions visible without blocking unrelated progress.
 - **Batch commits, not decisions.** Continue asking one focused question at a time, but group resulting edits into coherent commits. Follow `CODING_STANDARDS.md` for the final documentation review. Do not rewrite existing history merely to reduce commit count.
+- **Link commits in user-facing updates.** When reporting a commit, provide its full GitHub URL (or a Markdown link with a clear label), not only its hash. If multiple commits are relevant, link each one; a short hash may accompany a link but must not replace it.
 - Treat implementation observations, publication claims, and intended language behavior according to the repository's evidence policy; do not infer normative semantics from code structure alone.
 - Use the existing document structure, terminology, status vocabulary, and ownership boundaries. Do not create a new parallel standard or status taxonomy.
 
