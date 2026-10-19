@@ -1,7 +1,6 @@
 # Agent instructions
 
-## Research documentation
+## Technical documentation
 
-- Read [`CODING_STANDARDS.md`](CODING_STANDARDS.md) before editing or reviewing research documentation.
-- Use it for recurring editorial criteria, especially semantic accuracy, evidence boundaries, canonical explanations, and final review.
-- Check the relevant document and directory for task-specific context before making changes.
+- Before drafting, editing, or reviewing technical or research documentation, read [`CODING_STANDARDS.md`](CODING_STANDARDS.md) and apply its evidence and editorial criteria.
+- Inspect the relevant document and directory first; follow existing document ownership and canonical cross-references.

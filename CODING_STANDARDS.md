@@ -17,6 +17,9 @@ These standards guide human and agent review of research documentation. They com
 - Make tables useful for comparison rather than using them for long prose. Split, simplify, or replace wide tables when their meaning becomes difficult to follow on a narrow screen.
 - Introduce abbreviations, symbols, and field names before using them in reasoning; explain whether a name is a language term, publication notation, or implementation identifier.
 - Keep headings, status labels, terminology, and cross-reference style consistent throughout the document.
+- Prefer direct descriptions of behavior, scope, and ownership. Use contrast when it clarifies a real distinction or constraint; preserve meaningful negations and caveats.
+- Remove editorial process commentary, vague claims of authority, and boilerplate statements about needing evidence. Name the source or test that would establish an unresolved claim.
+- Apply the sentence-level no-op test: each sentence should contribute a technical fact, attributed claim, evidence, limitation, unresolved question, or useful cross-reference. Remove sentences that add none, and check adjacent sentences for repeated claims or links.
 
 ## Evidence and references
 
@@ -34,5 +37,6 @@ Before committing a documentation change:
 4. Verify changed links and cross-references, and ensure examples match the surrounding explanation.
 5. Remove caveats that repeat the same point; preserve caveats that mark a real uncertainty or evidence boundary.
 6. Confirm that the diff changes only the intended files and that the final wording does not claim more than the available evidence supports.
+7. Apply the sentence-level no-op test and remove repeated claims or adjacent cross-references that add no navigation value.
 
-These are review criteria, not all mechanically enforceable lint rules. Use automated checks for deterministic formatting and link failures; use editorial review for semantic accuracy and clarity.
+These are review criteria for technical documentation. Automate deterministic checks when a repository-supported tool or CI workflow is available; use editorial review for semantic accuracy, evidence quality, and clarity.
