@@ -30,7 +30,7 @@ Three status dimensions must remain separate:
 | Implementation coverage | **Implemented**, **Partial**, **Absent**, **Unverified** | How much of the relevant behavior has been verified in the implementation? |
 | Terminology mapping | **Confirmed**, **Provisional**, **Unresolved** | How strong is the proposed correspondence between OrgLang, publication, and implementation terms? |
 
-For example, a project decision can confirm the intended direction of OrgLang behavior while implementation coverage remains unverified. Identify that decision as the source and state what it establishes; authoritative language status requires the appropriate language evidence.
+For example, a project decision can confirm the intended direction of OrgLang behavior while implementation coverage remains unverified. Identify the decision as the source and state what it explicitly establishes. A claim about a formal language rule needs support from a normative specification or an explicitly adopted language-level contract.
 
 ### Evidence status
 
