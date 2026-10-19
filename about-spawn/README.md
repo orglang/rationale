@@ -39,20 +39,13 @@ Three concepts are important to keep separate:
 - **Client channel:** a channel viewed from the process that uses it; its endpoint in that process is the client endpoint. The same channel is the provider channel for one process and a client channel for the other; these labels do not name separate channel resources.
 - **Servicing pool:** the pool associated with the incarnation and responsible for servicing its provider channel.
 
-For `ExternalCall`, the current working model says that creating the incarnation and creating its fresh provider channel happen together. The selected pool is associated with that incarnation and services the provider channel; the pool does not itself create the incarnation.
+For `ExternalCall`, the current working model says that the engine creates a fresh incarnation together with a fresh provider channel, then associates the incarnation with a selected pool for servicing. The pool does not itself create the incarnation. The pool-selection mechanism and transaction-type model are documented in [Pools and transaction types](../about-pools-and-transaction-types/README.md) and Section 4 below.
 
-The two forms differ here: `ExternalCall` creates a fresh provider channel with the incarnation, while `InternalCall` injects an existing channel that may predate the new incarnation. The precise language-level distinction between `ExternalCall` and `InternalCall` belongs in [Section 7 of the canonical document](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
-
-`ExternalCall` describes named-process invocation and servicing through a process's provider channel. The pool and transaction-type model is documented separately in [Pools and transaction types](../about-pools-and-transaction-types/README.md).
+The relevant boundary detail is channel provenance: `ExternalCall` uses a fresh provider channel, while `InternalCall` may inject a channel that predates the new incarnation. The language-level contracts for both forms are maintained in [Section 7 of the canonical document](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
 ## 3. Working model of `ExternalCall` and `InternalCall`
 
-The detailed language-level contracts are defined only in the [canonical Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). For the process–pool boundary, the working distinction is:
-
-- **`ExternalCall`:** the engine searches for a suitable pool; after finding one, it creates a fresh process incarnation together with a fresh provider channel, associates the incarnation with the selected pool, and starts servicing the provider channel.
-- **`InternalCall`:** an existing channel is handed off to a target incarnation. The channel can therefore exist before the target incarnation is created.
-
-The shared concept is `Call`; `ExternalCall` and `InternalCall` are its two forms, distinguished by whether a channel is delivered outward from or injected inward into the new incarnation.
+The language-level contracts and the distinction between `ExternalCall` and `InternalCall` are defined in the [canonical Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). This section records only the pool-related consequences: `ExternalCall` invokes pool selection before a fresh incarnation is created and serviced; `InternalCall` targets a new incarnation using an existing channel. The selection and servicing sequence is specified as a working model in Section 4 below.
 
 ## 4. Pool selection and servicing
 
