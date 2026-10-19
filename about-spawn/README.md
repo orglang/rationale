@@ -64,17 +64,19 @@ The shared concept is `Call`; `ExternalCall` and `InternalCall` are its two form
 
 **Inferred:** an incarnation is associated with at most one servicing pool at a time. Whether every incarnation requires a pool binding and whether that binding can change later remain **Open**.
 
-### 4.2 Eligibility and search order
+### 4.2 Eligibility
 
-Each pool has its own transaction type, which carries information about whether that pool can service a process with a given name. The exact encoding of eligibility and any additional runtime validation remain **Open**.
+Each pool has its own transaction type, which carries information about whether that pool can service a process with a given name. The exact encoding of eligibility and any additional runtime validation remain **Open**. This is the candidate eligibility signal; its precise interpretation and enforcement have not yet been established.
 
-**Inferred:** for simplicity, pool selection searches for the first eligible pool, starting with the pool containing the caller and continuing through pools with which agreements are established. Agreements determine which further pools are considered; each candidate pool's own transaction type determines whether it is eligible.
+### 4.3 Search order
 
-### 4.3 Creation and start of servicing after selection
+**Inferred:** for simplicity, pool selection searches for the first eligible pool, starting with the pool containing the caller and continuing through pools with which agreements are established. Agreements determine which further pools are considered; each candidate pool's own transaction type determines whether it is eligible. This is a working search model, not a confirmed language rule.
+
+### 4.4 Creation and start of servicing after selection
 
 For `ExternalCall`, the current working sequence is:
 
-1. The engine searches for the first eligible pool using the rule above.
+1. The engine searches for the first eligible pool using the inferred search order in Section 4.3.
 2. Only after a suitable pool has been found, the engine creates a fresh process incarnation together with a fresh provider channel.
 3. The engine associates the incarnation with the selected pool.
 4. The selected pool begins servicing the provider channel immediately, without a separate readiness-wait stage.
