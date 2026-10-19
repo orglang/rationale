@@ -30,7 +30,7 @@ Assign a status to an individual claim, not to a term as a whole.
 - **Inferred** — the claim is a working interpretation derived from available evidence, but is not directly established.
 - **Open** — available evidence does not settle the claim, or relevant verification has not been completed.
 
-Use the source to distinguish a language rule, a publication rule, and an implementation observation. A claim confirmed by one source is not automatically confirmed for another. The strength of a claim and the kind of source supporting it are separate questions: an implementation observation does not by itself establish a language rule. Failure to find an implementation path does not prove a language-level prohibition or that no implementation exists elsewhere; the absence of a stated guarantee does not imply that the opposite behavior is required.
+Use the source to distinguish a language rule, a publication rule, and an implementation observation. A claim confirmed by one source is not automatically confirmed for another. An implementation observation alone establishes neither a language rule nor a language-level prohibition; an unstated guarantee leaves the opposite behavior unspecified.
 
 
 ### Implementation status
@@ -76,7 +76,7 @@ OrgLang processes communicate through **channels**. A channel connects two roles
 
 A **session type** describes the allowed protocol from the provider endpoint's point of view. When checking the client endpoint, the type checker accounts for the client role and the complementary actions it permits. A **residual session type** is the remaining part of that protocol after prior interaction steps. The request/response example and the meaning of a **residual session type** are introduced in Section 3.
 
-**Linearity** is the channel usage/ownership discipline. **Intended linearity rule:** Distinct formal channel parameters must map to distinct existing channel identities. Mapping multiple formal parameters to the same channel is disallowed by the intended linearity discipline. The complete formal invariant and the implementation layer enforcing it remain to be established. More generally, a process may finish only when its channel protocols permit completion and all linear obligations have been discharged; the type checker rejects an attempted completion while a provider-channel protocol remains unfinished. The full formal invariant and its application across constructs still need to be written down; do not infer them solely from `InternalCall`.
+**Linearity** is the channel usage/ownership discipline. **Intended linearity rule:** Distinct formal channel parameters must map to distinct existing channel identities. Mapping multiple formal parameters to the same channel is disallowed by the intended linearity discipline. The complete formal invariant and the implementation layer enforcing it remain to be established. More generally, a process may finish only when its channel protocols permit completion and all linear obligations have been discharged; the type checker rejects an attempted completion while a provider-channel protocol remains unfinished. The full formal invariant and its application across constructs remain to be established; do not infer them solely from `InternalCall`.
 
 ### Quick glossary
 
@@ -98,9 +98,9 @@ A **session type** describes the allowed protocol from the provider endpoint's p
 | Session type | The allowed channel protocol, described from the provider endpoint's point of view; type checking accounts for the client role. |
 | Residual session type | The part of that protocol still to be performed at the current point. |
 | Linearity | Channel usage/ownership discipline; distinct formal channel parameters must map to distinct existing channels, and process completion requires all linear obligations to be discharged. The full formal invariant remains to be written down. |
-| Polarity | An implementation-level positive/negative/neutral classification used by the type checker; not a complete explanation of operational behavior. |
-| Snapshot | An implementation concept that may relate to the publication's `configuration` and `environment`; the exact mapping is an open hypothesis, not an established equivalence. |
-| Turn | Do not treat as a general language-level concept unless a distinct meaning is established. The implementation uses turn-like records for pending communication/exchange state; their precise semantics remain open. |
+| Polarity | An implementation-level positive/negative/neutral classification used by the type checker; operational consequences are documented separately. |
+| Snapshot | An implementation concept that may relate to the publication's `configuration` and `environment`; the exact mapping remains open. |
+| Turn | The implementation uses turn-like records for pending communication/exchange state; their language-level status and precise semantics remain open. |
 
 ### Terminology correspondence: OrgLang, publication, and implementation
 
@@ -138,7 +138,7 @@ Imagine two processes that communicate over one channel. The **residual session 
 
 The arrows mean “then”; they are explanatory notation, not literal OrgLang syntax. “Transferred” means the matching send/receive actions have both taken place, not merely that one side has started its action. This is a conceptual trace showing how the shared protocol's residual state advances as each side performs its permitted action. A channel is not just a wire carrying arbitrary messages: its session type limits which interaction is allowed next.
 
-**Connection to the implementation vocabulary:** at the process-expression level, the request and response correspond conceptually to complementary `Send`/`Recv` actions, followed by the protocol's finishing actions. Section 10 records the observed checker correspondence for `Send`, `Recv`, and `One`; it is not a complete typing derivation. This example deliberately does not assign a concrete OrgLang session-type expression to the whole protocol, because the exact typing rules and context updates are not yet fully established. It also does not illustrate channel transfer (`Tensor`/`Lolli`) or labelled choice (`Plus`/`With`); those are separate protocol forms discussed in Section 6.
+**Connection to the implementation vocabulary:** at the process-expression level, the request and response correspond conceptually to complementary `Send`/`Recv` actions, followed by the protocol's finishing actions. Section 10 records the observed checker correspondence for `Send`, `Recv`, and `One`. The concrete OrgLang session-type expression is omitted because the exact typing rules and context updates remain to be established. Channel transfer (`Tensor`/`Lolli`) and labelled choice (`Plus`/`With`) are separate protocol forms discussed in Section 6.
 
 ## 4. Process declarations and definitions
 
@@ -163,7 +163,7 @@ A protocol can also pass a channel between processes. The sender gives the other
 
 Protocols may also allow a choice between labelled alternatives: the implementation uses `Plus` and `With` for the two complementary type forms associated with such choices. `One` represents a finished protocol. The implementation contains `Up` and `Down` too, but their meaning in OrgLang is still being investigated; see Section 9 for observed checker coverage and Section 14 for open questions. The name `Link` is overloaded: **type-level `Link`** is a session-type constructor referring to another type definition; at the process-expression level, the Go AST constructor is `LinkSpec`, corresponding to the semantic operation **`InternalCall`** (Section 7).
 
-This introduction explains why these forms are useful; it is not a complete theory of session types. Part III contains the constructor inventory, observed polarity assignments, checker coverage, and open questions.
+Part III contains the constructor inventory, observed polarity assignments, checker coverage, and open questions.
 
 ## 7. Intended semantics of named-process calls
 
