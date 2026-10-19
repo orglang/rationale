@@ -13,11 +13,11 @@ When a process invokes `ExternalCall`, the language-level operation requests ser
 - **`InternalCall`** creates a fresh incarnation and injects an existing channel inward into it.
 - **Process-incarnation creation** means creating a fresh instance of a process.
 - **Pool selection and servicing** determine which pool is associated with the incarnation and which pool services its provider channel.
-- **`Spawn`** is used here as descriptive shorthand for engine-level incarnation creation, not as a separate source-language operation.
+- **`Spawn`** is descriptive shorthand for engine-level process-incarnation creation in this working model; it is not being treated as a separate source-language operation.
 
-**Inferred:** The current semantic model does not introduce a separate source-language `Spawn` operation. Creation of a fresh process incarnation is part of servicing either `ExternalCall` or `InternalCall`. This is a modeling choice, not a claim that the AST constructor `SpawnSpec` is invalid or that a separate language construct is impossible. Revisit this distinction if authoritative language evidence establishes a separate semantic role for `Spawn`.
+**Inferred:** Under the current model, creating a fresh incarnation is part of servicing either `ExternalCall` or `InternalCall`. This modeling choice does not claim that the AST constructor `SpawnSpec` is invalid or that a separate language construct is impossible. Revisit it if authoritative language evidence establishes a distinct semantic role for `Spawn`.
 
-The purpose of this document is to make that boundary clear before studying implementation structures or call paths. `Call` is the umbrella concept for two related operations: `ExternalCall` creates a fresh process incarnation and delivers its fresh provider channel outward to the caller; `InternalCall` creates a fresh process incarnation and injects an existing channel inward into it.
+The purpose of this document is to make that boundary clear before studying implementation structures or call paths. `Call` is the umbrella term for two named-process call forms: `ExternalCall` creates a fresh process incarnation and delivers its fresh provider channel outward to the caller; `InternalCall` creates a fresh process incarnation and injects an existing channel inward into it.
 
 ### How to read status labels
 
@@ -90,8 +90,6 @@ The observable result of a serviced call is constrained by the canonical channel
 
 ## 5. The pool's public channel
 
-<a id="4-pool-public-channel-and-callees-private-communication-channel"></a>
-
 **Inferred:** the public channel discussed in [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85) is the pool's public transaction channel (called the pool's public channel below), not a public channel belonging to each process. Whether individual processes should have public channels remains **Open**.
 
 The pool's public transaction channel has a transaction type of the form `Up` followed by a continuation that ultimately ends in `Down`.
@@ -138,8 +136,6 @@ The issue comments are the strongest current evidence for the conceptual separat
 Relevant comments: [Call versus internal spawning](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290893), [pool agreements and transactions](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290639), [transactional types and process creation](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290369), [offer channel proposal](https://github.com/orglang/go-workspace/issues/85#issuecomment-6231176672), and [end-to-end service scenario](https://github.com/orglang/go-workspace/issues/85#issuecomment-6232198226).
 
 ## 7. Open questions and deferred topics
-
-<a id="6-next-semantic-questions"></a>
 
 The following points remain **Open** or are explicitly deferred. They should not be inferred from the working rules above.
 
