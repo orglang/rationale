@@ -8,7 +8,7 @@
 
 - This document owns the technical model of pools and transaction types, including the pool's public transaction channel and its protocol.
 - [Process creation and pool selection](../about-spawn/README.md) owns pool eligibility, search order, process-incarnation creation, pool binding, and the start of servicing.
-- [What is a transaction?](../about-transaction/README.md) remains the accessible introduction. Its existing content is not being moved or rewritten as part of this change.
+- [What is a transaction?](../about-transaction/README.md) remains the accessible introduction. The existing introduction remains unchanged in this change.
 - [Processes and session types](../about-processes-and-session-types/README.md) owns process expressions and the intended semantics of `ExternalCall` and `InternalCall`.
 
 ## 1. Scope, evidence, and status
@@ -37,7 +37,7 @@ _TODO: Specify the transaction-type constructors, their syntax, constraints, and
 
 The pool's public transaction channel has a transaction type of the form `Up` followed by a continuation that ultimately ends in `Down`.
 
-**Inferred:** access through the pool's public transaction channel gives the client a private channel for the duration of the critical section. Exclusivity is scoped to this private channel and its interaction, rather than to all clients of the pool. Reaching `Down` marks the end of this protocol-bounded critical section; the client interaction along that channel continuation ends there.
+**Inferred:** access through the pool's public transaction channel gives the client a private channel for the duration of the critical section. Exclusivity applies to this private channel and its interaction; separate client interactions fall outside that scope. Reaching `Down` marks the end of this protocol-bounded critical section; the client interaction along that channel continuation ends there.
 
 Each interaction generates a new channel identifier for its continuation, reflected in the channel's type. Resource lifecycle after `Down`—closure, return to the pool, or another disposition—remains unspecified pending a precise account of the `Up` / continuation / `Down` semantics.
 
