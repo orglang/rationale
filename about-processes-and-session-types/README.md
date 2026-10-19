@@ -150,7 +150,7 @@ For now, it is enough to recognize four broad kinds of process action:
 - **Communication:** send or receive a value/channel, or select and handle a labelled choice.
 - **Finishing:** close an interaction or wait for the other side to finish.
 - **Connecting interactions:** forward between channels.
-- **Named-process operations:** `ExternalCall` and `InternalCall` are the two named-process operations described here. Both create a fresh process incarnation. `ExternalCall` creates a fresh provider channel and delivers it outward to the caller; `InternalCall` injects an existing channel inward into the new incarnation, transferring provider responsibility. Intended transitions are described in Section 7.
+- **Named-process calls:** `ExternalCall` and `InternalCall` are the two named-process call forms described here. They differ in channel effects and continuation behavior, not in whether they are calls. Both create a fresh process incarnation. `ExternalCall` creates a fresh provider channel and delivers it outward to the caller; `InternalCall` injects an existing channel inward into the new incarnation, transferring provider responsibility. Intended transitions are described in Section 7.
 
 The repository also contains AST constructors for `Spawn`, `Acqure`, `Accept`, `Detach`, and `Release`. Their presence in the syntax tree does not establish their user-facing status or runtime behavior. The full constructor/field inventory is in Part III.
 
@@ -164,7 +164,7 @@ Protocols may also allow a choice between labelled alternatives: the implementat
 
 This introduction explains why these forms are useful; it is not a complete theory of session types. Part III contains the constructor inventory, observed polarity assignments, checker coverage, and open questions.
 
-## 7. Intended semantics of named-process operations
+## 7. Intended semantics of named-process calls
 
 **This is the canonical statement of the intended language-level behavior.** The comparison with the publication and the implementation notes below provide evidence and caveats; they should not be read as alternative definitions of these operations. Implementation field names are not OrgLang keywords; their correspondence to language-level roles is documented in Section 9.
 
@@ -404,7 +404,7 @@ The current evidence supports treating execution as a stateful transition over a
 
 The first fully formalized implementation-level rules should be limited to constructors whose typing and execution branches have both been checked end-to-end. Complete implementation-level reduction rules for `ExternalCall`, `InternalCall`, and resource-management constructs should remain unspecified until the execution paths have been verified and reconciled with the intended contract in Section 7. `Spawn` is deferred to the pool-level analysis. `InternalCall` (AST constructor `LinkSpec`) should be investigated alongside recursive process definitions and named-process invocation, not conflated with `Fwd`.
 
-### Named-process operations: implementation evidence
+### Named-process calls: implementation evidence
 
 This subsection records executor-level findings. Adapter discrepancies are listed in Section 12, and Section 14 consolidates the remaining questions.
 
