@@ -99,7 +99,7 @@ A **session type** describes the allowed protocol from the provider endpoint's p
 | Provider channel | A channel viewed from the process that provides on it; its endpoint in that process is the provider endpoint. |
 | Client channel | A channel viewed from the process that uses it; its endpoint in that process is the client endpoint. |
 | Provider / client | Roles on the same channel: offering a service / using it. |
-| Process | General umbrella term; interpret in context rather than equating it only with a name or a running instance. |
+| Process | General umbrella term; use context to identify whether it refers to a named process or a running incarnation. |
 | Named process | A process referred to by name. |
 | Process declaration | The process interface, including its provider-role and client-role channel placeholders. |
 | Process definition | The body or expression specifying process behavior. |
@@ -227,7 +227,7 @@ Process invocation and incarnation creation are distinct from the pool mechanism
 
 ### Summary: compare the three operations
 
-`ExternalCall` and `InternalCall` are the two named-process call forms, with different channel effects and continuation behavior. Record each operation's OrgLang meaning, publication interpretation, and implementation behavior separately. `ExternalCall` starts a named-process incarnation with a fresh provider channel and preserves a continuation for the caller; `InternalCall` starts a named-process incarnation and injects an existing channel into it, transferring provider responsibility with no ordinary continuation for the old incarnation; `Fwd` connects two existing channel interactions and does not itself imply a named-process invocation.
+`ExternalCall` and `InternalCall` are the two named-process call forms, with different channel effects and continuation behavior. Record each operation's OrgLang meaning, publication interpretation, and implementation behavior separately. `ExternalCall` starts a named-process incarnation with a fresh provider channel and preserves a continuation for the caller; `InternalCall` starts a named-process incarnation and injects an existing channel into it, transferring provider responsibility with no ordinary continuation for the old incarnation; `Fwd` connects two existing channel interactions, while named-process invocation is described by `ExternalCall` and `InternalCall`.
 
 | Operation | Primary role | Intended control-flow effect | Intended channel effect | Semantic/evidential status | Implementation status |
 |---|---|---|---|---|
