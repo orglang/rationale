@@ -2,7 +2,7 @@
 
 # Pools and transaction types
 
-> **Status: preliminary semantic research.** This document is a technical companion to [What is a transaction?](../about-transaction/README.md). It is intended to collect the language-level model of pools and transaction types, distinguish intended semantics from publication rules and implementation observations, and record unresolved questions. It is not a normative specification.
+> **Status: preliminary semantic research.** This document is a technical companion to [What is a transaction?](../about-transaction/README.md). It collects the language-level model of pools and transaction types, distinguishes intended semantics from publication rules and implementation observations, and records unresolved questions. Its conclusions remain research findings pending a normative specification.
 
 **Scope and document boundaries**
 
@@ -13,7 +13,7 @@
 
 ## 1. Scope, evidence, and status
 
-This is a research draft, not a normative language specification. Keep language-level intended semantics, claims made by the supplied publication, and observations of the implementation separate.
+This research draft keeps language-level intended semantics, claims made by the supplied publication, and implementation observations separate. A normative language specification remains future work.
 
 Use the claim-status vocabulary from [Processes and session types, Section 1](../about-processes-and-session-types/README.md#1-scope-and-evidence): **Confirmed**, **Inferred**, and **Open**. Record the source and what it establishes for substantial or disputed claims. Implementation coverage is a separate dimension and should be recorded only when the relevant code path or test has been inspected.
 
@@ -29,7 +29,7 @@ _TODO: Describe the intended pool model, state, and boundaries. Keep process-inc
 
 _TODO: Specify the transaction-type constructors, their syntax, constraints, and intended interpretation. Distinguish established rules from candidate interpretations and implementation mappings._
 
-**Open:** the precise encoding of pool eligibility in a pool's transaction type has not yet been established. **Inferred:** the transaction type is a candidate signal for whether that pool can service a process with a given name. Keep this type-level question separate from the search procedure, which is documented in [Process creation and pool selection, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing). Any additional runtime validation is also **Open**.
+**Open:** the precise encoding of pool eligibility in a pool's transaction type remains to be established. **Inferred:** the transaction type is a candidate signal for whether that pool can service a process with a given name. The search procedure is documented in [Process creation and pool selection, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing). Any additional runtime validation is also **Open**.
 
 ## 5. The pool's public transaction channel
 
@@ -53,7 +53,7 @@ _TODO: Compare the relevant publication's rules with the OrgLang model. A public
 
 ## 8. Implementation evidence
 
-_TODO: Map transaction-type and pool concepts to implementation structures and execution paths. Record file/symbol evidence, coverage status, and mismatches. Do not infer language semantics from names alone._
+_TODO: Map transaction-type and pool concepts to implementation structures and execution paths. Record file/symbol evidence, coverage status, and mismatches. Treat names as clues; establish language semantics from appropriate evidence._
 
 ## 9. Open questions and next tests
 
