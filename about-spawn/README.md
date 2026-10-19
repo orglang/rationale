@@ -1,7 +1,7 @@
 <!-- Canonical semantics: ../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls -->
 # Process creation and pool selection
 
-> **Status: preliminary semantic research.** This document explains the working model at the boundary between process creation and pool servicing. It records current working rules and their rationale; it is not yet a normative specification.
+> **Status: preliminary semantic research.** This document explains the working model at the boundary between process creation and pool servicing. Its rules and rationale remain research findings pending a normative specification.
 
 > **Canonical language contract:** the intended language-level semantics of `ExternalCall` and `InternalCall` are maintained in [Processes and session types, Section 7 — Intended semantics of named-process calls](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). This document focuses on the process–pool boundary, its supporting evidence, and its open questions. The canonical document defines the language-level contracts.
 
@@ -22,8 +22,8 @@ The purpose of this document is to clarify the process–pool boundary before ex
 
 Use the same claim-status vocabulary as the canonical [Processes and session types](../about-processes-and-session-types/README.md#1-scope-and-evidence) document:
 
-- **Confirmed** means the claim is directly supported by an appropriate source. State what that source establishes; confirmation by one source does not confirm the claim for OrgLang.
-- **Inferred** means the claim is a working interpretation or rule derived from available evidence, not directly established as a language rule.
+- **Confirmed** means the claim is directly supported by an appropriate source. State exactly what that source establishes; a claim confirmed by one source requires separate support before it is treated as confirmed for OrgLang.
+- **Inferred** means the claim is a working interpretation or rule derived from available evidence; its status as a language rule remains unestablished.
 - **Open** means the available evidence does not settle the claim or verification remains incomplete.
 
 Use **Evidence** to identify the source or observation supporting a claim; use **Confirmed**, **Inferred**, and **Open** for claim status. Keep implementation coverage separate from claim status. Treat issue comments as provisional discussion. A rule from the cited publication's calculus requires separate evidence before it can be treated as an OrgLang rule.
@@ -36,7 +36,7 @@ Three concepts are important to keep separate:
 - **Provider endpoint:** the side of a channel belonging to the process that provides the service.
 - **Client endpoint:** the side of that channel belonging to the process that uses the service.
 - **Provider channel:** a channel viewed from the process that provides on it; its endpoint in that process is the provider endpoint.
-- **Client channel:** a channel viewed from the process that uses it; its endpoint in that process is the client endpoint. The same channel is the provider channel for one process and a client channel for the other; these labels do not name separate channel resources.
+- **Client channel:** a channel viewed from the process that uses it; its endpoint in that process is the client endpoint. The same channel is the provider channel for one process and a client channel for the other; these labels describe relative roles of a single channel resource.
 - **Servicing pool:** the pool associated with the incarnation and responsible for servicing its provider channel.
 
 For `ExternalCall`, the current working model says that the engine creates a fresh incarnation together with a fresh provider channel, then associates the incarnation with a selected pool for servicing. The engine creates the incarnation; the selected pool services its provider channel. The pool-selection mechanism and transaction-type model are documented in [Pools and transaction types](../about-pools-and-transaction-types/README.md) and Section 4 below.
@@ -76,7 +76,7 @@ For `ExternalCall`, the current working sequence is:
 
 The engine's message delivering the provider channel to the caller and the selected pool's start of servicing are **unordered**. The new incarnation body's readiness relative to these events remains unspecified.
 
-If no eligible pool is found, the current model does not specify what happens next; failure and cancellation semantics remain deferred. Pool selection, agreements that guide the search, incarnation creation, channel delivery, and the start of servicing are conceptually distinct stages.
+If no eligible pool is found, the next step remains unspecified in the current model; failure and cancellation semantics are deferred. Pool selection, agreements that guide the search, incarnation creation, channel delivery, and the start of servicing are conceptually distinct stages.
 
 The observable result of a serviced call is constrained by the canonical channel-placeholder rule in [Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
