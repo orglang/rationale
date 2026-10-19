@@ -451,7 +451,7 @@ The list is ordered by investigation priority.
 
 1. **ExternalCall implementation conformance:** The intended contract is that the caller continuation proceeds only after the provider channel is received. Does the implementation enforce this, and which tests verify that it cannot proceed merely because the new incarnation has started?
 2. **ExternalCall / AST mapping:** What is the exact argument syntax for mapping formal parameters to existing, distinct channels, and how does the engine's injection of the separate communication channel into the caller-named placeholder map to `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH`? Where are name resolution, recursion checks, and type checks enforced?
-3. **InternalCall representation and lifecycle:** Where should `X` / `Ys` be resolved, what preconditions and failure behavior apply to the placeholder unbind/bind transition, and how is the old incarnation's semantic termination represented at runtime?
+3. **InternalCall representation and lifecycle:** Where should `X` / `Ys` be resolved, and how is the old incarnation's semantic termination represented at runtime?
 4. **Fwd:** What are the exact transition rules for positive, negative, and neutral polarity, including pending turns and continuation state?
 5. **Representation and execution:** Are the conversion asymmetries in Section 12 reachable, and what focused tests establish their impact? Check the relevant adapter, executor, and scheduling paths together.
 6. **Type constructors and checker coverage:** Are type-level `Link`, `Up`, and `Down` resolved before the observed checker cases? What tests establish the intended coverage?
