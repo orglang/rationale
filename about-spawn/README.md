@@ -15,7 +15,7 @@ When a process invokes `ExternalCall`, the language-level operation requests ser
 - **Pool selection and servicing** determine which pool is associated with the incarnation and which pool services its provider channel.
 - **`Spawn`** is used here as descriptive shorthand for engine-level incarnation creation, not as a separate source-language operation.
 
-**Inferred:** this model does not introduce a distinct semantic operation called `Spawn`. Creating a fresh incarnation is part of servicing either `ExternalCall` or `InternalCall`. This may be revisited only if later evidence establishes a separate semantic role for `Spawn`.
+**Inferred:** The current semantic model does not introduce a separate source-language `Spawn` operation. Creation of a fresh process incarnation is part of servicing either `ExternalCall` or `InternalCall`. This is a modeling choice, not a claim that the AST constructor `SpawnSpec` is invalid or that a separate language construct is impossible. Revisit this distinction if authoritative language evidence establishes a separate semantic role for `Spawn`.
 
 The purpose of this document is to make that boundary clear before studying implementation structures or call paths. `Call` is the umbrella concept for two related operations: `ExternalCall` creates a fresh process incarnation and delivers its fresh provider channel outward to the caller; `InternalCall` creates a fresh process incarnation and injects an existing channel inward into it.
 
@@ -67,7 +67,7 @@ These statements summarize the working model only; they do not replace the canon
 
 ### 4.2 Eligibility and search order
 
-Each pool has its own transaction type, which carries information about whether that pool can service a process with a given name. For the current semantic model, this type-level eligibility is sufficient; no separate acceptance step is required.
+Each pool has its own transaction type, which carries information about whether that pool can service a process with a given name. Under the current pool-eligibility model, no separate acceptance step is required to establish eligibility. The exact encoding of eligibility and any additional runtime validation remain open.
 
 **Inferred:** for simplicity, pool selection searches for the first eligible pool, starting with the pool containing the caller and continuing through pools with which agreements are established. Agreements determine which further pools are considered; each candidate pool's own transaction type determines whether it is eligible.
 
@@ -102,7 +102,7 @@ This must be understood in light of channel identity: each interaction generates
 
 **TODO:** Decide whether the detailed `Up … Down` protocol explanation belongs in `about-transaction/README.md`. If so, move the protocol mechanics there and keep only the process/pool boundary distinction here.
 
-This pool-level protocol is conceptually distinct from the process's provider channel and from the channels mapped to the new incarnation's client-role parameters in `ExternalCall`. The provider channel is the channel through which the new process incarnation provides service; its provider endpoint belongs to that incarnation, and the caller uses the corresponding client endpoint. The current model introduces no separate callee-private communication channel.
+This pool-level protocol is conceptually distinct from the process's provider channel and from the channels mapped to the new incarnation's client-role parameters in `ExternalCall`. The provider channel is the channel through which the new process incarnation provides service; its provider endpoint belongs to that incarnation, and the caller uses the corresponding client endpoint.
 
 ## 6. Evidence and rationale
 
@@ -152,7 +152,7 @@ The following points remain **Open** or are explicitly deferred. They should not
 - **Failures and abnormal termination:** how do they affect callers or held client channels?
 - **Cancellation and progress:** what happens to calls that cannot be serviced or remain pending?
 
-The current contract makes no progress guarantee for pending calls: it does not promise that every pending call will eventually be serviced, nor impose a time bound on service. This is an omission of a guarantee at the current stage, not a claim that calls are intended to remain pending indefinitely.
+The current contract provides no progress guarantee for pending calls: it neither guarantees eventual service nor specifies a time bound. This does not imply that indefinite waiting is required or intended.
 
 Pool negotiation, transaction initiation, and resource reservation are outside the current phase except where needed to clarify how an incarnation is associated with the pool responsible for servicing it. Implementation structures, call paths, and mappings between AST/API representations are also deferred until the semantic model is sufficiently stable.
 
