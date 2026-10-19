@@ -8,7 +8,7 @@
 
 - This document owns the technical model of pools and transaction types, including the pool's public transaction channel and its protocol.
 - [Process creation and pool selection](../about-spawn/README.md) owns pool eligibility, search order, process-incarnation creation, pool binding, and the start of servicing.
-- [What is a transaction?](../about-transaction/README.md) remains the accessible introduction. The existing introduction remains unchanged in this change.
+- [What is a transaction?](../about-transaction/README.md) provides the accessible introduction.
 - [Processes and session types](../about-processes-and-session-types/README.md) owns process expressions and the intended semantics of `ExternalCall` and `InternalCall`.
 
 ## 1. Scope, evidence, and status
