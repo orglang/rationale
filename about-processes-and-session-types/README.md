@@ -205,7 +205,7 @@ For `ExternalCall`, resolve the named process and explicitly bind each formal cl
 
 **Preconditions (provisional):** the target process definition must be available and a fresh incarnation must be creatable. Whether channel/protocol compatibility is required, and where it is checked, remain open.
 
-**Provisional intended contract:** start a fresh incarnation of the named process, passing the existing provider channel as its provider channel and the specified client channels in declaration order. For the provider channel, unbind the channel placeholder in the old incarnation `P` and bind the corresponding provider placeholder in the new incarnation `Q` to that same channel identity. This is a transfer of the placeholder-to-channel binding; avoid treating “provider responsibility” as a separate language concept unless it is defined explicitly.
+**Provisional intended contract:** start a fresh incarnation of the named process, passing the existing provider channel as its provider channel and the specified client channels in declaration order. For the provider channel, unbind the channel placeholder in the old incarnation `P` and bind the corresponding provider placeholder in the new incarnation `Q` to that same channel identity.
 
 **After (intended):** `P` no longer has access to the transferred channel through its former provider placeholder; `Q` has access through its provider placeholder. This unbinding alone does not establish whether `P` terminates entirely or may continue using other bindings. The lifecycle of `P` and the behavior of any remaining continuation are therefore open until separately specified.
 
