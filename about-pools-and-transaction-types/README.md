@@ -29,6 +29,8 @@ _TODO: Describe the intended pool model, state, and boundaries. Keep process-inc
 
 _TODO: Specify the transaction-type constructors, their syntax, constraints, and intended interpretation. Distinguish established rules from candidate interpretations and implementation mappings._
 
+**Open:** the precise encoding of pool eligibility in a pool's transaction type has not yet been established. **Inferred:** the transaction type is a candidate signal for whether that pool can service a process with a given name. Keep this type-level question separate from the search procedure, which is documented in [Process creation and pool selection, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing). Any additional runtime validation is also **Open**.
+
 ## 5. The pool's public transaction channel
 
 **Inferred:** the public channel discussed in [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85) is the pool's public transaction channel. Whether individual processes should have public channels remains **Open**.
