@@ -1,9 +1,9 @@
-<!-- Canonical semantics: ../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-operations -->
+<!-- Canonical semantics: ../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls -->
 # Process creation and pool selection
 
 > **Status: preliminary semantic research.** This document explains the working model at the boundary between process creation and pool servicing. It records current working rules and their rationale; it is not yet a normative specification.
 
-> **Canonical language contract:** the intended language-level semantics of `ExternalCall` and `InternalCall` are maintained in [Processes and session types, Section 7 — Intended semantics of named-process operations](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-operations). This document explains the process–pool boundary and the evidence and open questions around it; it does not duplicate those contracts.
+> **Canonical language contract:** the intended language-level semantics of `ExternalCall` and `InternalCall` are maintained in [Processes and session types, Section 7 — Intended semantics of named-process calls](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). This document explains the process–pool boundary and the evidence and open questions around it; it does not duplicate those contracts.
 
 ## 1. Purpose and mental model
 
@@ -42,13 +42,13 @@ Three concepts are important to keep separate:
 
 For `ExternalCall`, the current working model says that creating the incarnation and creating its fresh provider channel happen together. The selected pool is associated with that incarnation and services the provider channel; the pool does not itself create the incarnation.
 
-This is not a universal rule that channel creation and incarnation creation must always coincide. `InternalCall` creates a fresh target incarnation and injects an existing channel into it, so that channel may exist before the target incarnation is created. The precise language-level distinction between `ExternalCall` and `InternalCall` belongs in [Section 7 of the canonical document](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-operations).
+This is not a universal rule that channel creation and incarnation creation must always coincide. `InternalCall` creates a fresh target incarnation and injects an existing channel into it, so that channel may exist before the target incarnation is created. The precise language-level distinction between `ExternalCall` and `InternalCall` belongs in [Section 7 of the canonical document](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
 **Inferred:** servicing a process through its provider channel is distinct from interacting with a pool through the pool's public transaction channel. An `ExternalCall` does not, by itself, require a transaction through the pool's public channel or entry into its critical section. Conversely, the pool's `Up … Down` protocol does not imply an `ExternalCall` or process-incarnation creation.
 
 ## 3. Working model of `ExternalCall` and `InternalCall`
 
-The detailed language-level contracts are defined only in the [canonical Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-operations). For the process–pool boundary, the working distinction is:
+The detailed language-level contracts are defined only in the [canonical Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). For the process–pool boundary, the working distinction is:
 
 - **`ExternalCall`:** the engine searches for a suitable pool; after finding one, it creates a fresh process incarnation together with a fresh provider channel, associates the incarnation with the selected pool, and starts servicing the provider channel.
 - **`InternalCall`:** an existing channel is handed off to a target incarnation. The channel can therefore exist before the target incarnation is created.
@@ -86,7 +86,7 @@ The engine's message delivering the provider channel to the caller and the selec
 
 If no eligible pool is found, the current model does not specify what happens next; failure and cancellation semantics remain deferred. Pool selection, agreements that guide the search, incarnation creation, channel delivery, and the start of servicing are conceptually distinct stages. This is separate from interacting with the pool through its public transaction channel.
 
-The observable result of a serviced call is constrained by the canonical channel-placeholder rule in [Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-operations). A separate `Spawn` operation should be reconsidered only if later semantic evidence establishes a role not covered by `ExternalCall` and its servicing transition.
+The observable result of a serviced call is constrained by the canonical channel-placeholder rule in [Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). A separate `Spawn` operation should be reconsidered only if later semantic evidence establishes a role not covered by `ExternalCall` and its servicing transition.
 
 ## 5. The pool's public channel
 
@@ -110,7 +110,7 @@ This section records why the working model is being considered. These sources in
 
 ### 6.1 Existing rationale for `ExternalCall`
 
-**Evidence:** canonical contract. [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-operations) records the current intended `ExternalCall` contract. Its authoritative language source and implementation mapping remain unverified. This does not establish that `ExternalCall` is implemented using `Spawn`, nor does it settle the pool-selection mechanism described in Section 4.
+**Evidence:** canonical contract. [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls) records the current intended `ExternalCall` contract. Its authoritative language source and implementation mapping remain unverified. This does not establish that `ExternalCall` is implemented using `Spawn`, nor does it settle the pool-selection mechanism described in Section 4.
 
 ### 6.2 Publication's cut/spawn rule
 
