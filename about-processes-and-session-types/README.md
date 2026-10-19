@@ -30,18 +30,8 @@ Assign a status to an individual claim, not to a term as a whole.
 - **Inferred** — the claim is a working interpretation derived from available evidence, but is not directly established.
 - **Open** — available evidence does not settle the claim, or relevant verification has not been completed.
 
-Use the source to distinguish a language rule, a publication rule, and an implementation observation. A claim confirmed by one source is not automatically confirmed for another.
+Use the source to distinguish a language rule, a publication rule, and an implementation observation. A claim confirmed by one source is not automatically confirmed for another. The strength of a claim and the kind of source supporting it are separate questions: an implementation observation does not by itself establish a language rule. Failure to find an implementation path does not prove a language-level prohibition or that no implementation exists elsewhere; the absence of a stated guarantee does not imply that the opposite behavior is required.
 
-### Rules for normative claims
-
-Label the basis and scope of strong claims clearly:
-
-- **Language contract / project decision** — a rule adopted for the intended OrgLang behavior in this research. Do not imply that an external specification independently confirms it unless that source has been checked.
-- **Source-confirmed rule** — a rule directly established by the cited publication or another authoritative source; state which source and which system it governs.
-- **Implementation observation** — a result established only for the code path, tests, or version inspected. Do not generalize it beyond that scope.
-- **Open question or inference** — a working interpretation or unresolved point, not a prohibition or guarantee.
-
-Failure to find an implementation path does not establish a language-level prohibition or prove that no implementation exists elsewhere. The absence of a stated guarantee does not imply that the opposite behavior is required. Use **must**, **must not**, and **cannot** only when the rule and its scope are clear.
 
 ### Implementation status
 
