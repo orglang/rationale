@@ -70,8 +70,6 @@ Each pool has its own transaction type, which carries information about whether 
 
 **Inferred:** for simplicity, pool selection searches for the first eligible pool, starting with the pool containing the caller and continuing through pools with which agreements are established. Agreements determine which further pools are considered; each candidate pool's own transaction type determines whether it is eligible.
 
-The exact encoding of eligibility information remains **Open**. Performance shares or weights and the resulting load distribution are separate concerns outside the current scope.
-
 ### 4.3 Creation and start of servicing after selection
 
 For `ExternalCall`, the current working sequence is:
@@ -130,7 +128,6 @@ The issue comments are the strongest current evidence for the conceptual separat
 - Creating a process incarnation is described as an internal engine operation that services `ExternalCall`.
 - An agreement between pools may make service possible, but the agreement itself does not create the process.
 - Resource provisioning, reservation, and the exact point of incarnation creation are unresolved.
-- The public channel discussed is the pool's. Whether individual processes should have public channels remains an open design question.
 
 Relevant comments: [Call versus internal spawning](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290893), [pool agreements and transactions](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290639), [transactional types and process creation](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290369), [offer channel proposal](https://github.com/orglang/go-workspace/issues/85#issuecomment-6231176672), and [end-to-end service scenario](https://github.com/orglang/go-workspace/issues/85#issuecomment-6232198226).
 
