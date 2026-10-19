@@ -43,7 +43,7 @@ For `ExternalCall`, the current working model says that creating the incarnation
 
 The two forms differ here: `ExternalCall` creates a fresh provider channel with the incarnation, while `InternalCall` injects an existing channel that may predate the new incarnation. The precise language-level distinction between `ExternalCall` and `InternalCall` belongs in [Section 7 of the canonical document](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
-**Inferred:** process servicing through a provider channel and transactions through the pool's public channel are separate mechanisms. `ExternalCall` describes named-process invocation; the pool's `Up … Down` protocol describes interaction through the pool's public transaction channel.
+`ExternalCall` describes named-process invocation and servicing through a process's provider channel. The pool and transaction-type model is documented separately in [Pools and transaction types](../about-pools-and-transaction-types/README.md).
 
 ## 3. Working model of `ExternalCall` and `InternalCall`
 
@@ -83,27 +83,19 @@ For `ExternalCall`, the current working sequence is:
 
 The engine's message delivering the provider channel to the caller and the selected pool's start of servicing are **unordered**. The new incarnation body's readiness relative to these events remains unspecified.
 
-If no eligible pool is found, the current model does not specify what happens next; failure and cancellation semantics remain deferred. Pool selection, agreements that guide the search, incarnation creation, channel delivery, and the start of servicing are conceptually distinct stages. This is separate from interacting with the pool through its public transaction channel.
+If no eligible pool is found, the current model does not specify what happens next; failure and cancellation semantics remain deferred. Pool selection, agreements that guide the search, incarnation creation, channel delivery, and the start of servicing are conceptually distinct stages.
 
 The observable result of a serviced call is constrained by the canonical channel-placeholder rule in [Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
-## 5. The pool's public transaction channel
-
-**Inferred:** the public channel discussed in [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85) is the pool's public transaction channel. Whether individual processes should have public channels remains **Open**.
-
-The pool's public transaction channel and its `Up … Down` protocol belong to the pool/transaction model, rather than to process creation or pool selection. The technical discussion is maintained in [Pools and transaction types, Section 5 — The pool's public transaction channel](../about-pools-and-transaction-types/README.md#5-the-pools-public-transaction-channel).
-
-For process creation, the key distinction is that a process's provider channel is the channel through which its incarnation provides service; its provider endpoint belongs to that incarnation, and the caller uses the corresponding client endpoint. This is separate from interacting with the pool through its public transaction channel.
-
-## 6. Evidence and rationale
+## 5. Evidence and rationale
 
 This section records the evidence and reasoning behind the working model. Claim status and implementation coverage remain distinct, as defined in Section 1.
 
-### 6.1 Existing rationale for `ExternalCall`
+### 5.1 Existing rationale for `ExternalCall`
 
 **Evidence:** [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls) records the current project contract for `ExternalCall`. Pool selection is specified separately in Section 4.
 
-### 6.2 Publication's cut/spawn rule
+### 5.2 Publication's cut/spawn rule
 
 <a id="22-existing-rationale-publication-cutspawn-rule"></a>
 
@@ -116,7 +108,7 @@ Here `P` is the body of the process being spawned and `Q` is the original proces
 
 This rule establishes the publication's cut/spawn semantics. Its correspondence to OrgLang, the role of OrgLang's `SpawnSpec`, and the lifecycle and scheduling guarantees remain **Open**.
 
-### 6.3 Issue #85 discussion
+### 5.3 Issue #85 discussion
 
 The issue comments are the strongest current evidence for the conceptual separation, but remain provisional:
 
@@ -125,9 +117,9 @@ The issue comments are the strongest current evidence for the conceptual separat
 - An agreement between pools may make service possible, but the agreement itself does not create the process.
 - Resource provisioning, reservation, and the exact point of incarnation creation are unresolved.
 
-Relevant comments: [Call versus internal spawning](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290893), [pool agreements and transactions](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290639), [transactional types and process creation](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290369), [offer channel proposal](https://github.com/orglang/go-workspace/issues/85#issuecomment-6231176672), and [end-to-end service scenario](https://github.com/orglang/go-workspace/issues/85#issuecomment-6232198226).
+Relevant comments: [Call versus internal spawning](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290893), [pool agreements and transactions](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290639), [transactional types and process creation](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290369), and [end-to-end service scenario](https://github.com/orglang/go-workspace/issues/85#issuecomment-6232198226).
 
-## 7. Open questions and deferred topics
+## 6. Open questions and deferred topics
 
 The following points remain **Open** or are explicitly deferred:
 
@@ -136,7 +128,6 @@ The following points remain **Open** or are explicitly deferred:
 - **No eligible pool:** what happens if the search finds no suitable pool?
 - **Lifecycle and scheduling:** when is the incarnation's body ready to execute, and what further guarantees follow from the publication's cut/spawn rule, if any?
 - **Resource provisioning and reservation:** what role do these play, and when do they occur?
-- **Public channels for individual processes:** should they exist at all?
 - **Failures and abnormal termination:** how do they affect callers or held client channels?
 - **Cancellation and progress:** what happens to calls that cannot be serviced or remain pending?
 
