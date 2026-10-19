@@ -22,6 +22,16 @@ This research draft describes OrgLang processes and session types, compares the 
 
 Treat each source according to what it can establish: the publication supports claims about its own rules, while implementation code supports claims about the inspected implementation. Neither automatically establishes a normative OrgLang rule.
 
+Three status dimensions must remain separate:
+
+| Dimension | Values | Question it answers |
+|---|---|---|
+| Claim evidence | **Confirmed**, **Inferred**, **Open** | What does the available evidence establish about this claim? |
+| Implementation coverage | **Implemented**, **Partial**, **Absent**, **Unverified** | How much of the relevant behavior has been verified in the implementation? |
+| Terminology mapping | **Confirmed**, **Provisional**, **Unresolved** | How strong is the proposed correspondence between OrgLang, publication, and implementation terms? |
+
+For example, a claim about intended OrgLang behavior can be confirmed as a project decision while implementation coverage remains unverified. That does not make the claim an authoritative language rule; identify the source and what it establishes.
+
 ### Evidence status
 
 Assign a status to an individual claim, not to a term as a whole.
@@ -76,7 +86,7 @@ OrgLang processes communicate through **channels**. A channel connects two roles
 
 A **session type** describes the allowed protocol from the provider endpoint's point of view. When checking the client endpoint, the type checker accounts for the client role and the complementary actions it permits. A **residual session type** is the remaining part of that protocol after prior interaction steps. The request/response example and the meaning of a **residual session type** are introduced in Section 3.
 
-**Linearity** is the channel usage/ownership discipline. **Intended linearity rule:** Distinct formal channel parameters must map to distinct existing channel identities. Mapping multiple formal parameters to the same channel is disallowed by the intended linearity discipline. The complete formal invariant and the implementation layer enforcing it remain to be established. More generally, a process may finish only when its channel protocols permit completion and all linear obligations have been discharged; the type checker rejects an attempted completion while a provider-channel protocol remains unfinished. The full formal invariant and its application across constructs remain to be established; do not infer them solely from `InternalCall`.
+**Linearity** is the channel usage/ownership discipline. **Intended linearity rule:** distinct formal channel parameters must map to distinct existing channel identities. The complete formal invariant and the implementation layer enforcing it remain to be established. More generally, a process may finish only when its channel protocols permit completion and all linear obligations have been discharged; the type checker rejects an attempted completion while a provider-channel protocol remains unfinished. The full invariant and its application across constructs remain open; do not infer them solely from `InternalCall`.
 
 ### Quick glossary
 
@@ -261,6 +271,8 @@ The important point is that forwarding is shown as an interaction between a forw
 
 
 ## Part III. Implementation evidence and open questions
+
+This part checks how the implementation corresponds to the language model and intended call contracts established in Parts I and II. Read the evidence in sequence: AST and type-checker coverage, representation and serialization, execution paths, then unresolved questions. A finding at one layer is not by itself an end-to-end result.
 
 ## 9. Implementation map: process declarations and definitions
 
