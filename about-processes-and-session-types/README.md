@@ -150,7 +150,7 @@ For now, it is enough to recognize four broad kinds of process action:
 - **Communication:** send or receive a value/channel, or select and handle a labelled choice.
 - **Finishing:** close an interaction or wait for the other side to finish.
 - **Connecting interactions:** forward between channels.
-- **Process control:** `ExternalCall` and `InternalCall` are the two named-process operations described here. Both create a fresh process incarnation. `ExternalCall` creates a fresh provider channel and delivers it outward to the caller; `InternalCall` injects an existing channel inward into the new incarnation, transferring provider responsibility. Intended transitions are described in Section 7.
+- **Named-process operations:** `ExternalCall` and `InternalCall` are the two named-process operations described here. Both create a fresh process incarnation. `ExternalCall` creates a fresh provider channel and delivers it outward to the caller; `InternalCall` injects an existing channel inward into the new incarnation, transferring provider responsibility. Intended transitions are described in Section 7.
 
 The repository also contains AST constructors for `Spawn`, `Acqure`, `Accept`, `Detach`, and `Release`. Their presence in the syntax tree does not establish their user-facing status or runtime behavior. The full constructor/field inventory is in Part III.
 
@@ -214,7 +214,7 @@ Process invocation and incarnation creation are distinct from the pool mechanism
 
 `ExternalCall` and `InternalCall` are distinct named-process operations with different channel effects and continuation behavior. Record each operation's OrgLang meaning, publication interpretation, and implementation behavior separately. `ExternalCall` starts a named-process incarnation with a fresh provider channel and preserves a continuation for the caller; `InternalCall` starts a named-process incarnation and injects an existing channel into it, transferring provider responsibility with no ordinary continuation for the old incarnation; `Fwd` connects two existing channel interactions and does not itself imply a named-process invocation.
 
-| Operation | Primary role | Intended process-control effect | Intended channel effect | Semantic/evidential status | Implementation status |
+| Operation | Primary role | Intended control-flow effect | Intended channel effect | Semantic/evidential status | Implementation status |
 |---|---|---|---|---|
 | `ExternalCall` | Create and invoke a named-process incarnation with a fresh provider channel. | The caller's continuation becomes eligible only after it receives that channel. | Explicit parameter mapping; a fresh provider channel is delivered outward to the caller. | Agreed intended contract; implementation mapping remains open. | Unverified; no executor branch found. |
 | `InternalCall` | Create a named-process incarnation by injecting an existing channel inward. | A fresh incarnation takes over; the old incarnation has no ordinary continuation. | The existing channel resource and its client endpoint remain connected; provider responsibility transfers to the new incarnation. | Inferred target contract; lifecycle and representation open. | Unverified; no complete executor path found. |
