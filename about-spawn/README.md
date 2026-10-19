@@ -87,19 +87,13 @@ If no eligible pool is found, the current model does not specify what happens ne
 
 The observable result of a serviced call is constrained by the canonical channel-placeholder rule in [Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
-## 5. The pool's public channel
+## 5. The pool's public transaction channel
 
 **Inferred:** the public channel discussed in [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85) is the pool's public transaction channel. Whether individual processes should have public channels remains **Open**.
 
-The pool's public transaction channel has a transaction type of the form `Up` followed by a continuation that ultimately ends in `Down`.
+The pool's public transaction channel and its `Up … Down` protocol belong to the pool/transaction model, rather than to process creation or pool selection. The technical discussion is maintained in [Pools and transaction types, Section 5 — The pool's public transaction channel](../about-pools-and-transaction-types/README.md#5-the-pools-public-transaction-channel).
 
-**Inferred:** access through the pool's public transaction channel gives the client a private channel for the duration of the critical section. Exclusivity is scoped to this private channel and its interaction, rather than to all clients of the pool. Reaching `Down` marks the end of this protocol-bounded critical section; the client interaction along that channel continuation ends there.
-
-Each interaction generates a new channel identifier for its continuation, reflected in the channel's type. Resource lifecycle after `Down`—closure, return to the pool, or another disposition—remains unspecified pending a precise account of the `Up` / continuation / `Down` semantics.
-
-**TODO:** Decide whether the detailed `Up … Down` protocol explanation belongs in `about-transaction/README.md`. If so, move the protocol mechanics there and keep only the process/pool boundary distinction here.
-
-This pool-level protocol is conceptually distinct from the process's provider channel and from the channels mapped to the new incarnation's client-role parameters in `ExternalCall`. The provider channel is the channel through which the new process incarnation provides service; its provider endpoint belongs to that incarnation, and the caller uses the corresponding client endpoint.
+For process creation, the key distinction is that a process's provider channel is the channel through which its incarnation provides service; its provider endpoint belongs to that incarnation, and the caller uses the corresponding client endpoint. This is separate from interacting with the pool through its public transaction channel.
 
 ## 6. Evidence and rationale
 
