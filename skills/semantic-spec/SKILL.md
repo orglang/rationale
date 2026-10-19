@@ -1,52 +1,39 @@
 ---
 name: semantic-spec
-description: Collaboratively develop a precise technical specification by resolving semantic decisions one at a time, keeping agreed decisions and open questions explicit, and updating the canonical document as understanding evolves. Use when defining or revising system behavior, requirements, protocols, domain rules, state transitions, or technical semantics.
+description: Facilitate iterative, user-guided development of a technical specification by choosing the next consequential semantic decision, resolving ambiguity, updating the canonical document, and repeating. Use when a user is defining or revising system behavior, domain rules, protocols, requirements, or technical semantics—not for routine proofreading or documentation-only edits.
 ---
 
 # Semantic Spec
 
-Turn an incomplete problem description into a precise, reviewable technical specification through a focused dialogue. Optimize for shared understanding and correct semantics, not document length.
+Use this workflow to turn an incomplete model into a reviewable specification. The skill defines the collaboration loop; repository documentation standards define the quality bar for the resulting text.
 
 ## Workflow
 
-1. **Establish the current state.** Read the existing specification and relevant project context before proposing changes. Identify the goal, known constraints, decisions already made, contradictions, and highest-impact unknowns. Preserve valid existing decisions.
-2. **Choose one decision.** Ask one focused question about the highest-impact unresolved issue. Prefer questions whose answer changes behavior, boundaries, invariants, ownership, ordering, failure handling, or compatibility. Give brief options and explain trade-offs only when they help the user decide.
-3. **Resolve meaning.** Interpret the answer in context. If it is ambiguous, ask a targeted follow-up instead of silently choosing an interpretation. Treat a clear deferral as an open question, not a decision. When the answer conflicts with an earlier decision, surface the conflict and ask which should prevail.
-4. **Update the specification.** After each meaningful answer, update the canonical document or provide the exact revised section if no writable document is available. Record the decision in its proper place; avoid appending an unstructured transcript. Keep terminology consistent and make implications explicit.
-5. **Validate.** Check the updated text for contradictions, undefined terms, hidden assumptions, missing failure cases, and behavior that cannot be tested. If validation reveals a consequential unresolved choice, return to step 2 with one question.
-6. **Continue or conclude.** Repeat until the user asks to stop or the completion criteria below are met. Summarize the decisions made, remaining open questions, and consequential risks.
+1. **Load project rules and context.** Read the repository's agent instructions and documentation standards first (in this repository: `AGENTS.md` and `CODING_STANDARDS.md`). Inspect the target document, its directory, canonical concept owners, and relevant cross-references. Preserve established decisions and document boundaries.
+2. **Find the next consequential decision.** Identify unresolved choices that affect observable behavior, invariants, scope, ownership, ordering, failure handling, or compatibility. Ask one focused question about the highest-impact choice. Offer options only when they clarify real alternatives.
+3. **Resolve the answer.** If the answer is ambiguous, ask a targeted follow-up rather than guessing. If the user defers the decision, keep it open and continue with independent work. If it conflicts with an earlier decision or source, surface the conflict and ask which authority should resolve it.
+4. **Update the canonical document.** After each meaningful answer, edit the section that owns the concept, or provide the exact replacement text if direct editing is unavailable. Update dependent references only where needed; do not append a conversation transcript or duplicate the canonical definition.
+5. **Check semantic consequences.** Verify that the answer fits the existing model and does not introduce contradictions, undefined dependencies, or unhandled boundary behavior. Consult [SEMANTIC-RULES.md](SEMANTIC-RULES.md) for the relevant modeling checklist. Apply the repository's documentation standards for evidence, terminology, structure, and review.
+6. **Repeat or conclude.** Continue with one question at a time until the user stops or the completion criteria below are met. On conclusion, summarize decisions captured, unresolved questions and their impact, and any remaining validation work.
 
-## Evidence and uncertainty
+## Interaction rules
 
-- Distinguish explicitly between confirmed decisions, facts from source material, inferences, proposals, and unresolved questions.
-- Never present an inference or proposal as user-approved behavior.
-- Keep deferred questions visible with their impact where known; do not block unrelated progress on them.
-- Ask the user to resolve consequential ambiguity; use a clearly labeled, reversible assumption only when progress is otherwise impossible and the risk is low.
-- Do not ask again about a decision already settled unless new information creates a real conflict.
-
-## Writing rules
-
-- Specify observable behavior and outcomes, not vague intentions.
-- Define important terms before relying on them.
-- Describe state changes using preconditions, trigger, resulting state, and failure behavior where applicable.
-- State ownership, ordering, invariants, boundaries, and error behavior when relevant to the system.
-- Prefer concrete examples and counterexamples when they disambiguate semantics.
-- Keep each decision in one canonical location. Link or refer to it elsewhere rather than duplicating it.
-- Separate normative requirements from rationale, examples, and implementation suggestions.
-- Use the project's existing format and terminology unless there is a clear reason to change them.
-
-For a deeper checklist of semantic distinctions, consult [SEMANTIC-RULES.md](SEMANTIC-RULES.md) when the task involves domain modeling, state transitions, ownership, ordering, or uncertainty that needs careful treatment.
+- Prioritize decisions that change system behavior over wording or low-impact details.
+- Do not ask again about a settled decision unless new evidence creates a meaningful conflict.
+- Make assumptions explicit and reversible; ask before relying on an assumption that could materially change the design.
+- Keep deferred questions visible without blocking unrelated progress.
+- Treat implementation observations, publication claims, and intended language behavior according to the repository's evidence policy; do not infer normative semantics from code structure alone.
+- Use the existing document structure, terminology, status vocabulary, and ownership boundaries. Do not create a new parallel standard or status taxonomy.
 
 ## Completion criteria
 
 The specification is ready for review when:
 
-- The goal, scope, actors, and important terms are defined.
-- Agreed behavior is distinguishable from assumptions and open questions.
-- Important flows, state transitions, boundaries, and failure cases are described where applicable.
-- Requirements are concrete enough to verify with examples, tests, or explicit acceptance criteria.
-- No known contradictions remain undisclosed.
-- Remaining open questions are listed with their impact, rather than silently resolved.
-- The document is internally consistent and uses one source of truth for each decision.
+- The goal and scope of the behavior being specified are clear.
+- Consequential behavior and constraints are described precisely enough to review against examples, tests, or acceptance criteria.
+- Known conflicts are resolved or explicitly recorded.
+- Open questions that could change the design remain visible with their impact.
+- Canonical definitions and cross-references are consistent with the repository's document ownership.
+- Remaining evidence or implementation validation is clearly distinguished from semantic decisions.
 
-Do not claim the specification is complete if any criterion is unmet; describe what remains and why.
+Do not claim completion while a criterion is unmet; state what remains and why.
