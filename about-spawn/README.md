@@ -15,18 +15,19 @@ When a process invokes `ExternalCall`, the language-level operation requests ser
 - **Pool selection and servicing** determine which pool is associated with the incarnation and which pool services its provider channel.
 - **`Spawn`** is used here as descriptive shorthand for engine-level incarnation creation, not as a separate source-language operation.
 
-**Agreed working rule:** this model does not introduce a distinct semantic operation called `Spawn`. Creating a fresh incarnation is part of servicing either `ExternalCall` or `InternalCall`. This may be revisited only if later evidence establishes a separate semantic role for `Spawn`.
+**Inferred:** this model does not introduce a distinct semantic operation called `Spawn`. Creating a fresh incarnation is part of servicing either `ExternalCall` or `InternalCall`. This may be revisited only if later evidence establishes a separate semantic role for `Spawn`.
 
 The purpose of this document is to make that boundary clear before studying implementation structures or call paths. `Call` is the umbrella concept for two related operations: `ExternalCall` creates a fresh process incarnation and delivers its fresh provider channel outward to the caller; `InternalCall` creates a fresh process incarnation and injects an existing channel inward into it.
 
-### How to read the status labels
+### How to read status labels
 
-- **Agreed** means an agreed working rule for this research phase, not necessarily a final normative specification.
-- **Tentative** marks a proposed direction that may change.
-- **Open** marks a question not yet resolved.
-- **Evidence** identifies a source or observation that supports discussion; evidence does not automatically establish a language rule.
+Use the same claim-status vocabulary as the canonical [Processes and session types](../about-processes-and-session-types/README.md#1-scope-and-evidence) document:
 
-Issue comments are provisional discussion, not normative rules. A rule from the cited publication's calculus is not automatically an OrgLang rule.
+- **Confirmed** means the claim is directly supported by an appropriate source. State what that source establishes; confirmation by one source does not confirm the claim for OrgLang.
+- **Inferred** means the claim is a working interpretation or rule derived from available evidence, not directly established as a language rule.
+- **Open** means the available evidence does not settle the claim or verification remains incomplete.
+
+Use **Evidence** to identify the source or observation supporting a claim, not as a claim-status label. Keep implementation coverage separate from claim status. Issue comments are provisional discussion, not normative rules; a rule from the cited publication's calculus is not automatically an OrgLang rule.
 
 ## 2. The process–pool boundary
 
@@ -43,7 +44,7 @@ For `ExternalCall`, the current working model says that creating the incarnation
 
 This is not a universal rule that channel creation and incarnation creation must always coincide. `InternalCall` creates a fresh target incarnation and injects an existing channel into it, so that channel may exist before the target incarnation is created. The precise language-level distinction between `ExternalCall` and `InternalCall` belongs in [Section 7 of the canonical document](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-operations).
 
-**Agreed separation:** servicing a process through its provider channel is distinct from interacting with a pool through the pool's public transaction channel. An `ExternalCall` does not, by itself, require a transaction through the pool's public channel or entry into its critical section. Conversely, the pool's `Up … Down` protocol does not imply an `ExternalCall` or process-incarnation creation.
+**Inferred:** servicing a process through its provider channel is distinct from interacting with a pool through the pool's public transaction channel. An `ExternalCall` does not, by itself, require a transaction through the pool's public channel or entry into its critical section. Conversely, the pool's `Up … Down` protocol does not imply an `ExternalCall` or process-incarnation creation.
 
 ## 3. Working model of `ExternalCall` and `InternalCall`
 
@@ -58,17 +59,17 @@ These statements summarize the working model only; they do not replace the canon
 
 ### 4.1 Association with a pool
 
-**Agreed working rule:** associating a new process incarnation with a servicing pool requires a separate mechanism. The servicing pool is not determined automatically from the caller's context.
+**Inferred:** associating a new process incarnation with a servicing pool requires a separate mechanism. The servicing pool is not determined automatically from the caller's context.
 
-**Tentative direction:** the mechanism selects the pool to which the new process incarnation itself is bound, rather than merely selecting a pool as a property of the `ExternalCall` request.
+**Inferred (tentative direction):** the mechanism selects the pool to which the new process incarnation itself is bound, rather than merely selecting a pool as a property of the `ExternalCall` request.
 
-**Agreed working constraint:** an incarnation cannot be bound to multiple pools simultaneously; the mechanism selects at most one pool for an incarnation. It remains **Open** whether every incarnation must always have a pool binding or whether that binding can later change.
+**Inferred:** an incarnation cannot be bound to multiple pools simultaneously; the mechanism selects at most one pool for an incarnation. It remains **Open** whether every incarnation must always have a pool binding or whether that binding can later change.
 
 ### 4.2 Eligibility and search order
 
 Each pool has its own transaction type, which carries information about whether that pool can service a process with a given name. For the current semantic model, this type-level eligibility is sufficient; no separate acceptance step is required.
 
-**Agreed working search rule:** for simplicity, pool selection searches for the first eligible pool, starting with the pool containing the caller and continuing through pools with which agreements are established. Agreements determine which further pools are considered; each candidate pool's own transaction type determines whether it is eligible.
+**Inferred:** for simplicity, pool selection searches for the first eligible pool, starting with the pool containing the caller and continuing through pools with which agreements are established. Agreements determine which further pools are considered; each candidate pool's own transaction type determines whether it is eligible.
 
 The exact encoding of eligibility information remains **Open**. Performance shares or weights and the resulting load distribution are separate concerns outside the current scope.
 
@@ -91,11 +92,11 @@ The observable result of a serviced call is constrained by the canonical channel
 
 <a id="4-pool-public-channel-and-callees-private-communication-channel"></a>
 
-**Agreed clarification:** the public channel discussed in [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85) is the pool's public transaction channel (called the pool's public channel below), not a public channel belonging to each process. Whether individual processes should have public channels remains **Open**.
+**Inferred:** the public channel discussed in [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85) is the pool's public transaction channel (called the pool's public channel below), not a public channel belonging to each process. Whether individual processes should have public channels remains **Open**.
 
 The pool's public transaction channel has a transaction type of the form `Up` followed by a continuation that ultimately ends in `Down`.
 
-**Agreed working interpretation:** access through the pool's public transaction channel gives the client a private channel for the duration of the critical section. Exclusivity is scoped to this private channel and the interaction conducted through it; it does not, by itself, imply a global lock that prevents all other clients from interacting with the pool. Reaching `Down` marks the end of this protocol-bounded critical section, and the client can no longer continue the interaction along that channel continuation after that point.
+**Inferred:** access through the pool's public transaction channel gives the client a private channel for the duration of the critical section. Exclusivity is scoped to this private channel and the interaction conducted through it; it does not, by itself, imply a global lock that prevents all other clients from interacting with the pool. Reaching `Down` marks the end of this protocol-bounded critical section, and the client can no longer continue the interaction along that channel continuation after that point.
 
 This must be understood in light of channel identity: each interaction generates a new channel identifier for continuing the interaction, and this succession of identifiers is reflected in the channel's type. Thus, in one sense, the channel is continually changing. Unavailability after `Down` does not by itself specify whether an underlying channel resource is closed, returned to the pool, or otherwise handled. Further guarantees should be derived from the exact `Up` / continuation / `Down` semantics, not assumed from the analogy alone.
 
@@ -109,7 +110,7 @@ This section records why the working model is being considered. These sources in
 
 ### 6.1 Existing rationale for `ExternalCall`
 
-**Evidence — canonical contract.** [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-operations) records the current intended `ExternalCall` contract. Its authoritative language source and implementation mapping remain unverified. This does not establish that `ExternalCall` is implemented using `Spawn`, nor does it settle the pool-selection mechanism described in Section 4.
+**Evidence:** canonical contract. [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-operations) records the current intended `ExternalCall` contract. Its authoritative language source and implementation mapping remain unverified. This does not establish that `ExternalCall` is implemented using `Spawn`, nor does it settle the pool-selection mechanism described in Section 4.
 
 ### 6.2 Publication's cut/spawn rule
 
@@ -122,7 +123,7 @@ The supplied calculus gives the following cut/spawn rule:
 
 Here `P` is the body of the process being spawned and `Q` is the original process's continuation. The rule allocates a fresh channel `a`, substitutes it for `x` in both expressions, and runs the two resulting processes so they can communicate over that shared channel. It therefore combines fresh-channel allocation and process spawning in this particular calculus.
 
-**Limit as OrgLang evidence:** this clarifies the publication's rule only. It does not establish that OrgLang uses the same rule, that channel allocation and process creation must happen at the same moment, or how OrgLang's `SpawnSpec` represents the body and continuation. Lifecycle and scheduling behavior remain **Open**.
+**Evidence limitation:** this clarifies the publication's rule only. It does not establish that OrgLang uses the same rule, that channel allocation and process creation must happen at the same moment, or how OrgLang's `SpawnSpec` represents the body and continuation. Lifecycle and scheduling behavior remain **Open**.
 
 ### 6.3 Issue #85 discussion
 
