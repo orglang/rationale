@@ -1,8 +1,8 @@
 # Processes and session types
 
-> **Status: preliminary research draft.** This document separates intended OrgLang semantics from observations about `orglang/go-engine`. Formal rules should describe language behavior independently of Go structure and field names; implementation notes are included only to track evidence, discrepancies, and questions requiring verification. Syntax present in the AST is not, by itself, evidence that an expression has a complete runtime semantics.
+> **Status: preliminary research draft.** This document separates intended OrgLang semantics from observations about `orglang/go-engine`. Formal rules should describe language behavior independently of Go structure and field names. Implementation notes track evidence, discrepancies, and questions requiring verification. AST syntax alone does not establish complete runtime semantics for an expression.
 
-**Audience:** readers who need to understand OrgLang process expressions and session types, and contributors verifying how those concepts are represented in `orglang/go-engine`. The document is a research draft, not a normative language specification.
+**Audience:** readers who need to understand OrgLang process expressions and session types, and contributors verifying how those concepts are represented in `orglang/go-engine`. This research draft records the current model and evidence pending a normative language specification.
 
 **How to use this document:**
 - Parts I and II describe the language model, intended operation semantics, and comparison with the publication.
@@ -18,7 +18,7 @@
 
 ## 1. Scope and evidence
 
-This research draft describes OrgLang processes and session types, compares the intended model with the supplied publication, and records implementation evidence from `orglang/go-engine`. It is not a normative language specification. Pool and transaction semantics are out of scope, except where pool-level process creation clarifies the boundary between invocation and spawning.
+This research draft describes OrgLang processes and session types, compares the intended model with the supplied publication, and records implementation evidence from `orglang/go-engine`. Pool and transaction semantics are covered separately, with pool-level process creation included where it clarifies the boundary between invocation and spawning.
 
 Treat each source according to what it can establish: the publication supports claims about its own rules, while implementation code supports claims about the inspected implementation. Neither automatically establishes a normative OrgLang rule.
 
@@ -30,11 +30,11 @@ Three status dimensions must remain separate:
 | Implementation coverage | **Implemented**, **Partial**, **Absent**, **Unverified** | How much of the relevant behavior has been verified in the implementation? |
 | Terminology mapping | **Confirmed**, **Provisional**, **Unresolved** | How strong is the proposed correspondence between OrgLang, publication, and implementation terms? |
 
-For example, a claim about intended OrgLang behavior can be confirmed as a project decision while implementation coverage remains unverified. That does not make the claim an authoritative language rule; identify the source and what it establishes.
+For example, a project decision can confirm the intended direction of OrgLang behavior while implementation coverage remains unverified. Identify that decision as the source and state what it establishes; authoritative language status requires the appropriate language evidence.
 
 ### Evidence status
 
-Assign a status to an individual claim, not to a term as a whole.
+Assign status to each individual claim. A term may appear in claims with different evidence statuses.
 
 - **Confirmed** — the claim is directly supported by an appropriate source or by sufficient verified evidence. State what the evidence establishes.
 - **Inferred** — the claim is a working interpretation derived from available evidence, but is not directly established.
@@ -52,7 +52,7 @@ Track implementation coverage independently from evidence status.
 - **Absent** — inspection or testing establishes that the relevant behavior is not implemented in the scope examined.
 - **Unverified** — implementation coverage has not been established.
 
-Finding an AST constructor does not establish runtime support. Failing to find a handler in one code path does not, by itself, establish that the behavior is absent throughout the system.
+An AST constructor establishes syntax support. Runtime support requires evidence from the relevant execution path or tests; inspection of one code path alone cannot establish system-wide absence.
 
 ### Recording claims
 
@@ -146,13 +146,13 @@ Imagine two processes that communicate over one channel. The **residual session 
 - **After the response is transferred:** both endpoints have only finishing left.
 - **Protocol finished:** both endpoints are finished.
 
-The arrows mean “then”; they are explanatory notation, not literal OrgLang syntax. “Transferred” means the matching send/receive actions have both taken place, not merely that one side has started its action. This is a conceptual trace showing how the shared protocol's residual state advances as each side performs its permitted action. A channel is not just a wire carrying arbitrary messages: its session type limits which interaction is allowed next.
+The arrows mean “then” and serve as explanatory notation for the sequence of actions; they are not OrgLang syntax. “Transferred” means the matching send/receive actions have both taken place, not merely that one side has started its action. This is a conceptual trace showing how the shared protocol's residual state advances as each side performs its permitted action. A channel is not just a wire carrying arbitrary messages: its session type limits which interaction is allowed next.
 
 **Connection to the implementation vocabulary:** at the process-expression level, the request and response correspond conceptually to complementary `Send`/`Recv` actions, followed by the protocol's finishing actions. Section 10 records the observed checker correspondence for `Send`, `Recv`, and `One`. The concrete OrgLang session-type expression is omitted because the exact typing rules and context updates remain to be established. Channel transfer (`Tensor`/`Lolli`) and labelled choice (`Plus`/`With`) are separate protocol forms discussed in Section 6.
 
 ## 4. Process declarations and definitions
 
-Recall the recipe analogy from Section 2: a named process is like a recipe, and each run is an incarnation of that process. A **process declaration** describes the recipe's interface—the channels it expects, including one provider channel and any channels it uses as a client. A **process definition** supplies the implementation—the expression or process body that carries out the work. The distinction matters because a declaration can exist even when the repository does not establish that a usable body is stored or can be loaded. Go-specific names for these concepts are introduced in Part III.
+Recall the recipe analogy from Section 2: a named process is like a recipe, and each run is an incarnation of that process. A **process declaration** describes the recipe's interface—the channels it expects, including one provider channel and any channels it uses as a client. A **process definition** supplies the implementation—the expression or process body that carries out the work. The distinction matters because the existence of a declaration alone leaves storage and loading of a usable body unverified. Go-specific names for these concepts are introduced in Part III.
 
 ## 5. Process expressions: the main families
 
@@ -161,7 +161,7 @@ For now, it is enough to recognize four broad kinds of process action:
 - **Communication:** send or receive a value/channel, or select and handle a labelled choice.
 - **Finishing:** close an interaction or wait for the other side to finish.
 - **Connecting interactions:** forward between channels.
-- **Named-process calls:** `ExternalCall` and `InternalCall` are the two named-process call forms described here. They differ in channel effects and continuation behavior, not in whether they are calls. Both create a fresh process incarnation. `ExternalCall` creates a fresh provider channel and delivers it outward to the caller; `InternalCall` injects an existing channel inward into the new incarnation, transferring provider responsibility. Intended transitions are described in Section 7.
+- **Named-process calls:** `ExternalCall` and `InternalCall` are the two named-process call forms described here. They differ in channel effects and continuation behavior. Both create a fresh process incarnation. `ExternalCall` creates a fresh provider channel and delivers it outward to the caller; `InternalCall` injects an existing channel inward into the new incarnation, transferring provider responsibility. Intended transitions are described in Section 7.
 
 The repository also contains AST constructors for `Spawn`, `Acqure`, `Accept`, `Detach`, and `Release`. Their presence in the syntax tree does not establish their user-facing status or runtime behavior. The full constructor/field inventory is in Part III.
 
@@ -169,7 +169,7 @@ The repository also contains AST constructors for `Spawn`, `Acqure`, `Accept`, `
 
 A session type describes the allowed protocol from the provider endpoint's point of view; the type checker accounts for the client role when checking the other endpoint (Section 2). For the request/response example and residual session types, see Section 3.
 
-A protocol can also pass a channel between processes. The sender gives the other process a channel it can use to communicate; the receiver gains access to that channel for the rest of its process. The implementation names the relevant session-type forms `Tensor` and `Lolli`. At a high level, these are the two complementary forms used to describe channel transfer together with the protocol that remains after the transfer. The names alone do not tell the reader which endpoint performs which action: Section 9 records the observed polarity assignments and checker coverage, while Section 10 describes the typing interface. The exact direction mapping remains deliberately unstated here.
+A protocol can also pass a channel between processes. The sender gives the other process a channel it can use to communicate; the receiver gains access to that channel for the rest of its process. The implementation names the relevant session-type forms `Tensor` and `Lolli`. At a high level, these are the two complementary forms used to describe channel transfer together with the protocol that remains after the transfer. The names alone do not tell the reader which endpoint performs which action: Section 9 records the observed polarity assignments and checker coverage, while Section 10 describes the typing interface. The exact direction mapping is reserved for Section 9, where the observed polarity assignments and checker coverage are recorded.
 
 Protocols may also allow a choice between labelled alternatives: the implementation uses `Plus` and `With` for the two complementary type forms associated with such choices. `One` represents a finished protocol. The implementation contains `Up` and `Down` too, but their meaning in OrgLang is still being investigated; see Section 9 for observed checker coverage and Section 14 for open questions. The name `Link` is overloaded: **type-level `Link`** is a session-type constructor referring to another type definition; at the process-expression level, the Go AST constructor is `LinkSpec`, corresponding to the semantic operation **`InternalCall`** (Section 7).
 
@@ -182,7 +182,7 @@ Part III contains the constructor inventory, observed polarity assignments, chec
 This section distinguishes two kinds of uncertainty:
 
 - **Intended but underspecified:** the broad behavior is stated here, but its precise rule, conditions, or edge cases still need to be written down and checked.
-- **Design question:** the available evidence does not settle which behavior or mechanism OrgLang should choose. This needs an explicit design decision, not just a more precise description.
+- **Design question:** the available evidence does not settle which behavior or mechanism OrgLang should choose. Resolving it requires an explicit design decision.
 
 Both named-process call forms resolve a target process and associate its declared channel parameters with channels supplied by the call. The form-specific contract determines which channels are reused and whether a fresh provider channel is created: `ExternalCall` supplies existing client channels and creates a fresh provider channel; `InternalCall` passes an existing provider channel and its specified client channels to the new incarnation.
 
@@ -201,7 +201,7 @@ For `ExternalCall`, resolve the named process and explicitly bind each formal cl
 
 ### `InternalCall`
 
-**Before:** the invoking process provides a service on an existing channel (AST field `X`). The target process also receives a list of channels it will use as a client (AST field `Ys`). The terms *provider channel* and *client channels* are relative to the process being described; they do not imply different kinds of channel resource. The role descriptions are explanatory labels, not claims about how the runtime resolves the fields.
+**Before:** the invoking process provides a service on an existing channel (AST field `X`). The target process also receives a list of channels it will use as a client (AST field `Ys`). The terms *provider channel* and *client channels* describe the channel roles relative to the process being discussed. Both refer to the same underlying kind of channel resource. The role descriptions are explanatory labels, not claims about how the runtime resolves the fields.
 
 **Preconditions (provisional):** the target process definition must be available and a fresh incarnation must be creatable. Whether channel/protocol compatibility is required, and where it is checked, remain open.
 
@@ -221,7 +221,7 @@ Process invocation and incarnation creation are distinct from the pool mechanism
 
 ### `Fwd`
 
-**Purpose:** connect the interaction on one existing channel to the interaction on another. This is an endpoint-level connection, not a named-process invocation. The publication illustrates it with a unit message pending on `c` and a receiver waiting on `d`; see Section 8 for the trace.
+**Purpose:** connect the interaction on one existing channel to the interaction on another. This is an endpoint-level operation on existing channels. The publication illustrates it with a unit message pending on `c` and a receiver waiting on `d`; see Section 8 for the trace.
 
 **Intended but underspecified:** `Fwd` needs a complete transition rule for channel polarity, pending turns, and continuation state. Polarity is defined in Section 2; Section 9 records the checker's observed assignments. The implementation's turn-like records appear to represent pending communication/exchange state, but `turn` is not used here as a synonym for a communication step. The exact semantics remain open. The publication example and inspected executor do not settle all OrgLang cases; see Section 14 for the canonical open question.
 
@@ -350,9 +350,9 @@ One concrete source discrepancy exists in `pool/typeexp/core/tc.go`: the `DownSp
 
 ### What type checking does
 
-Before an expression is executed, the implementation checks whether the current channel protocols fit the operation. For example, a send action should only be used when the channel's current protocol permits sending; a close action should only be used when that interaction is ready to finish. These are intuitive explanations, not complete formal rules.
+Before an expression is executed, the implementation checks whether the current channel protocols fit the operation. For example, a send action should only be used when the channel's current protocol permits sending; a close action should only be used when that interaction is ready to finish. These are intuitive explanations; complete formal rules remain to be established.
 
-In the implementation, `proc/compexec/core/core.go` loads the current execution snapshot (a saved view of computation state at that execution point; its relationship to the publication's `configuration` and `environment` is not yet established), gathers relevant process declarations and type definitions, builds the type-checking context, and calls `checkType` before dispatching the expression. Its `LinearVars` map records the channel variables tracked by the checker. The exact invariants of this context still need verification.
+In the implementation, `proc/compexec/core/core.go` loads the current execution snapshot (a saved view of computation state at that execution point; its relationship to the publication's `configuration` and `environment` is not yet established), gathers relevant process declarations and type definitions, builds the type-checking context, and calls `checkType` before dispatching the expression. Its `LinearVars` map records the channel variables tracked by the checker. The exact invariants of this context remain unverified.
 
 ### How to read the correspondence table
 
@@ -367,9 +367,9 @@ The table records which session-type constructor the inspected checker expects f
 | `Close` / `Wait` | `One` on the corresponding endpoint side | `One` on the corresponding endpoint side | Unverified |
 | `Fwd` | compatibility/polarity checks exist | full symmetric behavior not established | Partial |
 
-These are checker observations, not complete typing rules; side conditions, context splitting, substitution, and freshness conditions remain to be established.
+These are checker observations. Complete typing rules still require side conditions, context splitting, substitution, and freshness conditions.
 
-**Potential checker issue:** the `CaseSpec` branch in `proc/compexec/core/core.go` checks each choice using context maps that may be shared and mutated by recursive checks. A prior branch may therefore affect the next branch's starting context. This is a hypothesis, not a confirmed bug; test multiple labels with distinct continuations and verify whether branch-local contexts or equivalent linear outcomes are required.
+**Potential checker issue:** the `CaseSpec` branch in `proc/compexec/core/core.go` checks each choice using context maps that may be shared and mutated by recursive checks. A prior branch may therefore affect the next branch's starting context. This is a hypothesis that requires verification. Test multiple labels with distinct continuations and determine whether branch-local contexts or equivalent linear outcomes are required.
 
 The constructor-coverage gap is described in Section 9. Whether normal execution resolves or unfolds `Link`, `Up`, and `Down` before the checker reaches this code remains open; see Section 14, item 6.
 
@@ -447,7 +447,7 @@ A formal reduction rule should be added after the relevant typing, executor, ada
 
 ## 14. Open questions and next tests
 
-The list is ordered by investigation priority, not by semantic importance.
+The list is ordered by investigation priority.
 
 1. **ExternalCall implementation conformance:** The intended contract is that the caller continuation proceeds only after the provider channel is received. Does the implementation enforce this, and which tests verify that it cannot proceed merely because the new incarnation has started?
 2. **ExternalCall / AST mapping:** What is the exact argument syntax for mapping formal parameters to existing, distinct channels, and how does the engine's injection of the separate communication channel into the caller-named placeholder map to `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH`? Where are name resolution, recursion checks, and type checks enforced?
