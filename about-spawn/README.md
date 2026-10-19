@@ -59,7 +59,7 @@ The language-level contracts and the distinction between `ExternalCall` and `Int
 
 ### 4.2 Eligibility
 
-Each pool has its own transaction type, which carries information about whether that pool can service a process with a given name. The exact encoding of eligibility and any additional runtime validation remain **Open**. This is the candidate eligibility signal; its precise interpretation and enforcement have not yet been established.
+**Inferred:** a candidate pool's transaction type provides the eligibility signal for whether it can service a process with a given name. The encoding and interpretation of that signal, and any additional runtime validation, belong to [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types) and remain **Open**. This section retains the selection rule, not the transaction-type model.
 
 ### 4.3 Search order
 
