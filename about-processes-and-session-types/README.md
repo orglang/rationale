@@ -68,7 +68,7 @@ Do not promote a candidate rule to a language rule merely because it is describe
 
 ### Terminology mappings
 
-The correspondence between OrgLang, the publication, and implementation identifiers is tracked separately in the terminology table. Its mapping status describes the correspondence, not the certainty of an individual claim or the completeness of the implementation.
+The terminology table tracks correspondence among OrgLang, publication, and implementation identifiers. Mapping status reports correspondence strength; claim evidence and implementation coverage are tracked separately.
 
 Use **Confirmed**, **Provisional**, or **Unresolved** for mappings:
 
@@ -114,7 +114,7 @@ A **session type** describes the allowed protocol from the provider endpoint's p
 
 ### Terminology correspondence: OrgLang, publication, and implementation
 
-Use one row for one proposed correspondence. **Mapping status** describes the strength of that correspondence, not the evidence status of a claim or the implementation status. Apply the mapping-status definitions in [Section 1](#1-scope-and-evidence).
+Use one row for each proposed correspondence. **Mapping status** reports correspondence strength. Claim evidence and implementation coverage have separate statuses. Apply the mapping-status definitions in [Section 1](#1-scope-and-evidence).
 
 | OrgLang term / concept | Publication term / notation | Implementation name | Mapping status | Notes |
 |---|---|---|---|---|
@@ -146,7 +146,7 @@ Imagine two processes that communicate over one channel. The **residual session 
 - **After the response is transferred:** both endpoints have only finishing left.
 - **Protocol finished:** both endpoints are finished.
 
-The arrows mean “then” and serve as explanatory notation for the sequence of actions; they are not OrgLang syntax. “Transferred” means the matching send/receive actions have both taken place, not merely that one side has started its action. This is a conceptual trace showing how the shared protocol's residual state advances as each side performs its permitted action. A channel is not just a wire carrying arbitrary messages: its session type limits which interaction is allowed next.
+The arrows mean “then” and serve as explanatory notation for the sequence of actions; they are not OrgLang syntax. “Transferred” means both matching send/receive actions have taken place. Starting one side's action alone does not count as transfer. This is a conceptual trace showing how the shared protocol's residual state advances as each side performs its permitted action. A channel is not just a wire carrying arbitrary messages: its session type limits which interaction is allowed next.
 
 **Connection to the implementation vocabulary:** at the process-expression level, the request and response correspond conceptually to complementary `Send`/`Recv` actions, followed by the protocol's finishing actions. Section 10 records the observed checker correspondence for `Send`, `Recv`, and `One`. The concrete OrgLang session-type expression is omitted because the exact typing rules and context updates remain to be established. Channel transfer (`Tensor`/`Lolli`) and labelled choice (`Plus`/`With`) are separate protocol forms discussed in Section 6.
 
@@ -201,7 +201,7 @@ For `ExternalCall`, resolve the named process and explicitly bind each formal cl
 
 ### `InternalCall`
 
-**Before:** the invoking process provides a service on an existing channel (AST field `X`). The target process also receives a list of channels it will use as a client (AST field `Ys`). The terms *provider channel* and *client channels* describe the channel roles relative to the process being discussed. Both refer to the same underlying kind of channel resource. The role descriptions are explanatory labels, not claims about how the runtime resolves the fields.
+**Before:** the invoking process provides a service on an existing channel (AST field `X`). The target process also receives a list of channels it will use as a client (AST field `Ys`). The terms *provider channel* and *client channels* describe the channel roles relative to the process being discussed. Both refer to the same underlying kind of channel resource. The role descriptions are explanatory labels. Runtime field resolution is documented separately in the implementation analysis.
 
 **Preconditions (provisional):** the target process definition must be available and a fresh incarnation must be creatable. Whether channel/protocol compatibility is required, and where it is checked, remain open.
 
@@ -292,7 +292,7 @@ A process declaration is represented by `DecSpec`:
 - `LiabVar` — provider-channel placeholder.
 - `AssetVars` — client-channel placeholders.
 
-Section 7 defines the intended channel effects. Here the implementation mapping remains the focus: `CallSpec` exposes `ContExp`, `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH`, but how those fields implement the agreed `ExternalCall` contract is unverified. For `InternalCall` (AST constructor `LinkSpec`), comments in `proc/termdec/core/core.go` suggest that `X` maps to the declaration's `LiabVar` and `Ys[i]` maps to `AssetVars[i]` in declaration order. However, `X` and `Ys` are typed as `identity.ADT`, not `symbol.ADT`; the actual resolution path remains unverified.
+Section 7 defines the intended channel effects. Here the implementation mapping remains the focus: `CallSpec` exposes `ContExp`, `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH`, but how those fields implement the agreed `ExternalCall` contract is unverified. For `InternalCall` (AST constructor `LinkSpec`), comments in `proc/termdec/core/core.go` suggest that `X` maps to the declaration's `LiabVar` and `Ys[i]` maps to `AssetVars[i]` in declaration order. The fields `X` and `Ys` are typed as `identity.ADT`, while placeholder names use `symbol.ADT`. The actual resolution path remains unverified.
 
 A process definition is represented by `DefSpec{ProcQN, ProcES}`; `DefRec` contains a `Ref`. The inspected `Create`/`Retrieve` implementation in `proc/termdef/core/core.go` appears to be a stub, so these types alone do not establish the persistence contract.
 
@@ -343,7 +343,7 @@ The polarity assignments above are confirmed by inspection of `proc/typeexp/core
 
 At the AST level, process `Plus`/`With` choices are represented as label-indexed alternatives. The exact normalization and lookup rules for type references, and how `Up`/`Down` are unfolded, remain to be confirmed.
 
-The process-level `CheckSpec` and `CheckRec` implementations explicitly handle only `One`, `Tensor`, `Lolli`, `Plus`, and `With`; other expected constructors reach the default panic. The pool-level conversion also includes `Link`, `Up`, and `Down`. This cross-layer difference is an implementation finding, not proof that unresolved forms reach the process checker during ordinary execution. Section 10 records the resulting open question.
+The process-level `CheckSpec` and `CheckRec` implementations explicitly handle only `One`, `Tensor`, `Lolli`, `Plus`, and `With`; other expected constructors reach the default panic. The pool-level conversion also includes `Link`, `Up`, and `Down`. This cross-layer difference is an implementation finding. Whether unresolved forms reach the process checker during ordinary execution remains an open question. Section 10 records the resulting open question.
 
 One concrete source discrepancy exists in `pool/typeexp/core/tc.go`: the `DownSpec` conversion constructs and returns `UpRec` rather than `DownRec`. Also, the `PlusSpec` conversion composes a value key but does not check/return the `Compose` error in the same way as neighboring branches. These implementation findings require validation with focused tests and should remain separate from the intended type semantics.
 ## 10. Typing interface
@@ -419,17 +419,17 @@ A formal reduction relation should distinguish at least:
 
 The current evidence supports treating execution as a stateful transition over an execution snapshot plus communication/exchange state. The snapshot may relate to the publication's `configuration` and `environment`, but that mapping remains an inference to verify. It does **not** yet justify importing a generic session-calculus semantics verbatim, nor asserting that each AST constructor has a complete reduction rule.
 
-The first fully formalized implementation-level rules should be limited to constructors whose typing and execution branches have both been checked end-to-end. Complete implementation-level reduction rules for `ExternalCall`, `InternalCall`, and resource-management constructs should remain unspecified until the execution paths have been verified and reconciled with the intended contract in Section 7. `Spawn` is deferred to the pool-level analysis. `InternalCall` (AST constructor `LinkSpec`) should be investigated alongside recursive process definitions and named-process invocation, not conflated with `Fwd`.
+The first fully formalized implementation-level rules should cover constructors whose typing and execution branches have both been checked end-to-end. Complete implementation-level reduction rules for `ExternalCall`, `InternalCall`, and resource-management constructs await verification of their execution paths and reconciliation with the intended contract in Section 7. `Spawn` is deferred to the pool-level analysis. Investigate `InternalCall` (AST constructor `LinkSpec`) alongside recursive process definitions and named-process invocation, while keeping its analysis distinct from `Fwd`.
 
 ### Named-process calls: implementation evidence
 
 This subsection records executor-level findings. Adapter discrepancies are listed in Section 12, and Section 14 consolidates the remaining questions.
 
-**Implementation observation:** the inspected `takeWith` dispatcher has execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. It has no branch for the AST constructors `CallSpec` (`ExternalCall`), `SpawnSpec`, `LinkSpec` (`InternalCall`), `Acqure`, `Accept`, `Detach`, or `Release` in the inspected version. This describes the current dispatcher, not the language design.
+**Implementation observation:** the inspected `takeWith` dispatcher has execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. It has no branch for the AST constructors `CallSpec` (`ExternalCall`), `SpawnSpec`, `LinkSpec` (`InternalCall`), `Acqure`, `Accept`, `Detach`, or `Release` in the inspected version. This observation describes the inspected dispatcher version; language design is documented separately.
 
 The inspected `ExternalCall`-related `call` scenario in `test/e2e/pool_test.go` is inconclusive: the top-level `TestPool` does not run the subtest, its result assertion is a TODO, and the callee declaration has no corresponding process body. The process-definition persistence methods inspected so far also appear to be stubs. Thus the repository evidence does not demonstrate a successful transition for the AST `CallSpec` construct associated with `ExternalCall`. See Section 14 for the unresolved argument-mapping question.
 
-**Implementation observation:** `InternalCall` is represented by the process-expression AST constructor `LinkSpec`. Its `X` (provider channel) and `Ys` (client channels) are intended to identify caller-side channels, but the AST types them as `identity.ADT` channel identifiers rather than `symbol.ADT` placeholder names. No complete adapter or executor path was found. The AST `CallSpec` has an explicit `ContExp`; `LinkSpec` does not. See Section 14 for the open lifecycle and representation questions.
+**Implementation observation:** `InternalCall` is represented by the process-expression AST constructor `LinkSpec`. Its `X` (provider channel) and `Ys` (client channels) are intended to identify caller-side channels. The AST types these fields as `identity.ADT` channel identifiers; placeholder names use `symbol.ADT`. No complete adapter or executor path was found. The AST `CallSpec` has an explicit `ContExp`; `LinkSpec` does not. See Section 14 for the open lifecycle and representation questions.
 
 The pool API has a `Spawn` operation that carries a process declaration reference and optional references to existing process incarnations. This implementation-level API name alone cannot establish that OrgLang exposes a user-written `Spawn` operation. The repository contains three distinct `Spawn` representations; they should not be treated as one implementation:
 
@@ -441,7 +441,7 @@ The publication's cut rule describes allocating a fresh channel, starting `P[a/x
 
 ### Forwarding remains a separate open question
 
-The executor contains a `Fwd` branch. When no turn is pending, positive polarity registers a `PubRec` carrying `FwdRec`, while negative polarity registers a `SubRec` carrying `FwdRec`; other branches inspect polarity and the pending turn kind. The code contains TODOs for channel-side metadata, and a negative-polarity branch comments on a type mismatch. The ordinary send/receive handlers inspected so far expect `RecvRec`/`SendRec` payloads and do not handle `FwdRec` in those switches. It remains unverified whether another part of scheduling and exchange handling covers this case. This suggests the implementation may be unfinished, but does not prove that `Fwd` is broken.
+The executor contains a `Fwd` branch. When no turn is pending, positive polarity registers a `PubRec` carrying `FwdRec`, while negative polarity registers a `SubRec` carrying `FwdRec`; other branches inspect polarity and the pending turn kind. The code contains TODOs for channel-side metadata, and a negative-polarity branch comments on a type mismatch. The ordinary send/receive handlers inspected so far expect `RecvRec`/`SendRec` payloads; their switches contain no handling for `FwdRec`. It remains unverified whether another part of scheduling and exchange handling covers this case. This suggests the implementation may be unfinished, but does not prove that `Fwd` is broken.
 
 A formal reduction rule should be added after the relevant typing, executor, adapter, and scheduling paths have been checked together.
 
