@@ -6,7 +6,7 @@
 
 **How to use this document:**
 - Parts I and II describe the language model, intended operation semantics, and comparison with the publication.
-- Part III records implementation evidence and open questions; it does not define language semantics.
+- Part III records implementation evidence and open questions. The intended language semantics are stated in Part I.
 - Section 1 explains the three independent status dimensions. Section 14 collects the remaining verification questions.
 
 **Contents**
@@ -76,13 +76,13 @@ Use **Confirmed**, **Provisional**, or **Unresolved** for mappings:
 - **Provisional** — evidence supports the correspondence, but it still needs verification.
 - **Unresolved** — no correspondence is established, or sources appear to conflict. Describe any discrepancy in the mapping table's **Notes** column.
 
-Preserve mismatches rather than silently treating similarly named concepts as equivalent.
+Record mismatches explicitly; treat similarly named concepts as equivalent only when evidence supports that mapping.
 
 ## 2. Core concepts
 
-OrgLang processes communicate through **channels**. A channel connects two roles: the **provider**, which offers a service, and the **client**, which uses it. Each participant has an **endpoint**; the same channel is the provider channel for one process and the client channel for the other. These are relative roles, not permanent channel kinds. Each process has one provider channel of its own and may use other channels as a client. The two named-process call forms are **`ExternalCall`** and **`InternalCall`**. Both create a fresh process incarnation, but transfer channels in different directions relative to that incarnation.
+OrgLang processes communicate through **channels**. A channel connects two roles: the **provider**, which offers a service, and the **client**, which uses it. Each participant has an **endpoint**; the same channel is the provider channel for one process and the client channel for the other. These roles are relative to each process's perspective. Each process has one provider channel of its own and may use other channels as a client. The two named-process call forms are **`ExternalCall`** and **`InternalCall`**. Both create a fresh process incarnation, but transfer channels in different directions relative to that incarnation.
 
-**Process** is the general umbrella term in this document; its precise referent follows context. A **named process** is the process identified by a name. A **process declaration** describes its interface, while a **process definition** supplies its behavior. Each start creates a concrete running copy called a **process incarnation**. These are related concepts, not interchangeable terms. A **channel placeholder** is a name in an expression or process interface that is intended to stand for a channel. It is a syntactic name, not the channel resource or endpoint itself; an environment or substitution must associate it with the relevant channel. The implementation may represent these layers with different Go types, and the mapping must be verified rather than inferred from field names alone.
+**Process** is the general umbrella term in this document; its precise referent follows context. A **named process** is the process identified by a name. A **process declaration** describes its interface, while a **process definition** supplies its behavior. Each start creates a concrete running copy called a **process incarnation**. Each term refers to a distinct concept. A **channel placeholder** is a syntactic name in an expression or process interface that stands for a channel. An environment or substitution associates the name with the relevant channel resource or endpoint. The implementation may represent these layers with different Go types, and the mapping must be verified rather than inferred from field names alone.
 
 A **session type** describes the allowed protocol from the provider endpoint's point of view. When checking the client endpoint, the type checker accounts for the client role and the complementary actions it permits. A **residual session type** is the remaining part of that protocol after prior interaction steps. The request/response example and the meaning of a **residual session type** are introduced in Section 3.
 
@@ -128,7 +128,7 @@ Use one row for one proposed correspondence. **Mapping status** describes the st
 | Service/wait action (`sub`) | `srv` | `SubRec`, `ContExp` | Provisional | The names align with the service/waiting side in the described forwarding trace; end-to-end state semantics remain open. |
 | Residual session type | Remaining protocol after an interaction step | Current session-type value / checker context (`LinearVars`) | Unresolved | Conceptual correspondence only; state-update invariants remain open. |
 
-Preserve mismatches among OrgLang terminology, publication terminology, and implementation names instead of treating them as synonyms by default. Intended behavior is described in Section 7; implementation findings and remaining questions are separated in Part III.
+Record mismatches among OrgLang terminology, publication terminology, and implementation names. Treat these terms as synonyms only when evidence supports the mapping. Intended behavior is described in Section 7; implementation findings and remaining questions are separated in Part III.
 
 
 
@@ -255,24 +255,24 @@ Do not conflate named-process call with the separate cut/spawn rule `x ← P ; Q
 
 The publication separately describes cut/spawn as allocating a fresh channel shared by a spawned process and the original process's continuation. The detailed rule is documented in [about-spawn, Section 2.2](../about-spawn/README.md#22-existing-rationale-publication-cutspawn-rule); OrgLang's `Spawn` semantics remain a separate question.
 
-The publication also gives the following forwarding rules. The mode parameter `m` is omitted here to keep the discussion focused on forwarding rather than channel modes:
+The publication also gives the following forwarding rules. For clarity, the mode parameter `m` is omitted; this discussion focuses on forwarding.
 
     proc(d⁺ ← c⁺) → !⁺msg(d⁺, c⁺)   id: forward+
     proc(d⁻ ← c⁻) → !⁻srv(d⁻, c⁻)   id: forward−
 
-The publication's `msg` action is tentatively aligned here with OrgLang's `pub` (publish/send a message), and `srv` with `sub` (subscribe/wait to receive or serve); these mappings remain provisional rather than established synonyms. In the inspected implementation, `PubRec` stores a `ValExp` (publication/message action) and `SubRec` stores a `ContExp` (subscription/service continuation). The `Fwd` executor examines channel polarity and pending communication turns, redirecting the relevant turn; if none is pending, it records a publication or subscription turn carrying a forwarding record. Some source branches still contain TODOs, so this is not a complete correctness proof.
+The publication's `msg` action is tentatively aligned here with OrgLang's `pub` (publish/send a message), and `srv` with `sub` (subscribe/wait to receive or serve). These mappings are provisional; available evidence has not established synonymy. In the inspected implementation, `PubRec` stores a `ValExp` (publication/message action) and `SubRec` stores a `ContExp` (subscription/service continuation). The `Fwd` executor examines channel polarity and pending communication turns, redirecting the relevant turn; if none is pending, it records a publication or subscription turn carrying a forwarding record. Some source branches still contain TODOs, so this is not a complete correctness proof.
 
 ### Reading the publication's forwarding example
 
 The publication's Example 9 gives a concrete positive-polarity trace. A sender publishes the unit value `()` on `c`; a receiver is waiting on `d`; and a forwarding process connects the two. The receiver first becomes a service waiting on `d`. The forwarding process then produces a forwarding message for the pair `(d, c)`. When that forwarding message meets the service waiting on `d`, the service is redirected to wait on `c`; the sender's pending unit message can then be received, and the receiver continues as `P`.
 
-The important point is that forwarding is shown as an interaction between a forwarding message and a waiting service, not as a global renaming of every occurrence of `d` to `c`. The trace also shows that the receiver may need another evaluation step to begin listening again after its service has been redirected.
+The trace models forwarding as an interaction between a forwarding message and a waiting service. It keeps occurrences of `d` and `c` distinct except where a specific transition redirects an interaction. The trace also shows that the receiver may need another evaluation step to begin listening again after its service has been redirected.
 
 
 
 ## Part III. Implementation evidence and open questions
 
-This part checks how the implementation corresponds to the language model and intended call contracts established in Parts I and II. Read the evidence in sequence: AST and type-checker coverage, representation and serialization, execution paths, then unresolved questions. A finding at one layer is not by itself an end-to-end result.
+This part checks how the implementation corresponds to the language model and intended call contracts established in Parts I and II. Read the evidence in sequence: AST and type-checker coverage, representation and serialization, execution paths, then unresolved questions. Interpret each finding within its layer; end-to-end conclusions require evidence across layers.
 
 ## 9. Implementation map: process declarations and definitions
 
@@ -303,7 +303,7 @@ Related identifiers include:
 - `ProcTermQN`: name referenced by call/spawn expression constructors;
 - expression identity / `valkey`: a candidate identifier for an expression incarnation, whose exact lifecycle remains to be confirmed.
 
-Do not assume these identifiers are interchangeable.
+Treat these identifiers as distinct unless their mapping is established.
 
 ### AST and session-type inventory
 
@@ -345,7 +345,7 @@ At the AST level, process `Plus`/`With` choices are represented as label-indexed
 
 The process-level `CheckSpec` and `CheckRec` implementations explicitly handle only `One`, `Tensor`, `Lolli`, `Plus`, and `With`; other expected constructors reach the default panic. The pool-level conversion also includes `Link`, `Up`, and `Down`. This cross-layer difference is an implementation finding, not proof that unresolved forms reach the process checker during ordinary execution. Section 10 records the resulting open question.
 
-One concrete source discrepancy exists in `pool/typeexp/core/tc.go`: the `DownSpec` conversion constructs and returns `UpRec` rather than `DownRec`. Also, the `PlusSpec` conversion composes a value key but does not check/return the `Compose` error in the same way as neighboring branches. These are implementation findings only; they should be validated with focused tests and should not be used to define the intended type semantics.
+One concrete source discrepancy exists in `pool/typeexp/core/tc.go`: the `DownSpec` conversion constructs and returns `UpRec` rather than `DownRec`. Also, the `PlusSpec` conversion composes a value key but does not check/return the `Compose` error in the same way as neighboring branches. These implementation findings require validation with focused tests and should remain separate from the intended type semantics.
 ## 10. Typing interface
 
 ### What type checking does
@@ -356,7 +356,7 @@ In the implementation, `proc/compexec/core/core.go` loads the current execution 
 
 ### How to read the correspondence table
 
-The table records which session-type constructor the inspected checker expects for each process operator. “Provider-side” and “client-side” identify the two channel roles described in Section 2; they do not mean that the whole process has two provider channels. A match in this table is evidence about the checker, not a complete language rule.
+The table records which session-type constructor the inspected checker expects for each process operator. “Provider-side” and “client-side” identify the two channel roles described in Section 2. A process as a whole still has one provider channel. A match in this table is evidence about the checker; the full language rule requires separate semantic evidence.
 
 | Process operator | Provider-side expectation | Client-side expectation | Implementation evidence |
 |---|---|---|---|
@@ -384,7 +384,7 @@ At a high level, the inspected execution path follows six steps. The names in pa
 5. Save the resulting state changes and effects.
 6. If the action produced a next expression, schedule or continue with it; otherwise return.
 
-This is an outline of the observed path, not a complete definition of blocking, resumption, or channel ownership. Constructor-specific execution findings are in Section 13; representation gaps are in Section 12.
+This outlines the observed path. The complete rules for blocking, resumption, and channel ownership remain to be established. Constructor-specific execution findings are in Section 13; representation gaps are in Section 12.
 
 Communication may take more than one execution step. If the matching action from the other side is not yet available—for example, the corresponding `Wait` for a `Close`, or a receive for a send—the current action may register that it is waiting and return. When the other side becomes available, the implementation updates the exchange state and channel records, and may schedule the continuation. The precise ordering and ownership rules are still open.
 
@@ -431,13 +431,13 @@ The inspected `ExternalCall`-related `call` scenario in `test/e2e/pool_test.go` 
 
 **Implementation observation:** `InternalCall` is represented by the process-expression AST constructor `LinkSpec`. Its `X` (provider channel) and `Ys` (client channels) are intended to identify caller-side channels, but the AST types them as `identity.ADT` channel identifiers rather than `symbol.ADT` placeholder names. No complete adapter or executor path was found. The AST `CallSpec` has an explicit `ContExp`; `LinkSpec` does not. See Section 14 for the open lifecycle and representation questions.
 
-The pool API has a `Spawn` operation that carries a process declaration reference and optional references to existing process incarnations. This implementation-level API name is not evidence that OrgLang exposes a user-written `Spawn` operation. The repository contains three distinct `Spawn` representations; they should not be treated as one implementation:
+The pool API has a `Spawn` operation that carries a process declaration reference and optional references to existing process incarnations. This implementation-level API name alone cannot establish that OrgLang exposes a user-written `Spawn` operation. The repository contains three distinct `Spawn` representations; they should not be treated as one implementation:
 
 - **Process-expression AST — `SpawnSpec`:** carries a communication-channel placeholder, process-term name, new-channel placeholders, and continuation. The inspected dispatcher has no execution branch; an older `SpawnSpecOld` branch remains commented out.
-- **Pool API — `SpawnSpec2`:** names a process declaration and optional existing process incarnations. Its `Spawn` method creates a new execution record in linear mode, but does not itself instantiate a process body or wire the fresh channel described by the publication's cut rule.
-- **Separate prototype — `proto/rast2` `spawn` reduction:** creates a fresh channel and two process entries. This resembles the publication's allocate-and-spawn shape, but is a separate prototype, not evidence for the current AST or pool API.
+- **Pool API — `SpawnSpec2`:** names a process declaration and optional existing process incarnations. Its `Spawn` method creates a new execution record in linear mode. Instantiating a process body and wiring the fresh channel described by the publication's cut rule are separate steps that this method does not perform.
+- **Separate prototype — `proto/rast2` `spawn` reduction:** creates a fresh channel and two process entries. This resembles the publication's allocate-and-spawn shape and belongs to a separate prototype. It does not establish behavior of the current AST or pool API.
 
-The publication's cut rule describes allocating a fresh channel, starting `P[a/x]`, and continuing the original process as `Q[a/x]`. This is useful comparison context, not evidence that OrgLang exposes a standalone source-level `Spawn`. Recursion through cyclic dependencies among process definitions remains a hypothesis, not an established mechanism.
+The publication's cut rule describes allocating a fresh channel, starting `P[a/x]`, and continuing the original process as `Q[a/x]`. This provides useful comparison context. Evidence that OrgLang exposes a standalone source-level `Spawn` remains unavailable. Recursion through cyclic dependencies among process definitions remains a hypothesis, not an established mechanism.
 
 ### Forwarding remains a separate open question
 
@@ -463,5 +463,5 @@ The list is ordered by investigation priority, not by semantic importance.
 
 ## 15. Non-goals
 
-This draft does not define pool or transaction semantics, resource-allocation policy, fairness, deadlock freedom, or a complete metatheory (such as preservation/progress). Those require a separate pass over the pool/transaction implementation.
+Pool and transaction semantics, resource-allocation policy, fairness, deadlock freedom, and a complete metatheory (such as preservation/progress) are deferred to a separate pass over the pool/transaction implementation.
 
