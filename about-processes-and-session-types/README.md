@@ -235,13 +235,13 @@ The supplied publication gives the named-process call rule:
 
 when the definition x ← p y = P is present in the definition environment. Here `p` names the definition, and the rule substitutes actual channel names for the corresponding formal names.
 
-Table 4.2 likewise describes `a ← p b` as a call to named process `p`, which may communicate along channels `a` and `b`. This supports the reading of the construct as named-process invocation and channel substitution. **It does not specify OrgLang's full `ExternalCall` transition or establish that the caller continues through OrgLang's `ContExp`.** For the intended OrgLang contract, use Section 7; keep the publication's rule as supporting context, not proof of the whole contract.
+Table 4.2 likewise describes `a ← p b` as a call to named process `p`, which may communicate along channels `a` and `b`. This supports the reading of the construct as named-process invocation and channel substitution. The full OrgLang `ExternalCall` transition, including caller continuation through `ContExp`, is specified in Section 7; the publication rule is comparative context.
 
 Do not conflate named-process call with the separate cut/spawn rule `x ← P ; Q`. The latter has an inline process body `P`, a continuation `Q`, and explicitly allocates a fresh channel shared by the two resulting processes.
 
 ### The publication's cut/spawn rule
 
-The publication separately describes cut/spawn as allocating a fresh channel shared by a spawned process and the original process's continuation. The detailed rule and its limits as evidence for OrgLang are documented in [about-spawn, Section 2.2](../about-spawn/README.md#22-existing-rationale-publication-cutspawn-rule). This comparative rule does not by itself establish OrgLang's `Spawn` semantics.
+The publication separately describes cut/spawn as allocating a fresh channel shared by a spawned process and the original process's continuation. The detailed rule is documented in [about-spawn, Section 2.2](../about-spawn/README.md#22-existing-rationale-publication-cutspawn-rule); OrgLang's `Spawn` semantics remain a separate question.
 
 The publication also gives the following forwarding rules. The mode parameter `m` is omitted here to keep the discussion focused on forwarding rather than channel modes:
 
@@ -357,7 +357,7 @@ These are checker observations, not complete typing rules; side conditions, cont
 
 **Potential checker issue:** the `CaseSpec` branch in `proc/compexec/core/core.go` checks each choice using context maps that may be shared and mutated by recursive checks. A prior branch may therefore affect the next branch's starting context. This is a hypothesis, not a confirmed bug; test multiple labels with distinct continuations and verify whether branch-local contexts or equivalent linear outcomes are required.
 
-The constructor-coverage gap is described in Section 9. Whether normal execution resolves or unfolds `Link`, `Up`, and `Down` before the checker reaches this code remains open; see Section 14, item 6. It is not yet a confirmed runtime bug.
+The constructor-coverage gap is described in Section 9. Whether normal execution resolves or unfolds `Link`, `Up`, and `Down` before the checker reaches this code remains open; see Section 14, item 6.
 
 ## 11. Execution and communication
 
@@ -387,7 +387,7 @@ The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and
 - The receive record conversion appears not to preserve `ContChnlID` symmetrically.
 - Some receive conversions appear to write the communication-channel placeholder into the field that the reverse conversion reads as the newly bound channel. Specifically, `dataFromExpSpec` assigns `RecvSpecDS.Y` from `CommChnlPH`, although `dataToExpSpec` reads `Y` into `NewChnlPH`.
 
-These are source-level discrepancies to validate with focused tests and call-path analysis. Their observable runtime impact is not established by this document. The inspected call-related test does not demonstrate a successful transition; the execution findings and limitations are summarized in Section 13.
+These source-level discrepancies require focused tests and call-path analysis to establish their runtime impact. The inspected call-related test does not demonstrate a successful transition; the execution findings and limitations are summarized in Section 13.
 
 ## 13. What the execution path establishes
 
