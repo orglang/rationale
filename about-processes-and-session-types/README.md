@@ -86,7 +86,7 @@ OrgLang processes communicate through **channels**. A channel connects two roles
 
 A **session type** describes the allowed protocol from the provider endpoint's point of view. When checking the client endpoint, the type checker accounts for the client role and the complementary actions it permits. A **residual session type** is the remaining part of that protocol after prior interaction steps. The request/response example and the meaning of a **residual session type** are introduced in Section 3.
 
-**Linearity** is the channel usage/ownership discipline. **Intended linearity rule:** distinct formal channel parameters must map to distinct existing channel identities. The complete formal invariant and the implementation layer enforcing it remain to be established. More generally, a process may finish only when its channel protocols permit completion and all linear obligations have been discharged; the type checker rejects an attempted completion while a provider-channel protocol remains unfinished. The full invariant and its application across constructs remain open; do not infer them solely from `InternalCall`.
+**Linearity** is the channel usage/ownership discipline. **Intended linearity rule:** distinct formal channel parameters must map to distinct existing channel identities. The complete formal invariant and the implementation layer enforcing it remain to be established. More generally, **normal completion** of a process is permitted only when its channel protocols permit completion and all linear obligations have been discharged; the type checker rejects an attempted normal completion while a provider-channel protocol remains unfinished. This is distinct from `InternalCall`, whose agreed semantics terminate the old incarnation by atomically transferring its complete channel environment to a replacement incarnation. That handoff is not evidence that the transferred protocols are finished. The full linearity invariant and its application across constructs remain open; do not infer them solely from `InternalCall`.
 
 ### Quick glossary
 
@@ -233,7 +233,7 @@ The inspected executor has no `ExternalCall` branch. The exact AST/runtime mappi
 **Preconditions (agreed project contract):**
 
 - The target process definition is available, and a fresh incarnation can be created.
-- The supplied channels match the types and positions of the target's corresponding placeholders.
+- The supplied channels match the target's corresponding placeholders in arity, position, endpoint role, and **current residual session type**; compatibility must be checked against the protocol state at the handoff, not assumed from the channel's initial type.
 - The supplied channel identities are pairwise distinct, including no overlap between `X` and `Ys`.
 - `X` and `Ys` account for **all channels bound in the invoking incarnation `P`**. No channel may be retained by `P` after the call.
 
@@ -273,7 +273,7 @@ If a precondition fails before the transition commits—for example, the target 
 **Focused conformance tests to add:** The following are test obligations for the implementation, not claims that current tests already pass.
 
 1. **Complete transfer:** use a target with one provider placeholder and multiple client placeholders; assert the target receives the exact channel identities in declaration order and the old incarnation is no longer live.
-2. **Protocol-state preservation:** give each supplied channel a non-initial residual session state; assert the handoff does not reset, advance, or replace that state.
+2. **Protocol-state preservation:** give each supplied channel a non-initial residual session state compatible with the corresponding target placeholder; assert the handoff neither resets, advances, nor replaces that state, and that the target is checked against that residual state.
 3. **Fresh identity:** terminate an incarnation, perform another handoff, and assert the new incarnation identity differs from every previously issued identity.
 4. **Duplicate identity rejection:** supply the same channel identity twice, including the `X`/`Ys` overlap case; assert rejection leaves the pre-state unchanged.
 5. **Missing or extra channels:** mismatch the target's client-placeholder count; assert no partial binding and no live target incarnation.
