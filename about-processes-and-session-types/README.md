@@ -244,9 +244,9 @@ The inspected executor has no `ExternalCall` branch. The exact AST/runtime mappi
 - The supplied channels must match the types and positions of the target's corresponding placeholders.
 - The supplied channel identities must be pairwise distinct, including no overlap between `X` and `Ys`.
 - `X` and `Ys` must account for **all channel identities bound in the invoking incarnation `P`**. After a successful call, no channel binding may remain attached to `P`.
-- The binding environment of `P` must not contain two distinct bindings to the same channel identity unless such aliasing is explicitly permitted by a separate language rule. The complete environment invariant remains to be formalized.
+- The binding environment of `P` must be injective: two distinct bindings may not refer to the same channel identity for this `InternalCall` contract. Whether OrgLang permits such aliases in other contexts remains a separate open language question.
 
-**Static validation:** The shared rule in [Section 4](#4-process-declarations-and-definitions) applies. A channel/type mismatch, positional or arity mismatch, or repeated supplied channel identity (including overlap between `X` and `Ys`) is a static error when decidable at admission. If environment aliasing cannot be decided statically, it must be checked as a runtime precondition or remain an explicit open rule; set equality alone is not sufficient to establish unique ownership. The implementation's conformance remains unverified.
+**Static validation:** The shared rule in [Section 4](#4-process-declarations-and-definitions) applies. A channel/type mismatch, positional or arity mismatch, or repeated supplied channel identity (including overlap between `X` and `Ys`) is a static error when decidable at admission. The intended `InternalCall` precondition is that the invoking environment has no aliased bindings. The language-wide status of aliasing outside this operation remains open; set equality alone is not sufficient to establish unique ownership. The implementation's conformance remains unverified.
 
 **Agreed channel-transfer and lifecycle decision:** On a successful handoff, create a fresh incarnation `Q` at the start of the target definition, bind its provider placeholder to `X` and its client placeholders to `Ys` in declaration order, and remove those bindings from `P`. Because `X` and `Ys` account for the complete channel environment of `P`, the old incarnation semantically terminates without a language-level continuation. The precise atomicity, freshness, failure, and preservation invariants are consolidated below. This is the intended OrgLang behavior for this research document; conformance with the publication and current implementation is tracked separately.
 
@@ -265,10 +265,10 @@ If a precondition fails before the transition commits—for example, the target 
 **Required invariants (intended contract):**
 
 - **Freshness:** `Q`'s incarnation identity is distinct from every incarnation identity that is live before the transition. Never reusing identities after termination is a stronger, separate policy and is not assumed here.
-- **Total transfer:** the set of channel identities referenced by `P`'s channel bindings is exactly the set supplied by `X` and `Ys`; after commit, `P` has no channel bindings.
+- **Total transfer:** the invoking environment is injective, and the set of channel identities referenced by `P`'s bindings is exactly the set supplied by `X` and `Ys`; after commit, `P` has no channel bindings.
 - **Exact rebinding:** each target placeholder is bound to the corresponding supplied channel identity, with `X` mapped to the provider placeholder and `Ys[i]` mapped to the (i\)-th client placeholder.
 - **Identity and protocol preservation:** transfer changes ownership/bindings, not channel identity or current session-protocol state.
-- **Binding ownership:** after commit, none of the transferred channel bindings remain attached to `P`; each is bound to exactly its designated placeholder in `Q`. This does not remove the peer endpoint's ordinary binding to the same channel.
+- **Binding ownership:** after commit, none of the transferred bindings remain attached to `P`; each transferred identity is bound to exactly its designated placeholder in `Q). This does not remove the peer endpoint's ordinary binding to the same channel.
 - **All-or-nothing visibility:** observers see either the complete pre-state or the complete post-state, never a partial combination.
 
 **Focused conformance tests to add:** The following are test obligations for the implementation, not claims that current tests already pass.
