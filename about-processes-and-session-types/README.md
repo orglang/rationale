@@ -253,6 +253,36 @@ The handoff preserves channel identities and changes only placeholder bindings. 
 
 **Agreed atomicity contract:** A successful `InternalCall` is one indivisible semantic transition. The transition exposes no partial handoff: `Q` becomes observable with all required bindings at the same point that `P` semantically terminates. There is no intermediate state in which `Q` exists with only some bindings or `P` remains alive after `Q` has been created. The runtime mechanism implementing this contract remains unverified. Pool association and selection are specified separately in [spawn-semantics, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing); implementation questions are collected in [Section 14](#14-open-questions-and-next-tests).
 
+**Atomicity boundary and failure behavior (intended contract):**
+
+Treat the handoff as a single state transition from a pre-state to a post-state, not as a sequence of externally observable mutations. Let the pre-state contain the live incarnation `P`, its complete channel environment, and the target definition. A successful transition produces a fresh `Q` whose provider placeholder is bound to `X` and whose client placeholders are bound to `Ys` in declaration order; `P` is no longer live and owns no channel bindings. Every transferred channel retains its identity and protocol state. No other incarnation's bindings or channel state change as a side effect of the handoff.
+
+The atomicity guarantee is about semantic observability, not a requirement that the implementation use a particular lock, transaction, or storage primitive. An implementation may perform internal preparation before committing the transition, provided that preparation is not observable as a live incarnation or as changed channel ownership. The commit point is the single point at which the complete post-state becomes observable.
+
+If a precondition fails before the transition commits—for example, the target cannot be resolved, the channel arity or positional mapping is invalid, channel identities are duplicated, or a type obligation fails—the operation does not partially transfer ownership: `P` remains live with its original bindings and no new live `Q` is exposed. Error reporting and recovery after failures that occur during runtime execution are not yet specified; this contract must not be read as claiming crash consistency or rollback across process or machine failure.
+
+**Required invariants (intended contract):**
+
+- **Freshness:** `Q`'s incarnation identity has never been used, including by a terminated incarnation.
+- **Total transfer:** the domain of `P`'s channel environment is exactly the set of channel identities supplied by `X` and `Ys`; after commit, that environment is empty.
+- **Exact rebinding:** each target placeholder is bound to the corresponding supplied channel identity, with `X` mapped to the provider placeholder and `Ys[i]` mapped to the (i\)-th client placeholder.
+- **Identity and protocol preservation:** transfer changes ownership/bindings, not channel identity or current session-protocol state.
+- **Single ownership:** after commit, no transferred channel remains bound to `P` or to an unrelated incarnation as a result of the handoff.
+- **All-or-nothing visibility:** observers see either the complete pre-state or the complete post-state, never a partial combination.
+
+**Focused conformance tests to add:** The following are test obligations for the implementation, not claims that current tests already pass.
+
+1. **Complete transfer:** use a target with one provider placeholder and multiple client placeholders; assert the target receives the exact channel identities in declaration order and the old incarnation is no longer live.
+2. **Protocol-state preservation:** give each supplied channel a non-initial residual session state; assert the handoff does not reset, advance, or replace that state.
+3. **Fresh identity:** terminate an incarnation, perform another handoff, and assert the new incarnation identity differs from every previously issued identity.
+4. **Duplicate identity rejection:** supply the same channel identity twice, including the `X`/`Ys` overlap case; assert rejection leaves the pre-state unchanged.
+5. **Missing or extra channels:** mismatch the target's client-placeholder count; assert no partial binding and no live target incarnation.
+6. **Atomic observation:** pause or instrument execution around the implementation's commit boundary; assert no observer can see `Q` with a subset of bindings or see both `P` and `Q` live with transferred ownership.
+7. **Failure before commit:** force target resolution or validation to fail; assert `P` retains all original bindings and no partially initialized `Q` is observable.
+8. **Unrelated-state isolation:** keep a separate incarnation and channel active; assert its bindings and protocol state are unchanged by the handoff.
+
+These tests should exercise the adapter, type checker, executor, and persistence/scheduling path together where those layers participate. A unit test of the AST constructor alone is insufficient evidence of conformance.
+
 **Implementation status:** the inspected dispatcher has no `InternalCall` execution branch; execution and type-checking are unverified. See Section 14 for the unresolved lifecycle and representation questions.
 
 ### Boundary with pool semantics
