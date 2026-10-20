@@ -431,10 +431,10 @@ The table records which session-type constructor the inspected checker expects f
 
 | Process operator | Provider-side expectation | Client-side expectation | Implementation evidence |
 |---|---|---|---|
-| `Send` | `Tensor` | `Lolli` | Confirmed |
-| `Recv` | `Lolli` | `Tensor` | Confirmed |
-| `Lab` | `Plus` | `With` | Confirmed |
-| `Case` | `With` | `Plus` | Confirmed |
+| `Send` | `Tensor` | `Lolli` | Confirmed as an observation about the inspected checker |
+| `Recv` | `Lolli` | `Tensor` | Confirmed as an observation about the inspected checker |
+| `Lab` | `Plus` | `With` | Confirmed as an observation about the inspected checker |
+| `Case` | `With` | `Plus` | Confirmed as an observation about the inspected checker |
 | `Close` / `Wait` | `One` on the corresponding endpoint side | `One` on the corresponding endpoint side | Unverified |
 | `Fwd` | compatibility/polarity checks exist | full symmetric behavior not established | Partial |
 
