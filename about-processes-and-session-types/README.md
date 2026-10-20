@@ -472,7 +472,7 @@ The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and
 - The receive record conversion appears not to preserve `ContChnlID` symmetrically.
 - Some receive conversions appear to write the communication-channel placeholder into the field that the reverse conversion reads as the newly bound channel. Specifically, `dataFromExpSpec` assigns `RecvSpecDS.Y` from `CommChnlPH`, although `dataToExpSpec` reads `Y` into `NewChnlPH`.
 
-These source-level discrepancies require focused tests and call-path analysis to establish their runtime impact. The inspected call-related test does not demonstrate a successful transition; the execution findings and limitations are summarized in Section 13.
+These source-level discrepancies require focused tests and call-path analysis to establish their runtime impact. The executor-level findings and the limits of the available call-related test are summarized in Section 13.
 
 ## 13. What the execution path establishes
 
@@ -498,7 +498,7 @@ This subsection records executor-level findings. Adapter discrepancies are liste
 
 **Implementation observation:** the inspected `takeWith` dispatcher has execution branches for `Close`, `Wait`, `Send`, `Recv`, `Lab`, `Case`, and `Fwd`. It has no branch for the AST constructors `CallSpec` (`ExternalCall`), `SpawnSpec`, `LinkSpec` (`InternalCall`), `Acqure`, `Accept`, `Detach`, or `Release` in the inspected version. This observation describes the inspected dispatcher version; language design is documented separately.
 
-The inspected `ExternalCall`-related `call` scenario in `test/e2e/pool_test.go` is inconclusive: the top-level `TestPool` does not run the subtest, its result assertion is a TODO, and the callee declaration has no corresponding process body. The process-definition persistence methods inspected so far also appear to be stubs. The adapter conversion also drops `ContExp`, and the inspected `takeWith` dispatcher has no `CallSpec` execution branch. Together, these findings mean repository evidence does not demonstrate a successful `ExternalCall` transition. The unresolved issue is implementation conformance and mapping, not the intended channel contract in Section 7.
+The inspected `ExternalCall`-related `call` scenario in `test/e2e/pool_test.go` is inconclusive: the top-level `TestPool` does not run the subtest, its result assertion is a TODO, and the callee declaration has no corresponding process body. The process-definition persistence methods inspected so far also appear to be stubs. Combined with the adapter gaps in Section 12 and the missing executor branch noted above, the repository evidence does not demonstrate a successful `ExternalCall` transition. This is an implementation-evidence gap, not an unresolved choice about the intended channel contract in Section 7.
 
 **Implementation observation:** `InternalCall` is represented by the process-expression AST constructor `LinkSpec`. Its `X` (provider channel) and `Ys` (client channels) are intended to identify caller-side channels. The AST types these fields as `identity.ADT` channel identifiers; placeholder names use `symbol.ADT`. No complete adapter or executor path was found. The AST `CallSpec` has an explicit `ContExp`; `LinkSpec` does not. See Section 14 for the open lifecycle and representation questions.
 
