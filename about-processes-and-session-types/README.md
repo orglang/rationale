@@ -154,6 +154,14 @@ The arrows mean “then” and serve as explanatory notation for the sequence of
 
 Recall the recipe analogy from Section 2: a named process is like a recipe, and each run is an incarnation of that process. A **process declaration** describes the recipe's interface—the channels it expects, including one provider channel and any channels it uses as a client. A **process definition** supplies the implementation—the expression or process body that carries out the work. The distinction matters because the existence of a declaration alone leaves storage and loading of a usable body unverified. Go-specific names for these concepts are introduced in Part III.
 
+### Definition, static validation, and execution admission
+
+**Agreed project contract:** A program version is admitted to execution only after its statically decidable well-formedness and type obligations have been checked. A mismatch in a statically checked obligation is a static error; the affected version is not admitted to execution.
+
+OrgLang programs may be further defined at runtime. When a new fragment is defined, it is checked against its expected type at definition time. This fragment-level check does not replace checking operation-specific preconditions in the context of the whole resulting program version before that version is admitted to execution.
+
+Each operation's contract specifies the preconditions that apply to it; this section defines the shared timing and admission rule, not the complete set of checks for every operation. This is the intended language-level contract recorded for this research. Whether and where the current implementation enforces it remains a separate implementation question.
+
 ## 5. Process expressions: the main families
 
 For now, it is enough to recognize four broad kinds of process action:
@@ -195,7 +203,7 @@ Both named-process call forms resolve a target process and associate its declare
 
 **Agreed project contract:** This section records the intended OrgLang contract agreed for this research. Correspondence with a published language specification and conformance with the current implementation are tracked separately.
 
-**Static validation (agreed project contract):** All `ExternalCall` preconditions that are statically decidable are checked before the applicable program version is admitted to execution. A channel/type mismatch or invalid positional mapping is a static error; the version is not admitted to execution. OrgLang programs may be further defined at runtime; when this happens, the new fragment is checked against its expected type at definition time. That fragment-level check does not replace checking `ExternalCall` preconditions in the context of the whole resulting program. This is an intended language-level contract; conformance by the current implementation remains unverified.
+**Static validation:** The shared validation and execution-admission rule in [Section 4](#4-process-declarations-and-definitions) applies. For `ExternalCall`, channel/type mismatches and invalid positional mappings are static errors. The implementation's conformance remains unverified.
 
 **Intended transition:**
 
@@ -222,7 +230,7 @@ The inspected executor has no `ExternalCall` branch. The exact mapping among `Co
 - The supplied channel identities are pairwise distinct, including no overlap between `X` and `Ys`.
 - `X` and `Ys` account for **all channels bound in the invoking incarnation `P`**. No channel may be retained by `P` after the call.
 
-**Static validation:** All `InternalCall` preconditions are checked statically before the applicable program version is allowed to execute. A channel/type or positional mismatch is a static error, so that program version is not admitted to execution. OrgLang programs may be further defined at runtime; when this happens, the new fragment is checked against its expected type at definition time. That fragment-level type check does not replace checking `InternalCall` preconditions in the context of the whole resulting program.
+**Static validation:** The shared validation and execution-admission rule in [Section 4](#4-process-declarations-and-definitions) applies. A channel/type or positional mismatch is a static error. The implementation's conformance remains unverified.
 
 **Agreed channel-transfer and lifecycle decision:**
 
@@ -236,7 +244,7 @@ The handoff preserves channel identities and changes only placeholder bindings. 
 
 **Mini-example (schematic, not OrgLang syntax):** suppose process `Old` has provider placeholder `x` bound to channel `c`, and client placeholder `y` bound to channel `d`. `Old` performs `InternalCall` to process `New`, passing `c` as `X` and `d` in `Ys`. The handoff unbinds both placeholders in `Old` and binds `New`'s corresponding placeholders to `c` and `d`; the channel identities are preserved.
 
-**Agreed atomicity contract:** A successful `InternalCall` is one indivisible semantic transition. All preconditions are statically checked before the applicable program version executes; a failed check is a static error and that program version is not admitted to execution. The transition exposes no partial handoff: `Q` becomes observable with all required bindings at the same point that `P` semantically terminates. There is no intermediate state in which `Q` exists with only some bindings or `P` remains alive after `Q` has been created. The runtime mechanism implementing this contract remains unverified. Pool association and selection are specified separately in [spawn-semantics, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing); implementation questions are collected in [Section 14](#14-open-questions-and-next-tests).
+**Agreed atomicity contract:** A successful `InternalCall` is one indivisible semantic transition. The transition exposes no partial handoff: `Q` becomes observable with all required bindings at the same point that `P` semantically terminates. There is no intermediate state in which `Q` exists with only some bindings or `P` remains alive after `Q` has been created. The runtime mechanism implementing this contract remains unverified. Pool association and selection are specified separately in [spawn-semantics, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing); implementation questions are collected in [Section 14](#14-open-questions-and-next-tests).
 
 **Implementation status:** the inspected dispatcher has no `InternalCall` execution branch; execution and type-checking are unverified. See Section 14 for the unresolved lifecycle and representation questions.
 
