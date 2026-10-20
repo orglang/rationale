@@ -1,48 +1,54 @@
 ---
 name: semantic-spec
-description: Facilitate iterative, user-guided development of a technical specification by identifying consequential semantic decisions, resolving ambiguity, updating the canonical document, and repeating. Use when a user is defining or revising system behavior, domain rules, protocols, requirements, or technical semantics—not for routine proofreading or documentation-only edits.
+description: Guide iterative, user-led specification of system behavior, domain rules, protocols, requirements, and technical semantics by resolving consequential decisions and updating the canonical document. Do not use for routine proofreading or documentation-only edits.
 ---
 
 # Specification workflow
 
-Use this workflow to make an incomplete behavior model precise enough to review. Activate it when the task matches the description above or the user explicitly asks for it; repository-wide instructions alone do not activate it.
+Activate this workflow when the task matches the description or the user explicitly asks for it; repository instructions alone do not activate it.
 
-Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for documentation quality criteria and [`SEMANTIC-RULES.md`](SEMANTIC-RULES.md) for questions that may reveal missing behavior.
+Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for documentation quality and [`SEMANTIC-RULES.md`](SEMANTIC-RULES.md) for behavior questions.
 
 ## Steps
 
-1. **Read the context.** Read the target document and relevant sources. Identify the canonical location for the behavior and any existing decisions or conflicts; reuse repository instructions and documentation standards already consulted rather than rereading them.
-2. **Choose a consequential question.** Look for unresolved choices that could change behavior, constraints, ownership, ordering, error handling, or compatibility. Usually ask one focused question at a time; combine independent questions when helpful and offer options when they clarify trade-offs.
-3. **Resolve uncertainty.** Ask a focused follow-up rather than guessing. If the user defers a decision, record it as an open question and continue with independent work. If an answer conflicts with an earlier decision or source, explain the conflict and ask how to resolve it.
-4. **Update the canonical specification.** Record agreed decisions and open questions in the section that owns the concept. Update examples, summaries, and tables when they become inaccurate or during a consistency review. Do not append a conversation transcript or duplicate a definition. Editing a file, recording a decision, and committing changes are separate actions; report each accurately. Commit related changes together when they form a coherent unit, at a useful milestone, or when requested. Review the diff and remove unrelated edits before committing.
-5. **Check the consequences.** Check relevant items in [`SEMANTIC-RULES.md`](SEMANTIC-RULES.md). Look for contradictions, missing dependencies, and consequential edge cases. Distinguish behavior that does not apply from behavior that remains undefined. Keep implementation observations, published claims, and intended behavior distinct.
-6. **Continue or wrap up.** Repeat with the next consequential question until the user stops or the specification is ready for review. Summarize decisions captured, open questions and their impact, and remaining validation work.
+1. **Read context.** Inspect the target and relevant sources. Identify existing decisions, conflicts, and the canonical location for each concept. Reuse instructions already consulted.
+2. **Find a consequential question.** Prioritize uncertainty that could change behavior, constraints, ownership, ordering, errors, or compatibility. Usually ask one focused question at a time; combine independent questions when useful.
+3. **Resolve uncertainty.** Ask rather than guess when interpretations materially differ. If the user defers, record an open question and continue independent work. If an answer conflicts with an earlier decision or source, explain the conflict and ask how to resolve it.
+4. **Update the specification.** Record decisions and open questions in the section that owns the concept. Correct affected examples, summaries, and tables; do not append conversation transcripts or duplicate definitions. Keep edits, decisions, and commits distinct; follow [Commit discipline](#commit-discipline).
+5. **Check consequences.** Use [`SEMANTIC-RULES.md`](SEMANTIC-RULES.md) as a selective checklist. Look for contradictions, missing dependencies, and consequential edge cases. Distinguish inapplicable behavior from undefined behavior, and intended semantics from published claims or implementation evidence.
+6. **Continue or wrap up.** Repeat until the user stops or the specification is ready for review. Summarize captured decisions, consequential open questions and their impact, and remaining validation.
 
 ## Interaction rules
 
-- Prioritize decisions that change behavior over wording or minor details.
-- Do not reopen an agreed decision unless new evidence reveals a meaningful conflict.
-- State assumptions clearly. Ask before relying on an assumption that could materially change the design.
-- Keep open questions visible, but continue with work that does not depend on them.
-- Use the existing document structure, terminology, status labels, and section ownership. Do not create parallel standards or taxonomies.
-- When reporting a commit, include its GitHub URL or a descriptive Markdown link, not just its hash. Link each relevant commit.
+- Prioritize behavioral decisions over wording; do not reopen agreed decisions without meaningful new evidence.
+- State assumptions and ask before relying on one that could materially change the design.
+- Keep open questions visible while continuing independent work.
+- Preserve existing structure, terminology, status labels, and section ownership; do not create parallel standards or taxonomies.
+- In progress updates, distinguish **decisions accepted**, **edits pending**, **changes committed**, and **validation performed**. Claim a commit or passing check only when confirmed by tool results.
+- When reporting a commit, link to it rather than giving only its hash.
 
 ## Efficiency and decision discipline
 
-- **Derive before asking.** Apply consequences of agreed decisions and established rules by analogy where their scope permits. Ask only when materially different interpretations remain.
-- **Separate semantics from implementation evidence.** Track unresolved language behavior separately from unverified implementation behavior. Missing code or tests do not make an agreed semantic contract undecided.
-- **Use a minimal research plan.** Read required instructions and canonical sources first. Search related files in batches around explicit hypotheses; repeat searches only when new evidence warrants them.
-- **Report at decision boundaries.** Summarize decisions, changes, verification, and remaining questions at meaningful milestones; avoid repeating unchanged findings.
-- **Prefer the smallest sufficient process.** Do not add checklists or documents when existing guidance covers the need. Match validation effort to the change and automate mechanical checks where practical.
+- **Derive before asking:** apply agreed rules by analogy where their scope permits; ask only when materially different interpretations remain.
+- **Separate semantics from evidence:** missing code or tests do not make an agreed semantic contract undecided. Mark unverified implementation behavior separately.
+- **Research in batches:** read required instructions and canonical sources first; search related files around explicit hypotheses and repeat only when new evidence warrants it.
+- **Report at decision boundaries:** summarize changes, verification, and remaining questions at meaningful milestones without repeating unchanged findings.
+- **Use the smallest sufficient process:** avoid redundant checklists and documents; match validation effort to the change and automate mechanical checks where practical.
+
+## Commit discipline
+
+- Keep accepted decisions and required edits in the working tree while pursuing independent specification work; do not commit after every answer.
+- Commit when a coherent semantic block is complete, the user requests it, or substantial uncommitted work is at risk of being lost. A milestone alone is insufficient.
+- Before committing, review the full accumulated diff for that block, check canonical ownership and cross-references, remove unrelated edits, and ensure changes follow accepted decisions or correct inconsistencies without changing agreed semantics.
+- Prefer one coherent commit per semantic block. Do not rewrite existing history solely to reduce commit count.
 
 ## Ready for review
 
-The specification is ready for review when:
-- Its goal and scope are clear.
-- Important behavior and constraints can be checked against examples, tests, or acceptance criteria.
-- Known conflicts are resolved or explicitly recorded.
-- Open questions that could change the design remain visible, along with their impact.
-- Definitions and links are consistent, with a clear canonical location for each concept.
-- Remaining evidence gathering or implementation validation is distinguished from semantic decisions.
+The specification is ready when:
+- Goal and scope are clear.
+- Important behavior can be checked against examples, tests, or acceptance criteria.
+- Conflicts are resolved or recorded; consequential open questions and their impact remain visible.
+- Definitions and links are consistent, with one canonical location per concept.
+- Remaining evidence gathering and implementation validation are distinguished from semantic decisions.
 
-If any criterion is unmet, state what remains and why instead of claiming the work is finished.
+If a criterion is unmet, state what remains and why; do not claim completion.
