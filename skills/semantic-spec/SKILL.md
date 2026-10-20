@@ -1,41 +1,40 @@
 ---
 name: semantic-spec
-description: Facilitate iterative, user-guided development of a technical specification by choosing the next consequential semantic decision, resolving ambiguity, updating the canonical document, and repeating. Use when a user is defining or revising system behavior, domain rules, protocols, requirements, or technical semantics—not for routine proofreading or documentation-only edits.
+description: Facilitate iterative, user-guided development of a technical specification by identifying consequential semantic decisions, resolving ambiguity, updating the canonical document, and repeating. Use when a user is defining or revising system behavior, domain rules, protocols, requirements, or technical semantics—not for routine proofreading or documentation-only edits.
 ---
 
-# Semantic Spec
+# Specification workflow
 
-Use this workflow to turn an incomplete model into a reviewable specification. The skill defines the collaboration loop; repository documentation standards define the quality bar for the resulting text.
+Use this workflow to make an incomplete behavior model precise enough to review. It is activated explicitly; repository-wide instructions do not activate it automatically.
 
-## Workflow
+Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for documentation quality criteria and [`SEMANTIC-RULES.md`](SEMANTIC-RULES.md) for questions that may reveal missing behavior.
 
-1. **Load project rules and context.** Read the repository's agent instructions and documentation standards first (in this repository: `AGENTS.md` and `CODING_STANDARDS.md`). Inspect the target document, its directory, canonical concept owners, and relevant cross-references. Preserve established decisions and document boundaries.
-2. **Find the next consequential decision.** Identify unresolved choices that affect observable behavior, invariants, scope, ownership, ordering, failure handling, or compatibility. Ask one focused question about the highest-impact choice. Offer options only when they clarify real alternatives.
-3. **Resolve the answer.** If the answer is ambiguous, ask a targeted follow-up rather than guessing. If the user defers the decision, keep it open and continue with independent work. If it conflicts with an earlier decision or source, surface the conflict and ask which authority should resolve it.
-4. **Accumulate and update the canonical document.** Track settled decisions and deferred questions during the discussion. Commit changes when a coherent semantic block is complete. Also commit at the user's request, at a substantial milestone, or when a commit helps preserve important work. Edit the section that owns each concept first. Treat examples, summaries, and tables as derived representations: update them only when they become incorrect or during a deliberate consistency review, not automatically after every decision. Before committing, inspect the diff and ensure every changed location is required by a settled decision or needed to remove a contradiction; remove unrelated edits. Never append a conversation transcript or duplicate the canonical definition.
-5. **Check semantic consequences.** Verify that the answer fits the existing model and does not introduce contradictions, undefined dependencies, or unhandled boundary behavior. Consult [SEMANTIC-RULES.md](SEMANTIC-RULES.md) for the relevant modeling checklist. Apply the repository's documentation standards for evidence, terminology, structure, and review.
-6. **Repeat or conclude.** Continue with one question at a time until the user stops or the completion criteria below are met. On conclusion, summarize decisions captured, unresolved questions and their impact, and any remaining validation work.
+## Steps
+
+1. **Read the context.** Start with `AGENTS.md` and `DOCUMENTATION_STANDARDS.md`. Read the target document and relevant sources. Identify the canonical location for the behavior and any existing decisions or conflicts.
+2. **Choose a consequential question.** Look for unresolved choices that could change behavior, constraints, ownership, ordering, error handling, or compatibility. Usually ask one focused question at a time; combine independent questions when helpful and offer options when they clarify trade-offs.
+3. **Resolve uncertainty.** Ask a focused follow-up rather than guessing. If the user defers a decision, record it as an open question and continue with independent work. If an answer conflicts with an earlier decision or source, explain the conflict and ask how to resolve it.
+4. **Update the canonical specification.** Record agreed decisions and open questions in the section that owns the concept. Update examples, summaries, and tables when they become inaccurate or during a consistency review. Do not append a conversation transcript or duplicate a definition. Editing a file, recording a decision, and committing changes are separate actions; report each accurately. Commit related changes together when they form a coherent unit, at a useful milestone, or when requested. Review the diff and remove unrelated edits before committing.
+5. **Check the consequences.** Check relevant items in [`SEMANTIC-RULES.md`](SEMANTIC-RULES.md). Look for contradictions, missing dependencies, and consequential edge cases. Distinguish behavior that does not apply from behavior that remains undefined. Keep implementation observations, published claims, and intended behavior distinct.
+6. **Continue or wrap up.** Repeat with the next consequential question until the user stops or the specification is ready for review. Summarize decisions captured, open questions and their impact, and remaining validation work.
 
 ## Interaction rules
 
-- Prioritize decisions that change system behavior over wording or low-impact details.
-- Do not ask again about a settled decision unless new evidence creates a meaningful conflict.
-- Make assumptions explicit and reversible; ask before relying on an assumption that could materially change the design.
-- Keep deferred questions visible without blocking unrelated progress.
-- **Batch commits, not decisions.** Continue asking one focused question at a time, but group resulting edits into coherent commits. Follow `CODING_STANDARDS.md` for the final documentation review. Do not rewrite existing history merely to reduce commit count.
-- **Link commits in user-facing updates.** When reporting a commit, provide its full GitHub URL (or a Markdown link with a clear label), not only its hash. If multiple commits are relevant, link each one; a short hash may accompany a link but must not replace it.
-- Treat implementation observations, publication claims, and intended language behavior according to the repository's evidence policy; do not infer normative semantics from code structure alone.
-- Use the existing document structure, terminology, status vocabulary, and ownership boundaries. Do not create a new parallel standard or status taxonomy.
+- Prioritize decisions that change behavior over wording or minor details.
+- Do not reopen an agreed decision unless new evidence reveals a meaningful conflict.
+- State assumptions clearly. Ask before relying on an assumption that could materially change the design.
+- Keep open questions visible, but continue with work that does not depend on them.
+- Use the existing document structure, terminology, status labels, and section ownership. Do not create parallel standards or taxonomies.
+- When reporting a commit, include its GitHub URL or a descriptive Markdown link, not just its hash. Link each relevant commit.
 
-## Completion criteria
+## Ready for review
 
 The specification is ready for review when:
-
-- The goal and scope of the behavior being specified are clear.
-- Consequential behavior and constraints are described precisely enough to review against examples, tests, or acceptance criteria.
+- Its goal and scope are clear.
+- Important behavior and constraints can be checked against examples, tests, or acceptance criteria.
 - Known conflicts are resolved or explicitly recorded.
-- Open questions that could change the design remain visible with their impact.
-- Canonical definitions and cross-references are consistent with the repository's document ownership.
-- Remaining evidence or implementation validation is clearly distinguished from semantic decisions.
+- Open questions that could change the design remain visible, along with their impact.
+- Definitions and links are consistent, with a clear canonical location for each concept.
+- Remaining evidence gathering or implementation validation is distinguished from semantic decisions.
 
-Do not claim completion while a criterion is unmet; state what remains and why.
+If any criterion is unmet, state what remains and why instead of claiming the work is finished.
