@@ -260,7 +260,7 @@ The handoff preserves channel identities and changes only placeholder bindings. 
 
 **Mini-example (schematic, not OrgLang syntax):** suppose process `Old` has provider placeholder `x` bound to channel `c`, and client placeholder `y` bound to channel `d`. `Old` performs `InternalCall` to process `New`, passing `c` as `X` and `d` in `Ys`. The handoff unbinds both placeholders in `Old` and binds `New`'s corresponding placeholders to `c` and `d`; the channel identities are preserved.
 
-**Agreed atomicity contract:** A successful `InternalCall` is one indivisible semantic transition. The transition exposes no partial handoff: `Q` becomes observable with all required bindings at the same point that `P` semantically terminates. There is no intermediate state in which `Q` exists with only some bindings or `P` remains alive after `Q` has been created. The runtime mechanism implementing this contract remains unverified. Pool association and selection are specified separately in [spawn-semantics, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing); implementation questions are collected in [Section 14](#14-open-questions-and-next-tests).
+The atomicity and failure contract is stated precisely below. Pool association and selection are specified separately in [spawn-semantics, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing); implementation questions are collected in [Section 14](#14-open-questions-and-next-tests).
 
 **Atomicity boundary and failure behavior (intended contract):**
 
