@@ -195,12 +195,14 @@ Both named-process call forms resolve a target process and associate its declare
 
 **Agreed project contract:** This section records the intended OrgLang contract agreed for this research. Correspondence with a published language specification and conformance with the current implementation are tracked separately.
 
+**Static validation (agreed project contract):** All `ExternalCall` preconditions that are statically decidable are checked before the applicable program version is admitted to execution. A channel/type mismatch or invalid positional mapping is a static error; the version is not admitted to execution. OrgLang programs may be further defined at runtime; when this happens, the new fragment is checked against its expected type at definition time. That fragment-level check does not replace checking `ExternalCall` preconditions in the context of the whole resulting program. This is an intended language-level contract; conformance by the current implementation remains unverified.
+
 **Intended transition:**
 
 1. Resolve the named process and determine the mapping from each formal client-channel parameter to the corresponding existing channel supplied by the call.
-2. Check that each supplied channel's current session type is compatible with the type required by its formal parameter, accounting for the caller's and parameter's roles.
-3. Check that the new incarnation's provider-oriented session type is compatible with the type assigned to the caller's channel placeholder, accounting for the caller's client role. The exact compatibility rules remain to be formalized.
-4. After the checks succeed, create a fresh incarnation with its own execution state and initialize its channel environment using the validated mapping. Formal parameter names are local to that incarnation; the mapping associates them with existing channel identities.
+2. Statically check that each supplied channel's session type is compatible with the type required by its formal parameter, accounting for the caller's and parameter's roles. The exact compatibility rules remain to be formalized.
+3. Statically check that the new incarnation's provider-oriented session type is compatible with the type assigned to the caller's channel placeholder, accounting for the caller's client role. The exact compatibility rules remain to be formalized.
+4. After static validation succeeds and the version is admitted to execution, create a fresh incarnation with its own execution state and initialize its channel environment using the validated mapping. Formal parameter names are local to that incarnation; the mapping associates them with existing channel identities.
 5. Create a separate fresh provider channel connecting the new incarnation to the caller.
 
 **After (intended):** the caller's continuation becomes eligible when it receives the fresh provider channel through the designated placeholder. The caller then uses the client endpoint according to that channel's protocol. The mapped channels retain their identities and protocol states, while their use transfers to the new incarnation; the fresh provider channel is distinct from them. General linearity and process-completion constraints from Section 2 still apply.
@@ -254,7 +256,7 @@ Process invocation and incarnation creation are distinct from the pool mechanism
 
 | Operation | Primary role | Intended control-flow effect | Intended channel effect | Semantic/evidential status | Implementation status |
 |---|---|---|---|---|
-| `ExternalCall` | Create and invoke a named-process incarnation with a fresh provider channel. | The caller's continuation becomes eligible only after it receives that channel. | Explicit parameter mapping; a fresh provider channel is delivered outward to the caller. | Agreed intended contract; implementation mapping remains open. | Unverified; no executor branch found. |
+| `ExternalCall` | Create and invoke a named-process incarnation with a fresh provider channel. | The caller's continuation becomes eligible only after it receives that channel. | Explicit parameter mapping; a fresh provider channel is delivered outward to the caller. | Agreed contract includes static validation before a program version is admitted to execution; implementation mapping remains open. | Unverified; no executor branch found. |
 | `InternalCall` | Create a named-process incarnation and transfer its channels. | The new incarnation starts at the beginning of its definition; the old incarnation semantically terminates. | All channels bound to the old incarnation are rebound to the new incarnation's typed placeholders, preserving channel identities. | Agreed intended contract; runtime representation open. | Unverified; no complete executor path found. |
 | `Fwd` | Connect two existing channel interactions. | No named-process incarnation or named-process continuation transfer is implied. | Relates existing endpoints; no global renaming is implied. | Intended rule open beyond the documented example. | Partial; full symmetric behavior not established. |
 
@@ -473,7 +475,7 @@ A formal reduction rule should be added after the relevant typing, executor, ada
 The list is ordered by investigation priority.
 
 1. **ExternalCall implementation conformance:** The intended contract is that the caller continuation proceeds only after the provider channel is received. Does the implementation enforce this, and which tests verify that it cannot proceed merely because the new incarnation has started?
-2. **ExternalCall / AST mapping:** What is the exact argument syntax for mapping formal parameters to existing, distinct channels, and how does the engine's injection of the separate communication channel into the caller-named placeholder map to `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH`? Where are name resolution, recursion checks, and type checks enforced?
+2. **ExternalCall / AST mapping and validation evidence:** What is the exact argument syntax for mapping formal parameters to existing, distinct channels, and how does the engine's injection of the separate communication channel into the caller-named placeholder map to `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH`? Where are name resolution, recursion checks, and the agreed static type/positional checks implemented, and what tests verify them?
 3. **InternalCall implementation conformance:** How does the implementation map channel identities in `X` / `Ys` to the target's typed placeholders, and how is the old incarnation's semantic termination represented at runtime? What tests can establish that a successful handoff binds all channels to a fresh `Q` and terminates `P` atomically, with no partial state observable?
 4. **Fwd:** What are the exact transition rules for positive, negative, and neutral polarity, including pending turns and continuation state?
 5. **Representation and execution:** Are the conversion asymmetries in Section 12 reachable, and what focused tests establish their impact? Check the relevant adapter, executor, and scheduling paths together.
