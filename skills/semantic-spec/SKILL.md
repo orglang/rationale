@@ -5,7 +5,7 @@ description: Facilitate iterative, user-guided development of a technical specif
 
 # Specification workflow
 
-Use this workflow to make an incomplete behavior model precise enough to review. It is activated explicitly; repository-wide instructions do not activate it automatically.
+Use this workflow to make an incomplete behavior model precise enough to review. Activate it when the task matches the description above or the user explicitly asks for it; repository-wide instructions alone do not activate it.
 
 Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for documentation quality criteria and [`SEMANTIC-RULES.md`](SEMANTIC-RULES.md) for questions that may reveal missing behavior.
 
