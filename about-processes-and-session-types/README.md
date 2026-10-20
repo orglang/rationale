@@ -331,7 +331,7 @@ The publication also gives the following forwarding rules. For clarity, the mode
     proc(d⁺ ← c⁺) → !⁺msg(d⁺, c⁺)   id: forward+
     proc(d⁻ ← c⁻) → !⁻srv(d⁻, c⁻)   id: forward−
 
-The publication's `msg` action is tentatively aligned here with OrgLang's `pub` (publish/send a message), and `srv` with `sub` (subscribe/wait to receive or serve). These mappings are provisional; available evidence has not established synonymy. In the inspected implementation, `PubRec` stores a `ValExp` (publication/message action) and `SubRec` stores a `ContExp` (subscription/service continuation). The `Fwd` executor examines channel polarity and pending communication turns, redirecting the relevant turn; if none is pending, it records a publication or subscription turn carrying a forwarding record. Some source branches still contain TODOs, so this is not a complete correctness proof.
+The proposed correspondences between publication terms `msg` / `srv` and OrgLang terms `pub` / `sub` are recorded in the terminology table in Section 2; they remain provisional, not established synonyms. In the inspected implementation, `PubRec` stores a `ValExp` (publication/message action) and `SubRec` stores a `ContExp` (subscription/service continuation). The `Fwd` executor examines channel polarity and pending communication turns, redirecting the relevant turn; if none is pending, it records a publication or subscription turn carrying a forwarding record. Some source branches still contain TODOs, so this is not a complete correctness proof.
 
 ### Reading the publication's forwarding example
 
