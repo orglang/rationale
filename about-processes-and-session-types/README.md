@@ -203,21 +203,28 @@ Both named-process call forms resolve a target process and associate its declare
 
 **Agreed project contract:** This section records the intended OrgLang contract agreed for this research. Correspondence with a published language specification and conformance with the current implementation are tracked separately.
 
-**Static validation:** The shared validation and execution-admission rule in [Section 4](#4-process-declarations-and-definitions) applies. For `ExternalCall`, channel/type mismatches and invalid positional mappings are static errors. The implementation's conformance remains unverified.
+**Preconditions (agreed project contract):**
+
+- The target process definition is available, and a fresh incarnation can be created.
+- Each supplied client channel matches the type and position of the target's corresponding client placeholder.
+- Distinct formal client parameters map to pairwise distinct existing channel identities.
+- The caller's designated placeholder for the new provider channel has a type compatible with the target process's provider protocol, accounting for the caller's client role.
+- The new provider channel is fresh and distinct from every existing channel, including the client channels supplied to the target.
+
+**Static validation:** The shared validation and execution-admission rule in [Section 4](#4-process-declarations-and-definitions) applies. A channel/type mismatch, repeated channel identity, or invalid positional mapping is a static error. The implementation's conformance remains unverified.
 
 **Intended transition:**
 
-1. Resolve the named process and determine the mapping from each formal client-channel parameter to the corresponding existing channel supplied by the call.
-2. Statically check that each supplied channel's session type is compatible with the type required by its formal parameter, accounting for the caller's and parameter's roles. The exact compatibility rules remain to be formalized.
-3. Statically check that the new incarnation's provider-oriented session type is compatible with the type assigned to the caller's channel placeholder, accounting for the caller's client role. The exact compatibility rules remain to be formalized.
-4. After static validation succeeds and the version is admitted to execution, create a fresh incarnation with its own execution state and initialize its channel environment using the validated mapping. Formal parameter names are local to that incarnation; the mapping associates them with existing channel identities.
-5. Create a separate fresh provider channel connecting the new incarnation to the caller.
+1. Resolve the named process and map each formal client-channel parameter to the corresponding existing channel supplied by the call, in declaration order.
+2. Statically check the preconditions above, including session-type compatibility at both the target's client parameters and the caller's client-role placeholder for the new provider channel. The precise compatibility relation remains to be formalized.
+3. After static validation succeeds and the version is admitted to execution, initiate the call. While service is pending, the supplied channels are held for the target and their protocol states remain unchanged.
+4. On successful service, create a fresh incarnation with its own execution state, bind its client placeholders to the supplied channel identities, and create a separate fresh provider channel for the target's provider placeholder and the caller's designated placeholder.
 
-**After (intended):** the caller's continuation becomes eligible when it receives the fresh provider channel through the designated placeholder. The caller then uses the client endpoint according to that channel's protocol. The mapped channels retain their identities and protocol states, while their use transfers to the new incarnation; the fresh provider channel is distinct from them. General linearity and process-completion constraints from Section 2 still apply.
+**After (intended):** the supplied client-channel identities and protocol states are preserved, but their use transfers to the new incarnation; the caller's continuation must not retain or use those same channel identities. The caller may retain channels not supplied to the call. Its continuation becomes eligible when it receives the fresh provider channel through the designated placeholder, and then uses that channel's client endpoint according to its protocol. The fresh provider channel is distinct from all supplied channels. General linearity and process-completion constraints from Section 2 still apply.
 
-**Lifecycle and implementation status:** the operation passes through initiated, pending, and serviced stages. While pending, mapped channels are held for the new incarnation and their protocol state remains unchanged. Every successful service creates a fresh incarnation. After service, caller and callee may execute in either order or interleave, subject to protocol and linearity constraints. The caller's continuation depends on receipt of the provider channel, not on callee termination.
+**Lifecycle and implementation status:** the operation passes through initiated, pending, and serviced stages. While pending, mapped channels are held for the new incarnation. Every successful service creates a fresh incarnation. After service, caller and callee may execute in either order or interleave, subject to protocol and linearity constraints. The caller's continuation depends on receipt of the provider channel, not on callee termination.
 
-The inspected executor has no `ExternalCall` branch. The exact mapping among `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH` remains open. See [issue #85: Call versus internal spawning](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290893).
+The inspected executor has no `ExternalCall` branch. The exact AST/runtime mapping among `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH` remains open; this is an implementation-mapping question, not an unresolved choice about the intended positional channel contract. See [issue #85: Call versus internal spawning](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290893).
 
 ### `InternalCall`
 
@@ -483,7 +490,7 @@ A formal reduction rule should be added after the relevant typing, executor, ada
 The list is ordered by investigation priority.
 
 1. **ExternalCall implementation conformance:** The intended contract is that the caller continuation proceeds only after the provider channel is received. Does the implementation enforce this, and which tests verify that it cannot proceed merely because the new incarnation has started?
-2. **ExternalCall / AST mapping and validation evidence:** What is the exact argument syntax for mapping formal parameters to existing, distinct channels, and how does the engine's injection of the separate communication channel into the caller-named placeholder map to `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH`? Where are name resolution, recursion checks, and the agreed static type/positional checks implemented, and what tests verify them?
+2. **ExternalCall implementation mapping and validation evidence:** How do the AST fields `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH` implement the agreed positional mapping of distinct existing client channels and the separate fresh provider channel? Where are name resolution, recursion checks, and the agreed static type/positional/linearity checks implemented, and what tests verify them?
 3. **InternalCall implementation conformance:** How does the implementation map channel identities in `X` / `Ys` to the target's typed placeholders, and how is the old incarnation's semantic termination represented at runtime? What tests can establish that a successful handoff binds all channels to a fresh `Q` and terminates `P` atomically, with no partial state observable?
 4. **Fwd:** What are the exact transition rules for positive, negative, and neutral polarity, including pending turns and continuation state?
 5. **Representation and execution:** Are the conversion asymmetries in Section 12 reachable, and what focused tests establish their impact? Check the relevant adapter, executor, and scheduling paths together.
