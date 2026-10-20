@@ -213,16 +213,18 @@ The inspected executor has no `ExternalCall` branch. The exact mapping among `Co
 
 **Before:** the invoking process provides a service on an existing channel (AST field `X`). The target process also receives a list of channels it will use as a client (AST field `Ys`). The terms *provider channel* and *client channels* describe the channel roles relative to the process being discussed. Both refer to the same underlying kind of channel resource. The role descriptions are explanatory labels. Runtime field resolution is documented separately in the implementation analysis.
 
-**Preconditions (agreed project contract unless otherwise noted):**
+**Preconditions (agreed project contract):**
 
-- The target process definition is available and a fresh incarnation can be created.
-- Each channel placeholder has a fixed type, and each supplied channel has exactly the type required by its corresponding target placeholder; the exact compatibility and rejection rules remain to be formalized.
-- The supplied channel identities satisfy the intended linearity requirement and are distinct, including no overlap between `X` and `Ys`.
+- The target process definition is available, and a fresh incarnation can be created.
+- The supplied channels match the types and positions of the target's corresponding placeholders.
+- The supplied channel identities are pairwise distinct, including no overlap between `X` and `Ys`.
 - `X` and `Ys` account for **all channels bound in the invoking incarnation `P`**. No channel may be retained by `P` after the call.
+
+**Static validation:** All `InternalCall` preconditions are checked statically before the applicable program version is allowed to execute. A channel/type or positional mismatch is a static error, so that program version is not admitted to execution. OrgLang programs may be further defined at runtime; when this happens, the new fragment is checked against its expected type at definition time. That fragment-level type check does not replace checking `InternalCall` preconditions in the context of the whole resulting program.
 
 **Agreed channel-transfer and lifecycle decision:**
 
-1. Create a fresh incarnation `Q` of the named process, ready to execute from the start of its definition.
+1. Create a fresh incarnation `Q` of the named process, ready to execute from the start of its definition. `Q` has an identity never assigned to any previously created incarnation; identities are not reused after termination.
 2. Bind `Q`'s provider placeholder to the existing channel `X`.
 3. Bind `Q`'s client placeholders to the channels in `Ys`, pairing them positionally in list order.
 4. Remove from `P` the bindings for `X` and every channel in `Ys`, then bind `Q`'s placeholders to those same channel identities.
@@ -232,7 +234,7 @@ The handoff preserves channel identities and changes only placeholder bindings. 
 
 **Mini-example (schematic, not OrgLang syntax):** suppose process `Old` has provider placeholder `x` bound to channel `c`, and client placeholder `y` bound to channel `d`. `Old` performs `InternalCall` to process `New`, passing `c` as `X` and `d` in `Ys`. The handoff unbinds both placeholders in `Old` and binds `New`'s corresponding placeholders to `c` and `d`; the channel identities are preserved.
 
-**Agreed atomicity contract:** `InternalCall` is one indivisible semantic transition. All preconditions and channel/interface checks must succeed before any process or channel-binding state changes. If validation rejects the call, the operation has no effects: `P` remains in its original state and `Q` is not created. On success, `Q` becomes observable with all required bindings in place at the same transition in which `P` semantically terminates; no intermediate partial handoff is observable. The runtime mechanism implementing this contract remains unverified. The precise classification of failures (including static type errors versus runtime rejection) remains open. Pool association and selection are specified separately in [spawn-semantics, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing); open lifecycle questions are collected in [Section 7](../about-spawn/README.md#6-open-questions-and-deferred-topics).
+**Agreed atomicity contract:** A successful `InternalCall` is one indivisible semantic transition. All preconditions are statically checked before the applicable program version executes; a failed check is a static error and that program version is not admitted to execution. The transition exposes no partial handoff: `Q` becomes observable with all required bindings at the same point that `P` semantically terminates. There is no intermediate state in which `Q` exists with only some bindings or `P` remains alive after `Q` has been created. The runtime mechanism implementing this contract remains unverified. Pool association and selection are specified separately in [spawn-semantics, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing); implementation questions are collected in [Section 14](#14-open-questions-and-next-tests).
 
 **Implementation status:** the inspected dispatcher has no `InternalCall` execution branch; execution and type-checking are unverified. See Section 14 for the unresolved lifecycle and representation questions.
 
@@ -472,7 +474,7 @@ The list is ordered by investigation priority.
 
 1. **ExternalCall implementation conformance:** The intended contract is that the caller continuation proceeds only after the provider channel is received. Does the implementation enforce this, and which tests verify that it cannot proceed merely because the new incarnation has started?
 2. **ExternalCall / AST mapping:** What is the exact argument syntax for mapping formal parameters to existing, distinct channels, and how does the engine's injection of the separate communication channel into the caller-named placeholder map to `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH`? Where are name resolution, recursion checks, and type checks enforced?
-3. **InternalCall representation, validation, and lifecycle:** How does the implementation map the channel identities in `X` / `Ys` to the target's typed placeholders, and how is the old incarnation's semantic termination represented at runtime? What checks enforce the target-interface correspondence and distinctness of supplied channels before any state change? Which failures are static type errors versus runtime rejections, and how can tests establish that a rejected call leaves `P` unchanged and does not create `Q`?
+3. **InternalCall implementation conformance:** How does the implementation map channel identities in `X` / `Ys` to the target's typed placeholders, and how is the old incarnation's semantic termination represented at runtime? What tests can establish that a successful handoff binds all channels to a fresh `Q` and terminates `P` atomically, with no partial state observable?
 4. **Fwd:** What are the exact transition rules for positive, negative, and neutral polarity, including pending turns and continuation state?
 5. **Representation and execution:** Are the conversion asymmetries in Section 12 reachable, and what focused tests establish their impact? Check the relevant adapter, executor, and scheduling paths together.
 6. **Type constructors and checker coverage:** Are type-level `Link`, `Up`, and `Down` resolved before the observed checker cases? What tests establish the intended coverage?
