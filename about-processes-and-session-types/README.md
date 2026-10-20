@@ -318,7 +318,7 @@ The supplied publication gives the named-process call rule:
 
 when the definition x ← p y = P is present in the definition environment. Here `p` names the definition, and the rule substitutes actual channel names for the corresponding formal names.
 
-Table 4.2 likewise describes `a ← p b` as a call to named process `p`, which may communicate along channels `a` and `b`. This supports the reading of the construct as named-process invocation and channel substitution. The full OrgLang `ExternalCall` transition, including caller continuation through `ContExp`, is specified in Section 7; the publication rule is comparative context.
+Table 4.2 likewise describes `a ← p b` as a call to named process `p`, which may communicate along channels `a` and `b`. This supports the reading of the publication construct as named-process invocation with channel substitution. It does not, by itself, establish OrgLang's complete `ExternalCall` contract or the runtime meaning of `ContExp`; those are project-level intended semantics documented in Section 7, with implementation conformance tracked separately.
 
 Do not conflate named-process call with the separate cut/spawn rule `x ← P ; Q`. The latter has an inline process body `P`, a continuation `Q`, and explicitly allocates a fresh channel shared by the two resulting processes.
 
