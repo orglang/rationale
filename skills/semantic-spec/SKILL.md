@@ -30,10 +30,8 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 ## Efficiency and decision discipline
 
 - **Derive before asking.** Apply consequences of agreed decisions and established rules by analogy where their scope permits. Ask only when materially different interpretations remain.
-- **Do not reopen settled decisions without new evidence.** Record consequences and move on unless a concrete conflict or counterexample appears.
 - **Separate semantics from implementation evidence.** Track unresolved language behavior separately from unverified implementation behavior. Missing code or tests do not make an agreed semantic contract undecided.
 - **Use a minimal research plan.** Read required instructions and canonical sources first. Search related files in batches around explicit hypotheses; repeat searches only when new evidence warrants them.
-- **Batch related changes.** Commit at a meaningful milestone, not after each local edit. Review the complete diff and remove unrelated changes before committing.
 - **Report at decision boundaries.** Summarize decisions, changes, verification, and remaining questions at meaningful milestones; avoid repeating unchanged findings.
 - **Prefer the smallest sufficient process.** Do not add checklists or documents when existing guidance covers the need. Match validation effort to the change and automate mechanical checks where practical.
 
