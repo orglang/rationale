@@ -11,7 +11,7 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 
 ## Steps
 
-1. **Read the context.** Start with `AGENTS.md` and `DOCUMENTATION_STANDARDS.md`. Read the target document and relevant sources. Identify the canonical location for the behavior and any existing decisions or conflicts.
+1. **Read the context.** Read the target document and relevant sources. Identify the canonical location for the behavior and any existing decisions or conflicts; reuse repository instructions and documentation standards already consulted rather than rereading them.
 2. **Choose a consequential question.** Look for unresolved choices that could change behavior, constraints, ownership, ordering, error handling, or compatibility. Usually ask one focused question at a time; combine independent questions when helpful and offer options when they clarify trade-offs.
 3. **Resolve uncertainty.** Ask a focused follow-up rather than guessing. If the user defers a decision, record it as an open question and continue with independent work. If an answer conflicts with an earlier decision or source, explain the conflict and ask how to resolve it.
 4. **Update the canonical specification.** Record agreed decisions and open questions in the section that owns the concept. Update examples, summaries, and tables when they become inaccurate or during a consistency review. Do not append a conversation transcript or duplicate a definition. Editing a file, recording a decision, and committing changes are separate actions; report each accurately. Commit related changes together when they form a coherent unit, at a useful milestone, or when requested. Review the diff and remove unrelated edits before committing.
