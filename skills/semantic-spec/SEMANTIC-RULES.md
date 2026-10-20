@@ -1,6 +1,6 @@
 # Semantic modeling checklist
 
-This file defines prompts for analyzing behavior and semantic boundaries. It supplements the repository's documentation standards. For evidence labels, source attribution, terminology, canonical definitions, links, and final editorial review, follow the repository's `CODING_STANDARDS.md`; do not redefine those policies here. The `SKILL.md` workflow explains how to apply this checklist during a semantic-specification task.
+This file defines prompts for analyzing behavior and semantic boundaries. It supplements the repository's documentation standards. For evidence labels, source attribution, terminology, canonical definitions, links, and final editorial review, follow the repository's `DOCUMENTATION_STANDARDS.md`; do not redefine those policies here. The `SKILL.md` workflow explains how to apply this checklist during a semantic-specification task.
 
 Apply only the modeling prompts relevant to the concept being specified. This checklist is neither an exhaustive formal model nor a fixed document template.
 
