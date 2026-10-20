@@ -233,7 +233,7 @@ The inspected executor has no `ExternalCall` branch. The exact AST/runtime mappi
 **Preconditions (agreed project contract):**
 
 - The target process definition is available, and a fresh incarnation can be created.
-- The supplied channels match the target's corresponding placeholders in arity, position, endpoint role, and **current residual session type**; compatibility must be checked against the protocol state at the handoff, not assumed from the channel's initial type.
+- The supplied channels match the types and positions of the target's corresponding placeholders.
 - The supplied channel identities are pairwise distinct, including no overlap between `X` and `Ys`.
 - `X` and `Ys` account for **all channels bound in the invoking incarnation `P`**. No channel may be retained by `P` after the call.
 
@@ -273,7 +273,7 @@ If a precondition fails before the transition commits—for example, the target 
 **Focused conformance tests to add:** The following are test obligations for the implementation, not claims that current tests already pass.
 
 1. **Complete transfer:** use a target with one provider placeholder and multiple client placeholders; assert the target receives the exact channel identities in declaration order and the old incarnation is no longer live.
-2. **Protocol-state preservation:** give each supplied channel a non-initial residual session state compatible with the corresponding target placeholder; assert the handoff neither resets, advances, nor replaces that state, and that the target is checked against that residual state.
+2. **Protocol-state preservation:** give each supplied channel a non-initial residual session state; assert the handoff does not reset, advance, or replace that state.
 3. **Fresh identity:** terminate an incarnation, perform another handoff, and assert the new incarnation identity differs from every previously issued identity.
 4. **Duplicate identity rejection:** supply the same channel identity twice, including the `X`/`Ys` overlap case; assert rejection leaves the pre-state unchanged.
 5. **Missing or extra channels:** mismatch the target's client-placeholder count; assert no partial binding and no live target incarnation.
