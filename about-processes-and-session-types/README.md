@@ -86,7 +86,7 @@ OrgLang processes communicate through **channels**. A channel connects two roles
 
 A **session type** describes the allowed protocol from the provider endpoint's point of view. When checking the client endpoint, the type checker accounts for the client role and the complementary actions it permits. A **residual session type** is the remaining part of that protocol after prior interaction steps. The request/response example and the meaning of a **residual session type** are introduced in Section 3.
 
-**Linearity** is the channel usage/ownership discipline. **Intended linearity rule:** distinct formal channel parameters must map to distinct existing channel identities. The complete formal invariant and the implementation layer enforcing it remain to be established. More generally, **normal completion** of a process is permitted only when its channel protocols permit completion and all linear obligations have been discharged; the type checker rejects an attempted normal completion while a provider-channel protocol remains unfinished. This is distinct from `InternalCall`, whose agreed semantics terminate the old incarnation by atomically transferring its complete channel environment to a replacement incarnation. That handoff is not evidence that the transferred protocols are finished. The full linearity invariant and its application across constructs remain open; do not infer them solely from `InternalCall`.
+**Linearity** is the channel usage/ownership discipline. **Intended parameter-linearity rule:** distinct formal channel parameters supplied to a call must map to distinct existing channel identities. The broader invariant for process environments—including whether distinct bound placeholders may alias the same channel identity—and the implementation layer enforcing it remain to be established. A call's list of supplied identities covering the set of identities in an environment does not, by itself, rule out duplicate bindings within that environment. More generally, **normal completion** of a process is permitted only when its channel protocols permit completion and all linear obligations have been discharged; the type checker rejects an attempted normal completion while a provider-channel protocol remains unfinished. This is distinct from `InternalCall`, whose agreed semantics terminate the old incarnation by atomically transferring its complete channel environment to a replacement incarnation. That handoff is not evidence that the transferred protocols are finished. The full linearity invariant and its application across constructs remain open; do not infer them solely from `InternalCall`.
 
 ### Quick glossary
 
@@ -107,7 +107,7 @@ A **session type** describes the allowed protocol from the provider endpoint's p
 | Channel placeholder | A syntactic name intended to be associated with a channel; not the channel resource itself. |
 | Session type | The allowed channel protocol, described from the provider endpoint's point of view; type checking accounts for the client role. |
 | Residual session type | The part of that protocol still to be performed at the current point. |
-| Linearity | Channel usage/ownership discipline; distinct formal channel parameters must map to distinct existing channels, and process completion requires all linear obligations to be discharged. The full formal invariant remains to be written down. |
+| Linearity | Channel usage/ownership discipline; distinct formal parameters supplied to a call must map to distinct existing channel identities, and process completion requires all linear obligations to be discharged. Whether distinct environment bindings may alias remains open. |
 | Polarity | An implementation-level positive/negative/neutral classification used by the type checker; operational consequences are documented separately. |
 | Snapshot | An implementation concept that may relate to the publication's `configuration` and `environment`; the exact mapping remains open. |
 | Turn | The implementation uses turn-like records for pending communication/exchange state; their language-level status and precise semantics remain open. |
@@ -154,13 +154,21 @@ The arrows mean “then” and serve as explanatory notation for the sequence of
 
 Recall the recipe analogy from Section 2: a named process is like a recipe, and each run is an incarnation of that process. A **process declaration** describes the recipe's interface—the channels it expects, including one provider channel and any channels it uses as a client. A **process definition** supplies the implementation—the expression or process body that carries out the work. The distinction matters because the existence of a declaration alone leaves storage and loading of a usable body unverified. Go-specific names for these concepts are introduced in Part III.
 
-### Definition, static validation, and execution admission
+### Definition, validation, and execution admission
 
-**Agreed project contract:** A program version is admitted to execution only after its statically decidable well-formedness and type obligations have been checked. A mismatch in a statically checked obligation is a static error; the affected version is not admitted to execution.
+**Agreed project contract:** A program version is admitted to execution only after its statically decidable well-formedness and type obligations have been checked. A failed static obligation is a static error, and the affected version is not admitted.
 
-OrgLang programs may be further defined at runtime. When a new fragment is defined, it is checked against its expected type at definition time. This fragment-level check does not replace checking operation-specific preconditions in the context of the whole resulting program version before that version is admitted to execution.
+Keep three categories distinct in operation contracts:
 
-Each operation's contract specifies the preconditions that apply to it; this section defines the shared timing and admission rule, not the complete set of checks for every operation. This is the intended language-level contract recorded for this research. Whether and where the current implementation enforces it remains a separate implementation question.
+- **Static obligation:** a property decidable from the program version and its available typing/name information at the admission boundary. Examples include arity, positional correspondence, and type compatibility when the relevant definitions and channel identities are statically known.
+- **Runtime precondition:** a condition that depends on the current execution state or on a resource allocated during execution, such as whether a fresh incarnation can be created or whether a newly allocated identity is fresh.
+- **Transition invariant:** a property that must hold across a successful state transition, such as preserving channel identity and protocol state or preventing observers from seeing a partial handoff.
+
+A condition belongs to the static category only when it is decidable at the specified admission boundary. If a target definition is introduced dynamically, its availability can be checked statically for the resulting program version at the point that version is admitted; availability at some later execution point must not be assumed without a corresponding versioning rule. Likewise, allocating a fresh runtime resource is not itself a static check, even if freshness is a required runtime invariant.
+
+OrgLang programs may be further defined at runtime. A new fragment is checked against its expected type when it is defined. That fragment-level check does not replace checking the statically decidable obligations for the whole resulting program version before admission. Each operation's contract identifies its own static obligations, runtime preconditions, and transition invariants; this section defines the shared distinction rather than duplicating every operation-specific list.
+
+This is the intended language-level contract recorded for this research. Whether and where the current implementation enforces it remains a separate implementation question.
 
 ## 5. Process expressions: the main families
 
@@ -203,15 +211,15 @@ Both named-process call forms resolve a target process and associate its declare
 
 **Agreed project contract:** This section records the intended OrgLang contract agreed for this research. Correspondence with a published language specification and conformance with the current implementation are tracked separately.
 
-**Preconditions (agreed project contract):**
+**Static obligations and runtime preconditions:**
 
-- The target process definition is available, and a fresh incarnation can be created.
-- Each supplied client channel matches the type and position of the target's corresponding client placeholder.
-- Distinct formal client parameters map to pairwise distinct existing channel identities.
-- The caller's designated placeholder for the new provider channel has a type compatible with the target process's provider protocol, accounting for the caller's client role.
-- The new provider channel is fresh and distinct from every existing channel, including the client channels supplied to the target.
+- At the admission boundary, the target definition must be resolvable in the program version being checked.
+- Each supplied client channel must match the type and position of the target's corresponding client placeholder.
+- Distinct formal client parameters must map to pairwise distinct existing channel identities.
+- The caller's designated placeholder for the new provider channel must have a type compatible with the target process's provider protocol, accounting for the caller's client role.
+- At execution time, the operation must be able to create a fresh incarnation and allocate a provider-channel identity that is fresh and distinct from all existing channels, including the supplied client channels.
 
-**Static validation:** The shared validation and execution-admission rule in [Section 4](#4-process-declarations-and-definitions) applies. A channel/type mismatch, repeated channel identity, or invalid positional mapping is a static error. The implementation's conformance remains unverified.
+**Static validation:** The shared rule in [Section 4](#4-process-declarations-and-definitions) applies. A channel/type mismatch, repeated channel identity, or invalid positional mapping is a static error when decidable from the program version and its channel-identity information at admission. Runtime allocation and freshness are runtime requirements, not static checks. The implementation's conformance remains unverified.
 
 **Intended transition:**
 
@@ -222,7 +230,7 @@ Both named-process call forms resolve a target process and associate its declare
 
 **After (intended):** the supplied client-channel identities and protocol states are preserved, but their use transfers to the new incarnation; the caller's continuation must not retain or use those same channel identities. The caller may retain channels not supplied to the call. Its continuation becomes eligible when it receives the fresh provider channel through the designated placeholder, and then uses that channel's client endpoint according to its protocol. The fresh provider channel is distinct from all supplied channels. General linearity and process-completion constraints from Section 2 still apply.
 
-**Lifecycle and implementation status:** the operation passes through initiated, pending, and serviced stages. While pending, mapped channels are held for the new incarnation. Every successful service creates a fresh incarnation. After service, caller and callee may execute in either order or interleave, subject to protocol and linearity constraints. The caller's continuation depends on receipt of the provider channel, not on callee termination.
+**Lifecycle and implementation status:** the operation passes through initiated, pending, and serviced stages. While pending, the supplied client-channel bindings are reserved for the target in the intended semantics: the caller must not independently use those bindings while the call is pending, and their protocol states do not advance merely because the call was initiated. “Reserved” describes the semantic exclusion of competing use, not a required lock or storage mechanism. What happens to these bindings if service fails or the call is cancelled—including whether and how they are returned to the caller—remains unspecified. Every successful service creates a fresh incarnation. After service, caller and callee may execute in either order or interleave, subject to protocol and linearity constraints. The caller's continuation depends on receipt of the provider channel, not on callee termination.
 
 The inspected executor has no `ExternalCall` branch. The exact AST/runtime mapping among `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH` remains open; this is an implementation-mapping question, not an unresolved choice about the intended positional channel contract. See [issue #85: Call versus internal spawning](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290893).
 
@@ -230,18 +238,19 @@ The inspected executor has no `ExternalCall` branch. The exact AST/runtime mappi
 
 **Before:** the invoking process provides a service on an existing channel (AST field `X`). The target process also receives a list of channels it will use as a client (AST field `Ys`). The terms *provider channel* and *client channels* describe the channel roles relative to the process being discussed. Both refer to the same underlying kind of channel resource. The role descriptions are explanatory labels. Runtime field resolution is documented separately in the implementation analysis.
 
-**Preconditions (agreed project contract):**
+**Static obligations and runtime preconditions:**
 
-- The target process definition is available, and a fresh incarnation can be created.
-- The supplied channels match the types and positions of the target's corresponding placeholders.
-- The supplied channel identities are pairwise distinct, including no overlap between `X` and `Ys`.
-- `X` and `Ys` account for **all channels bound in the invoking incarnation `P`**. No channel may be retained by `P` after the call.
+- At the admission boundary, the target definition must be resolvable in the program version being checked.
+- The supplied channels must match the types and positions of the target's corresponding placeholders.
+- The supplied channel identities must be pairwise distinct, including no overlap between `X` and `Ys`.
+- `X` and `Ys` must account for **all channel identities bound in the invoking incarnation `P`**. After a successful call, no channel binding may remain attached to `P`.
+- The binding environment of `P` must not contain two distinct bindings to the same channel identity unless such aliasing is explicitly permitted by a separate language rule. The complete environment invariant remains to be formalized.
 
-**Static validation:** The shared validation and execution-admission rule in [Section 4](#4-process-declarations-and-definitions) applies. A channel/type mismatch, positional or arity mismatch, or repeated channel identity (including overlap between `X` and `Ys`) is a static error. The implementation's conformance remains unverified.
+**Static validation:** The shared rule in [Section 4](#4-process-declarations-and-definitions) applies. A channel/type mismatch, positional or arity mismatch, or repeated supplied channel identity (including overlap between `X` and `Ys`) is a static error when decidable at admission. If environment aliasing cannot be decided statically, it must be checked as a runtime precondition or remain an explicit open rule; set equality alone is not sufficient to establish unique ownership. The implementation's conformance remains unverified.
 
 **Agreed channel-transfer and lifecycle decision:**
 
-1. Create a fresh incarnation `Q` of the named process, ready to execute from the start of its definition. `Q` has an identity never assigned to any previously created incarnation; identities are not reused after termination.
+1. Create a fresh incarnation `Q` of the named process, ready to execute from the start of its definition. At minimum, `Q` must have an identity distinct from every incarnation that is live immediately before the transition. Global non-reuse of identities after termination is a separate identity-management policy; it is not implied by atomicity and remains a design decision unless explicitly adopted elsewhere.
 2. Bind `Q`'s provider placeholder to the existing channel `X`.
 3. Bind `Q`'s client placeholders to the channels in `Ys`, pairing them positionally in list order.
 4. Remove from `P` the bindings for `X` and every channel in `Ys`, then bind `Q`'s placeholders to those same channel identities.
@@ -263,7 +272,7 @@ If a precondition fails before the transition commits—for example, the target 
 
 **Required invariants (intended contract):**
 
-- **Freshness:** `Q`'s incarnation identity has never been used, including by a terminated incarnation.
+- **Freshness:** `Q`'s incarnation identity is distinct from every incarnation identity that is live before the transition. Never reusing identities after termination is a stronger, separate policy and is not assumed here.
 - **Total transfer:** the set of channel identities referenced by `P`'s channel bindings is exactly the set supplied by `X` and `Ys`; after commit, `P` has no channel bindings.
 - **Exact rebinding:** each target placeholder is bound to the corresponding supplied channel identity, with `X` mapped to the provider placeholder and `Ys[i]` mapped to the (i\)-th client placeholder.
 - **Identity and protocol preservation:** transfer changes ownership/bindings, not channel identity or current session-protocol state.
@@ -274,7 +283,7 @@ If a precondition fails before the transition commits—for example, the target 
 
 1. **Complete transfer:** use a target with one provider placeholder and multiple client placeholders; assert the target receives the exact channel identities in declaration order and the old incarnation is no longer live.
 2. **Protocol-state preservation:** give each supplied channel a non-initial residual session state; assert the handoff does not reset, advance, or replace that state.
-3. **Fresh identity:** terminate an incarnation, perform another handoff, and assert the new incarnation identity differs from every previously issued identity.
+3. **Fresh identity:** keep other incarnations live during a handoff and assert `Q` has an identity distinct from every currently live incarnation. Test global non-reuse after termination only if that stronger policy is explicitly adopted.
 4. **Duplicate identity rejection:** supply the same channel identity twice, including the `X`/`Ys` overlap case; assert rejection leaves the pre-state unchanged.
 5. **Missing or extra channels:** mismatch the target's client-placeholder count; assert no partial binding and no live target incarnation.
 6. **Atomic observation:** pause or instrument execution around the implementation's commit boundary; assert no observer can see `Q` with a subset of bindings or see both `P` and `Q` live with transferred ownership.
@@ -519,9 +528,9 @@ A formal reduction rule should be added after the relevant typing, executor, ada
 
 The list is ordered by investigation priority.
 
-1. **ExternalCall implementation conformance:** The intended contract is that the caller continuation proceeds only after the provider channel is received. Does the implementation enforce this, and which tests verify that it cannot proceed merely because the new incarnation has started?
-2. **ExternalCall implementation mapping and validation evidence:** How do the AST fields `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH` implement the agreed positional mapping of distinct existing client channels and the separate fresh provider channel? Where are name resolution, recursion checks, and the agreed static type/positional/linearity checks implemented, and what tests verify them?
-3. **InternalCall implementation conformance:** How does the implementation map channel identities in `X` / `Ys` to the target's typed placeholders, and how is the old incarnation's semantic termination represented at runtime? What tests can establish that a successful handoff binds all channels to a fresh `Q` and terminates `P` atomically, with no partial state observable?
+1. **ExternalCall implementation conformance:** The intended contract is that the caller continuation becomes eligible only after the provider channel is received. Does the implementation enforce this, and which tests verify that it cannot proceed merely because the new incarnation has started?
+2. **ExternalCall lifecycle and implementation mapping:** What are the specified outcomes if service fails or the call is cancelled while client channels are reserved for the target? How do the AST fields `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH` implement the positional mapping of distinct existing client channels and the separate fresh provider channel? Where are name resolution and the agreed static checks implemented, and what tests verify them?
+3. **InternalCall implementation conformance:** How does the implementation map channel identities in `X` / `Ys` to the target's typed placeholders, and how is the old incarnation's semantic termination represented at runtime? What tests establish that a successful handoff binds all channels to a fresh `Q` and terminates `P` atomically, with no partial state observable? Separately, is global non-reuse of incarnation identities after termination an adopted policy, and can the invoking environment contain aliased bindings?
 4. **Fwd:** What are the exact transition rules for positive, negative, and neutral polarity, including pending turns and continuation state?
 5. **Representation and execution:** Are the conversion asymmetries in Section 12 reachable, and what focused tests establish their impact? Check the relevant adapter, executor, and scheduling paths together.
 6. **Type constructors and checker coverage:** Are type-level `Link`, `Up`, and `Down` resolved before the observed checker cases? What tests establish the intended coverage?
