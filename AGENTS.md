@@ -1,10 +1,10 @@
 # Agent instructions
 
-This file defines repository-wide workflow requirements and navigation to more specific guidance. It does not duplicate documentation standards or task-specific methods.
+This file sets repository-wide instructions and points to more specific guidance. It does not duplicate documentation standards or task-specific workflows.
 
 ## Technical documentation
 
-- Before drafting, editing, or reviewing technical or research documentation, read [`DOCUMENTATION_STANDARDS.md`](DOCUMENTATION_STANDARDS.md) and apply its evidence and editorial criteria.
-- Inspect the relevant document and directory first; follow existing document ownership and canonical cross-references.
-- Treat specialized skills as manually activated workflows. Do not assume that a skill is active merely because a task could fit its description; when the user invokes a skill, follow its workflow alongside these repository instructions.
-- Keep changes within the requested scope. Before finishing, inspect the diff and verify that each changed location is necessary for the task.
+- Before writing or reviewing technical documentation, read [`DOCUMENTATION_STANDARDS.md`](DOCUMENTATION_STANDARDS.md) and follow its guidance on evidence, accuracy, and clarity.
+- First inspect the relevant files and surrounding documentation. Follow the repository's established structure and link to the source of truth rather than duplicating it.
+- Use specialized skills only when explicitly invoked. A task that resembles a skill's description does not activate it automatically; when the user invokes one, follow its instructions alongside this file.
+- Keep changes within the requested scope. Before finishing, review the diff and remove changes that are not needed for the task.
