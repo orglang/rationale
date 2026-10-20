@@ -371,7 +371,7 @@ A process declaration is represented by `DecSpec`:
 - `LiabVar` — provider-channel placeholder.
 - `AssetVars` — client-channel placeholders.
 
-Section 7 defines the intended channel effects. The `CallSpec` source type has `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, and a legacy `CommChnlPH` field marked `TODO удалить`. In the inspected `MsgToExpSpec` adapter, the `Call` branch reads the bind placeholder, process name, and value-channel placeholders, then constructs `CallSpec` without setting either `CommChnlPH` or `ContExp`; the continuation is therefore not preserved by that conversion path. The intended mapping is specified in Section 7, but a working end-to-end mapping is not demonstrated. For `InternalCall` (AST constructor `LinkSpec`), comments in `proc/termdec/core/core.go` suggest that `X` maps to the declaration's `LiabVar` and `Ys[i]` maps to `AssetVars[i]` in declaration order. The fields `X` and `Ys` are typed as `identity.ADT`, while placeholder names use `symbol.ADT`; the actual resolution path remains unverified.
+Section 7 defines the intended channel effects. The `CallSpec` source type contains `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, and a legacy `CommChnlPH` field marked `TODO удалить`. The adapter-level serialization discrepancies are detailed in Section 12; they do not establish end-to-end runtime behavior. For `InternalCall` (AST constructor `LinkSpec`), comments in `proc/termdec/core/core.go` suggest that `X` maps to the declaration's `LiabVar` and `Ys[i]` maps to `AssetVars[i]` in declaration order. The fields `X` and `Ys` are typed as `identity.ADT`, while placeholder names use `symbol.ADT`; the actual resolution path remains unverified.
 
 A process definition is represented by `DefSpec{ProcQN, ProcES}`; `DefRec` contains a `Ref`. The inspected `Create`/`Retrieve` implementation in `proc/termdef/core/core.go` appears to be a stub, so these types alone do not establish the persistence contract.
 
@@ -398,7 +398,7 @@ The inspected process AST defines these constructors. Field names below are thos
 - **`CaseSpec`** — `CommChnlPH`, `ContExps`: offer branches indexed by labels.
 - **`LinkSpec`** — `ProcTermQN`, `X`, `Ys` (`identity.ADT`): named-process construct without `ContExp`, unlike `CallSpec`.
 - **`FwdSpec`** — `CommChnlPH`, `ContChnlPH`: forward between endpoints.
-- **`CallSpec`** — `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, and legacy `CommChnlPH`: AST representation associated with `ExternalCall`. The adapter's `Call` conversion reads `NewChnlPH` from the external `BindChnlPH` field and reads `ValChnlPHs` and `ProcTermQN`, but drops `ContExp` and the legacy `CommChnlPH`. Thus the source AST field names alone do not establish a functioning mapping or continuation behavior.
+- **`CallSpec`** — `NewChnlPH`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, and legacy `CommChnlPH`: AST representation associated with `ExternalCall`. The constructor/field inventory is not evidence of runtime support; the concrete adapter discrepancies are recorded in Section 12.
 - **`SpawnSpec`** — `CommChnlPH`, `ProcTermQN`, `NewChnlPHs`, `ContExp`: present in the AST; process semantics are deferred pending pool-level analysis.
 - **`AcqureSpec`** — contract open; spelling preserved as in source.
 - **`AcceptSpec`**, **`DetachSpec`**, **`ReleaseSpec`** — contracts open; see source for fields.
