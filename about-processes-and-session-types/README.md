@@ -268,7 +268,7 @@ If a precondition fails before the transition commits—for example, the target 
 - **Total transfer:** the invoking environment is injective, and the set of channel identities referenced by `P`'s bindings is exactly the set supplied by `X` and `Ys`; after commit, `P` has no channel bindings.
 - **Exact rebinding:** each target placeholder is bound to the corresponding supplied channel identity, with `X` mapped to the provider placeholder and `Ys[i]` mapped to the (i\)-th client placeholder.
 - **Identity and protocol preservation:** transfer changes ownership/bindings, not channel identity or current session-protocol state.
-- **Binding ownership:** after commit, none of the transferred bindings remain attached to `P`; each transferred identity is bound to exactly its designated placeholder in `Q). This does not remove the peer endpoint's ordinary binding to the same channel.
+- **Binding ownership:** after commit, none of the transferred bindings remain attached to `P`; each transferred identity is bound to exactly its designated placeholder in `Q`. This does not remove the peer endpoint's ordinary binding to the same channel.
 - **All-or-nothing visibility:** observers see either the complete pre-state or the complete post-state, never a partial combination.
 
 **Focused conformance tests to add:** The following are test obligations for the implementation, not claims that current tests already pass.
