@@ -1,6 +1,6 @@
 # Documentation review standards
 
-Use these criteria when writing or reviewing research and technical documentation. [`AGENTS.md`](AGENTS.md) contains repository-wide instructions; [`skills/semantic-spec/SKILL.md`](skills/semantic-spec/SKILL.md) defines an explicitly activated workflow. This file owns recurring documentation quality criteria.
+Use these criteria when writing or reviewing research and technical documentation. [`AGENTS.md`](AGENTS.md) contains repository-wide instructions; [`skills/semantic-spec/SKILL.md`](skills/semantic-spec/SKILL.md) defines the workflow for resolving consequential behavior and specification decisions. This file owns recurring documentation quality criteria.
 
 ## Accuracy and evidence
 
