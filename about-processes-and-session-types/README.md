@@ -185,7 +185,7 @@ The repository also contains AST constructors for `Spawn`, `Acqure`, `Accept`, `
 
 A session type describes the allowed protocol from the provider endpoint's point of view; the type checker accounts for the client role when checking the other endpoint (Section 2). For the request/response example and residual session types, see Section 3.
 
-A protocol can also pass a channel between processes. The sender gives the other process a channel it can use to communicate; the receiver gains access to that channel for the rest of its process. The implementation names the relevant session-type forms `Tensor` and `Lolli`. At a high level, these are the two complementary forms used to describe channel transfer together with the protocol that remains after the transfer. The names alone do not tell the reader which endpoint performs which action: Section 9 records the observed polarity assignments and checker coverage, while Section 10 describes the typing interface. The exact direction mapping is reserved for Section 9, where the observed polarity assignments and checker coverage are recorded.
+A protocol can also pass a channel between processes. The sender gives the other process a channel it can use to communicate; the receiver gains access to that channel for the rest of its process. The implementation names the relevant session-type forms `Tensor` and `Lolli`. At a high level, these are the two complementary forms used to describe channel transfer together with the protocol that remains after the transfer. The names alone do not tell the reader which endpoint performs which action. Section 9 records the observed polarity assignments and checker coverage, while Section 10 describes the typing interface.
 
 Protocols may also allow a choice between labelled alternatives: the implementation uses `Plus` and `With` for the two complementary type forms associated with such choices. `One` represents a finished protocol. The implementation contains `Up` and `Down` too, but their meaning in OrgLang is still being investigated; see Section 9 for observed checker coverage and Section 14 for open questions. The name `Link` is overloaded. **Type-level `Link`** is a session-type constructor referring to another type definition. At the process-expression level, the Go AST constructor is `LinkSpec`, which this document maps provisionally to **`InternalCall`** (Section 7).
 
@@ -224,7 +224,7 @@ Both named-process call forms resolve a target process and associate its declare
 **Intended transition:**
 
 1. Resolve the named process and map each formal client-channel parameter to the corresponding existing channel supplied by the call, in declaration order.
-2. Check the static obligations at the admission boundary, including session-type compatibility at both the target's client parameters and the caller's client-role placeholder for the new provider channel. The precise compatibility relation remains to be formalized. Check runtime preconditions when the relevant execution state and resources are available; they are not part of static validation merely because they appear in this operation contract.
+2. Ensure the static obligations listed above have been checked at the admission boundary, including session-type compatibility at both the target's client parameters and the caller's client-role placeholder for the new provider channel. The precise compatibility relation remains to be formalized. Check runtime preconditions when the relevant execution state and resources are available; they are not static validation.
 3. After the required static obligations pass and the program version is admitted, initiate the call. While service is pending, the supplied channels are held for the target and their protocol states remain unchanged.
 4. On successful service, create a fresh incarnation with its own execution state, bind its client placeholders to the supplied channel identities, and create a separate fresh provider channel for the target's provider placeholder and the caller's designated placeholder.
 
@@ -248,15 +248,7 @@ The inspected executor has no `ExternalCall` branch. The exact AST/runtime mappi
 
 **Static validation:** The shared rule in [Section 4](#4-process-declarations-and-definitions) applies. A channel/type mismatch, positional or arity mismatch, or repeated supplied channel identity (including overlap between `X` and `Ys`) is a static error when decidable at admission. If environment aliasing cannot be decided statically, it must be checked as a runtime precondition or remain an explicit open rule; set equality alone is not sufficient to establish unique ownership. The implementation's conformance remains unverified.
 
-**Agreed channel-transfer and lifecycle decision:**
-
-1. Create a fresh incarnation `Q` of the named process, ready to execute from the start of its definition. At minimum, `Q` must have an identity distinct from every incarnation that is live immediately before the transition. Global non-reuse of identities after termination is a separate identity-management policy; it is not implied by atomicity and remains a design decision unless explicitly adopted elsewhere.
-2. Bind `Q`'s provider placeholder to the existing channel `X`.
-3. Bind `Q`'s client placeholders to the channels in `Ys`, pairing them positionally in list order.
-4. Remove from `P` the bindings for `X` and every channel in `Ys`, then bind `Q`'s placeholders to those same channel identities.
-5. Because `X` and `Ys` account for all channels bound in `P`, no channel remains bound to `P`; `P` semantically terminates without a language-level continuation.
-
-The handoff preserves channel identities and changes only placeholder bindings. This is the agreed intended OrgLang behavior for this research document; it does not by itself establish conformance with the publication or the current implementation.
+**Agreed channel-transfer and lifecycle decision:** On a successful handoff, create a fresh incarnation `Q` at the start of the target definition, bind its provider placeholder to `X` and its client placeholders to `Ys` in declaration order, and remove those bindings from `P`. Because `X` and `Ys` account for the complete channel environment of `P`, the old incarnation semantically terminates without a language-level continuation. The precise atomicity, freshness, failure, and preservation invariants are consolidated below. This is the intended OrgLang behavior for this research document; conformance with the publication and current implementation is tracked separately.
 
 **Mini-example (schematic, not OrgLang syntax):** suppose process `Old` has provider placeholder `x` bound to channel `c`, and client placeholder `y` bound to channel `d`. `Old` performs `InternalCall` to process `New`, passing `c` as `X` and `d` in `Ys`. The handoff unbinds both placeholders in `Old` and binds `New`'s corresponding placeholders to `c` and `d`; the channel identities are preserved.
 
