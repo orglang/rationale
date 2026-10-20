@@ -123,7 +123,7 @@ Use one row for each proposed correspondence. **Mapping status** reports corresp
 | `InternalCall` provider channel (`X`) | No equivalent established in the inspected excerpt | `LinkSpec.X` (AST spelling: process-expression constructor `LinkSpec`) | Unresolved | Intended to denote the existing provider channel, but the field is typed as `identity.ADT`, not a channel-placeholder symbol. Runtime resolution is unverified. |
 | `InternalCall` client channels (`Ys`) | No equivalent established in the inspected excerpt | `LinkSpec.Ys` (AST constructor: `LinkSpec`) | Unresolved | Intended to denote client channels in declaration order; representation and runtime resolution are unverified. |
 | `ExternalCall` | `a ← p b`; publication substitution rule | `CallSpec`, `ProcTermQN`, `ValChnlPHs`, `ContExp`, `NewChnlPH` | Provisional | Publication supports invocation and substitution; see Section 7 for the intended contract and Section 14 for unresolved details. Implementation mapping remains unverified. |
-| `InternalCall` | No equivalent established | `LinkSpec` (implementation AST spelling `Link`) | Unresolved | Intended to transfer an existing channel into a fresh incarnation and transfer provider responsibility to it; no complete adapter/executor path was found. |
+| `InternalCall` | No equivalent established | `LinkSpec` (implementation AST spelling `Link`) | Unresolved | Agreed intended behavior transfers all channels bound to the invoking incarnation into a fresh incarnation and semantically terminates the old incarnation; no complete adapter/executor path was found. |
 | Send/publish action (`pub`) | `msg` | `PubRec`, `ValExp` | Provisional | The names align with the send/message side in the described forwarding trace; end-to-end state semantics remain open. |
 | Service/wait action (`sub`) | `srv` | `SubRec`, `ContExp` | Provisional | The names align with the service/waiting side in the described forwarding trace; end-to-end state semantics remain open. |
 | Residual session type | Remaining protocol after an interaction step | Current session-type value / checker context (`LinearVars`) | Unresolved | Conceptual correspondence only; state-update invariants remain open. |
@@ -213,13 +213,13 @@ The inspected executor has no `ExternalCall` branch. The exact mapping among `Co
 
 **Before:** the invoking process provides a service on an existing channel (AST field `X`). The target process also receives a list of channels it will use as a client (AST field `Ys`). The terms *provider channel* and *client channels* describe the channel roles relative to the process being discussed. Both refer to the same underlying kind of channel resource. The role descriptions are explanatory labels. Runtime field resolution is documented separately in the implementation analysis.
 
-**Preconditions (provisional):**
+**Preconditions (agreed project contract unless otherwise noted):**
 
 - The target process definition is available and a fresh incarnation can be created.
-- Each channel placeholder has a fixed type, and each supplied channel has exactly the type required by its corresponding target placeholder.
-- By the intended linearity rule, `X` and `Ys` account for all channels bound in the invoking incarnation `P`.
+- Each channel placeholder has a fixed type, and each supplied channel has exactly the type required by its corresponding target placeholder; the exact compatibility and rejection rules remain to be formalized.
+- By the intended linearity rule, `X` and `Ys` account for **all channels bound in the invoking incarnation `P`**. No channel may be retained by `P` after the call.
 
-**Provisional intended transition:**
+**Agreed channel-transfer and lifecycle decision:**
 
 1. Create a fresh incarnation `Q` of the named process, ready to execute from the start of its definition.
 2. Bind `Q`'s provider placeholder to the existing channel `X`.
@@ -227,11 +227,11 @@ The inspected executor has no `ExternalCall` branch. The exact mapping among `Co
 4. Remove from `P` the bindings for `X` and every channel in `Ys`, then bind `Q`'s placeholders to those same channel identities.
 5. Because `X` and `Ys` account for all channels bound in `P`, no channel remains bound to `P`; `P` semantically terminates without a language-level continuation.
 
-The handoff preserves channel identities and changes only placeholder bindings.
+The handoff preserves channel identities and changes only placeholder bindings. This is the agreed intended OrgLang behavior for this research document; it does not by itself establish conformance with the publication or the current implementation.
 
 **Mini-example (schematic, not OrgLang syntax):** suppose process `Old` has provider placeholder `x` bound to channel `c`, and client placeholder `y` bound to channel `d`. `Old` performs `InternalCall` to process `New`, passing `c` as `X` and `d` in `Ys`. The handoff unbinds both placeholders in `Old` and binds `New`'s corresponding placeholders to `c` and `d`; the channel identities are preserved.
 
-**Atomic handoff (provisional contract):** The intended transition creates the new incarnation, updates the relevant bindings, and semantically ends `P` as one semantic transition. The target incarnation becomes observable as part of that completed handoff. Implementation atomicity and the runtime representation of `P`'s termination remain unverified. Pool association and selection are specified separately in [spawn-semantics, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing); open lifecycle questions are collected in [Section 7](../about-spawn/README.md#6-open-questions-and-deferred-topics).
+**Atomicity remains a separate specification detail:** the intended transition is described as creating the new incarnation, updating the relevant bindings, and semantically ending `P` as one semantic transition. Whether this atomicity model is required by the agreed contract, and how it is represented at runtime, remains to be verified. The target incarnation becomes observable as part of a completed handoff. Pool association and selection are specified separately in [spawn-semantics, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing); open lifecycle questions are collected in [Section 7](../about-spawn/README.md#6-open-questions-and-deferred-topics).
 
 **Implementation status:** the inspected dispatcher has no `InternalCall` execution branch; execution and type-checking are unverified. See Section 14 for the unresolved lifecycle and representation questions.
 
@@ -252,7 +252,7 @@ Process invocation and incarnation creation are distinct from the pool mechanism
 | Operation | Primary role | Intended control-flow effect | Intended channel effect | Semantic/evidential status | Implementation status |
 |---|---|---|---|---|
 | `ExternalCall` | Create and invoke a named-process incarnation with a fresh provider channel. | The caller's continuation becomes eligible only after it receives that channel. | Explicit parameter mapping; a fresh provider channel is delivered outward to the caller. | Agreed intended contract; implementation mapping remains open. | Unverified; no executor branch found. |
-| `InternalCall` | Create a named-process incarnation and transfer its channels. | The new incarnation starts at the beginning of its definition; the old incarnation semantically terminates. | All channels bound to the old incarnation are rebound to the new incarnation's typed placeholders, preserving channel identities. | Provisional intended contract; runtime representation open. | Unverified; no complete executor path found. |
+| `InternalCall` | Create a named-process incarnation and transfer its channels. | The new incarnation starts at the beginning of its definition; the old incarnation semantically terminates. | All channels bound to the old incarnation are rebound to the new incarnation's typed placeholders, preserving channel identities. | Agreed intended contract; runtime representation open. | Unverified; no complete executor path found. |
 | `Fwd` | Connect two existing channel interactions. | No named-process incarnation or named-process continuation transfer is implied. | Relates existing endpoints; no global renaming is implied. | Intended rule open beyond the documented example. | Partial; full symmetric behavior not established. |
 
 Use this table as the quick comparison, and the operation-specific subsections above for the intended transitions and preconditions. Part II gives publication context; Part III records implementation evidence. Those evidence sources are not alternative definitions of the intended behavior.
@@ -471,7 +471,7 @@ The list is ordered by investigation priority.
 
 1. **ExternalCall implementation conformance:** The intended contract is that the caller continuation proceeds only after the provider channel is received. Does the implementation enforce this, and which tests verify that it cannot proceed merely because the new incarnation has started?
 2. **ExternalCall / AST mapping:** What is the exact argument syntax for mapping formal parameters to existing, distinct channels, and how does the engine's injection of the separate communication channel into the caller-named placeholder map to `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH`? Where are name resolution, recursion checks, and type checks enforced?
-3. **InternalCall representation and lifecycle:** How does the implementation map the channel identities in `X` / `Ys` to the target's typed placeholders, and how is the old incarnation's semantic termination represented at runtime? What constrains the number and uniqueness of channels in `Ys`, its correspondence to the target's client placeholders, and possible overlap between `X` and `Ys`?
+3. **InternalCall representation and lifecycle:** How does the implementation map the channel identities in `X` / `Ys` to the target's typed placeholders, and how is the old incarnation's semantic termination represented at runtime? What validation enforces the correspondence between `Ys` and the target's client placeholders, and the linearity requirement that the supplied channel identities be distinct?
 4. **Fwd:** What are the exact transition rules for positive, negative, and neutral polarity, including pending turns and continuation state?
 5. **Representation and execution:** Are the conversion asymmetries in Section 12 reachable, and what focused tests establish their impact? Check the relevant adapter, executor, and scheduling paths together.
 6. **Type constructors and checker coverage:** Are type-level `Link`, `Up`, and `Down` resolved before the observed checker cases? What tests establish the intended coverage?
