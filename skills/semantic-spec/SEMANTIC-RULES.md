@@ -1,36 +1,36 @@
-# Semantic modeling checklist
+# Checklist for defining behavior
 
-This file defines prompts for analyzing behavior and semantic boundaries. It supplements the repository's documentation standards. For evidence labels, source attribution, terminology, canonical definitions, links, and final editorial review, follow the repository's `DOCUMENTATION_STANDARDS.md`; do not redefine those policies here. The `SKILL.md` workflow explains how to apply this checklist during a semantic-specification task.
+Use this checklist to identify important details when defining system behavior. For evidence, terminology, links, and writing quality, follow [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md). The workflow in [`SKILL.md`](SKILL.md) explains how to use this checklist during a specification task.
 
-Apply only the modeling prompts relevant to the concept being specified. This checklist is neither an exhaustive formal model nor a fixed document template.
+Use only the questions that matter for the behavior being specified. This checklist is not a complete formal model or a required document template.
 
 ## Behavior and boundaries
 
-For each concept or operation whose semantics matter, ask which distinctions change observable behavior:
+For each concept or operation, ask which details can change observable behavior:
 
-- **Scope and identity:** what entity or resource is involved, and within what boundary (for example, user, organization, transaction, time window, trust zone, or API version)?
+- **Scope and identity:** which entity or resource is involved, and what limits its scope (for example, user, organization, transaction, time window, trust boundary, or API version)?
 - **Preconditions:** what must already be true for the behavior to be allowed?
-- **Authority and ownership:** who initiates, owns, may inspect or modify, approves, or is accountable for the entity or transition? Do not assume these roles are identical.
-- **Trigger and decision rule:** what event initiates the behavior, and which validation, authorization, guard, or precedence rule applies?
-- **Result:** what state changes and externally observable effects follow?
-- **Failure and rejection:** what happens when a precondition fails, processing fails, or the request is rejected?
-- **Repetition and concurrency:** can operations be duplicated, delayed, retried, or race? If so, what determines the outcome?
+- **Roles and permissions:** who initiates the action, owns the resource, can view or change it, approves it, or is accountable for it? These roles may differ.
+- **Trigger and rules:** what starts the behavior, and which validation, permission, condition, or precedence rule applies?
+- **Outcome:** what state changes, and what can an external observer see?
+- **Errors and rejection:** what happens if a prerequisite is missing, processing fails, or the request is rejected?
+- **Retries and concurrency:** can an operation be repeated, delayed, retried, or run at the same time as another? If so, what determines the outcome?
 
-Include only the dimensions relevant to the system. Distinguish an inapplicable dimension from an applicable dimension whose behavior is unknown. If an omission affects behavior, record the unresolved point as an open question rather than silently skipping it.
+Include only relevant questions. Distinguish between something that does not apply and behavior that has not yet been defined. If the difference could affect behavior, record it as an open question.
 
 ## State transitions
 
-When a behavior changes state, describe the relevant parts of the transition: starting state, trigger, guard or decision rule, resulting state, and failure behavior. Include ordering, retry, or concurrency semantics when they affect the result. Use a concrete example or counterexample to expose an ambiguity, but do not let examples replace the rule.
+When behavior changes state, describe the starting state, trigger, conditions, result, and failure behavior as needed. Specify ordering, retries, or concurrent behavior when they affect the result. Use examples to clarify ambiguity, not as a substitute for the rule.
 
 ## Interacting rules
 
-When multiple rules, events, sources, or updates may apply, specify precedence or ordering if it changes the outcome. Clarify whether an action transfers responsibility, creates a new entity, mutates an existing one, or merely changes a reference. Similar names do not establish equivalent behavior.
+When multiple rules, events, sources, or updates can apply, explain their priority or order if it affects the outcome. Clarify whether an action transfers responsibility, creates a new entity, changes an existing one, or only changes a reference. Similar names do not mean the behavior is the same.
 
 ## Actionable open questions
 
-For each consequential unresolved choice, make clear:
+For each important open question, state:
 - what is unknown;
 - which behavior or design decision it affects;
-- what evidence, test, or decision-maker could resolve it.
+- what evidence, test, or person can resolve it.
 
-Prefer questions that separate materially different outcomes. Do not fill gaps with invented states or boilerplate simply to make a section look complete. Add further dimensions when the system's behavior requires them; do not add categories merely for checklist completeness.
+Ask questions that distinguish meaningfully different outcomes. Do not invent states or add boilerplate just to make a section look complete. Add other questions when the system needs them; do not add categories merely to complete the checklist.
