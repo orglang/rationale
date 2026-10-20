@@ -1,42 +1,30 @@
 # Documentation review standards
 
-These standards describe how to review research and technical documentation. They complement `AGENTS.md`, which contains repository-wide instructions. Specialized skills may explain when and how to apply these standards, but should not redefine them.
+Use these criteria when writing or reviewing research and technical documentation. [`AGENTS.md`](AGENTS.md) contains repository-wide instructions; [`skills/semantic-spec/SKILL.md`](skills/semantic-spec/SKILL.md) defines an explicitly activated workflow. This file owns recurring documentation quality criteria.
 
-## Semantic accuracy
+## Accuracy and evidence
 
-- Define a term before relying on it, or link to its canonical definition at first use.
-- Keep one canonical explanation for each concept. In glossaries, tables, summaries, and open-question lists, prefer a concise summary plus a cross-reference over a second full definition.
-- Separate intended language semantics from publication claims and implementation observations. Code structure or field names alone do not establish language semantics.
-- A contract confirmed by the user records the agreed direction of the document; it does not, by itself, establish formal language semantics. Label it as intended behavior until an authoritative language source supports a stronger claim.
-- Label uncertainty explicitly. Do not silently turn a hypothesis into a fact or smooth over disagreements between sources.
-- Distinguish the status of a claim from implementation coverage. Apply status labels to specific claims, not to a term as a whole.
+- Define a term before relying on it, or link to its canonical definition at first use. Explain each concept in one place; elsewhere, summarize briefly and link back.
+- Distinguish intended behavior, claims from published sources, and implementation observations. Code structure or field names alone do not establish language semantics.
+- Treat a user-confirmed contract as the agreed direction of the document, not proof of formal language semantics. Label it as intended behavior unless an authoritative language source supports a stronger claim.
+- Mark uncertainty and disagreement explicitly. Distinguish the status of a claim from implementation coverage; apply status labels to individual claims, not terms as a whole.
+- For important or disputed claims, identify the source, status or confidence, and relevant limitations. State what the evidence establishes and what remains unverified. Never imply that a source was inspected or behavior tested when it was not.
 
-## Structure and readability
+## Structure and language
 
-- Give each section a clear purpose. Explain each concept in one place and link to that explanation elsewhere.
-- Use tables for comparisons, not long passages of prose. Split or simplify wide tables that are hard to read on narrow screens.
-- Define abbreviations and symbols before using them. Clarify whether a name is a language term, notation used in the document, or an identifier from the implementation.
-- Keep headings, status labels, terminology, and cross-reference style consistent throughout the document.
-- Describe behavior, scope, and ownership directly. Use contrasts only when they clarify a real difference; keep qualifications that affect the meaning.
-- Remove process commentary, vague appeals to authority, and generic reminders to gather evidence. For unresolved claims, name the source or test needed to verify them.
-- Check every sentence for a clear purpose: a technical fact, attributed claim, evidence, limitation, open question, or useful link. Remove sentences that add nothing, and check adjacent sentences for repetition.
+- Give each section a clear purpose and keep details in the section that owns the concept.
+- Use tables for comparisons, not long prose. Split or simplify tables that are hard to scan on narrow screens.
+- Define abbreviations and symbols before use. Clarify whether a name is a language term, document notation, or implementation identifier.
+- Keep headings, terminology, status labels, and cross-reference style consistent.
+- Describe behavior, scope, and ownership directly. Use contrasts only when they clarify a real distinction; preserve qualifications that affect meaning.
+- Replace vague appeals to authority or generic calls for more evidence with the specific source, test, or decision needed.
 
-## Evidence and references
+## References and final review
 
-- For important or disputed claims, record the claim, source, confidence or status, and any limitation or disagreement. Keep simple glossary entries brief.
-- Prefer direct source links and precise section references. Check that internal links and heading anchors point to the intended target.
-- State what the evidence establishes and what remains unverified. Avoid implying that a source was inspected or a behavior tested when it was not.
+- Prefer direct source links and precise section references. Verify changed links, heading anchors, and examples.
+- Search for other mentions of affected concepts. Update the canonical explanation first, then correct summaries or examples that have become inaccurate.
+- Check for duplicate definitions, undefined terms, inconsistent labels, contradictions, and caveats that repeat the same point. Preserve caveats that mark real uncertainty or evidence limits.
+- Read each sentence in context: it should add a fact, attributed claim, evidence, limitation, open question, or useful navigation. Remove repetition and links that do not help readers.
+- Confirm the diff contains only relevant changes and that the wording does not claim more than the evidence supports.
 
-## Final review
-
-Before submitting a documentation change:
-
-1. Search for other mentions of the affected concept and update its main explanation first.
-2. Look for duplicate definitions, undefined terms, inconsistent labels, and conflicting qualifications.
-3. Check that tables and long lists are easy to scan, especially on narrow screens.
-4. Verify changed links and cross-references, and ensure examples match the surrounding explanation.
-5. Remove caveats that repeat the same point; preserve caveats that mark a real uncertainty or evidence boundary.
-6. Confirm that only relevant files changed and that the wording does not claim more than the evidence supports.
-7. Remove repeated claims and adjacent links that do not help readers navigate.
-
-These standards are review guidance, not a required template or a replacement for task instructions. Automate repeatable checks when the repository provides a tool or CI job; review meaning, evidence, and clarity manually.
+These are review criteria, not a required template. Automate repeatable checks when repository tools or CI support them; review meaning, evidence, and clarity manually.
