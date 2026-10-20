@@ -518,19 +518,19 @@ A formal reduction rule should be added after the relevant typing, executor, ada
 
 ## 14. Open questions and next tests
 
-The list is ordered by investigation priority.
+The list is ordered by investigation priority. Section 7 is the canonical statement of intended call semantics; the questions below concern unresolved details or evidence, not a request to restate that contract.
 
-1. **ExternalCall implementation conformance:** The intended contract is that the caller continuation becomes eligible only after the provider channel is received. Does the implementation enforce this, and which tests verify that it cannot proceed merely because the new incarnation has started?
-2. **ExternalCall lifecycle and implementation mapping:** What are the specified outcomes if service fails or the call is cancelled while client channels are reserved for the target? How do the AST fields `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH` implement the positional mapping of distinct existing client channels and the separate fresh provider channel? Where are name resolution and the agreed static checks implemented, and what tests verify them?
-3. **InternalCall implementation conformance:** How does the implementation map channel identities in `X` / `Ys` to the target's typed placeholders, and how is the old incarnation's semantic termination represented at runtime? What tests establish that a successful handoff binds all channels to a fresh `Q` and terminates `P` atomically, with no partial state observable? Separately, is global non-reuse of incarnation identities after termination an adopted policy, and can the invoking environment contain aliased bindings?
-4. **Fwd:** What are the exact transition rules for positive, negative, and neutral polarity, including pending turns and continuation state?
-5. **Representation and execution:** Are the conversion asymmetries in Section 12 reachable, and what focused tests establish their impact? Check the relevant adapter, executor, and scheduling paths together.
-6. **Type constructors and checker coverage:** Are type-level `Link`, `Up`, and `Down` resolved before the observed checker cases? What tests establish the intended coverage?
-7. **Case branch checking:** Does checking one `Case` branch mutate the context used for the next branch? Add a focused test with multiple labels and distinct continuations; verify branch-local context handling.
-8. **Linear context:** What are the invariants for `ChnlBS`, provider/client orientation, and updates across operations? Must all `Case` branches preserve equivalent linear contexts?
-9. **Publication/subscription state:** What transition semantics do publication, subscription, and exchange-turn records implement?
-10. **Process creation:** What is the intended relationship among process-level invocation, pool-level `Spawn`, and the pool model? What is the role of recursion through process definitions?
-11. **Other constructors:** What are the contracts of `Acqure`, `Accept`, `Detach`, and `Release`?
+1. **ExternalCall implementation conformance:** Verify that the caller continuation becomes eligible only after receipt of the provider channel, not merely after the new incarnation starts. The inspected executor has no `ExternalCall` branch; a complete runtime path and focused conformance test are still needed.
+2. **ExternalCall failure lifecycle and representation:** Specify what happens if service fails or the call is cancelled while client channels are reserved for the target, including whether the bindings return to the caller. Separately trace how `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH` are resolved and represented through the adapter and runtime.
+3. **InternalCall implementation conformance and open design points:** Trace how `X` / `Ys` become bindings for the target's typed placeholders and how termination of `P) is represented. Add end-to-end tests for the transition invariants in Section 7. Two language/design questions remain distinct from those tests: whether incarnation identities may be reused after termination, and whether an environment may contain aliased bindings.
+4. **Fwd transition rule:** Complete the rule for positive, negative, and neutral polarity, pending turns, and continuation state. The publication example and inspected executor do not settle all cases; Section 7 records this as intended but underspecified.
+5. **Representation and execution reachability:** Determine whether the conversion asymmetries in Section 12 are reachable, and test their runtime impact across adapter, executor, and scheduling paths.
+6. **Type constructors and checker coverage:** Establish whether type-level `Link`, `Up`, and `Down` are resolved before the observed checker cases, and add tests for the intended coverage.
+7. **Case branch checking:** Determine whether checking one `Case` branch mutates the context used for the next branch. Test multiple labels with distinct continuations and verify branch-local context handling.
+8. **Linear context:** Formalize the invariants for `ChnlBS`, provider/client orientation, and updates across operations. Decide whether all `Case` branches must preserve equivalent linear contexts.
+9. **Publication/subscription state:** Specify the transition semantics of publication, subscription, and exchange-turn records.
+10. **Process creation:** Clarify the relationship among process-level invocation, pool-level `Spawn`, and the pool model, including the role of recursion through process definitions.
+11. **Other constructors:** Specify the contracts of `Acqure`, `Accept`, `Detach`, and `Release`.
 
 ## 15. Non-goals
 
