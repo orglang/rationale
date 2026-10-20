@@ -1,8 +1,8 @@
 # Semantic modeling checklist
 
-This file supplements the repository's documentation standards. For evidence labels, source attribution, terminology, canonical definitions, links, and final editorial review, follow the repository's `CODING_STANDARDS.md`; do not redefine those policies here.
+This file defines prompts for analyzing behavior and semantic boundaries. It supplements the repository's documentation standards. For evidence labels, source attribution, terminology, canonical definitions, links, and final editorial review, follow the repository's `CODING_STANDARDS.md`; do not redefine those policies here. The `SKILL.md` workflow explains how to apply this checklist during a semantic-specification task.
 
-Apply only the modeling prompts relevant to the concept being specified. Do not force every specification into a fixed template.
+Apply only the modeling prompts relevant to the concept being specified. This checklist is neither an exhaustive formal model nor a fixed document template.
 
 ## Behavior and boundaries
 
@@ -16,7 +16,7 @@ For each concept or operation whose semantics matter, ask which distinctions cha
 - **Failure and rejection:** what happens when a precondition fails, processing fails, or the request is rejected?
 - **Repetition and concurrency:** can operations be duplicated, delayed, retried, or race? If so, what determines the outcome?
 
-Include only the dimensions relevant to the system. If a dimension is intentionally unspecified, record it as an open question when that omission affects behavior.
+Include only the dimensions relevant to the system. Distinguish an inapplicable dimension from an applicable dimension whose behavior is unknown. If an omission affects behavior, record the unresolved point as an open question rather than silently skipping it.
 
 ## State transitions
 
@@ -33,4 +33,4 @@ For each consequential unresolved choice, make clear:
 - which behavior or design decision it affects;
 - what evidence, test, or decision-maker could resolve it.
 
-Prefer questions that separate materially different outcomes. Do not fill gaps with invented states or boilerplate simply to make a section look complete.
+Prefer questions that separate materially different outcomes. Do not fill gaps with invented states or boilerplate simply to make a section look complete. Add further dimensions when the system's behavior requires them; do not add categories merely for checklist completeness.
