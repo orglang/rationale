@@ -14,7 +14,7 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 1. **Read the context.** Read the target document and relevant sources. Identify the canonical location for the behavior and any existing decisions or conflicts; reuse repository instructions and documentation standards already consulted rather than rereading them.
 2. **Choose a consequential question.** Look for unresolved choices that could change behavior, constraints, ownership, ordering, error handling, or compatibility. Usually ask one focused question at a time; combine independent questions when helpful and offer options when they clarify trade-offs.
 3. **Resolve uncertainty.** Ask a focused follow-up rather than guessing. If the user defers a decision, record it as an open question and continue with independent work. If an answer conflicts with an earlier decision or source, explain the conflict and ask how to resolve it.
-4. **Update the canonical specification.** Record agreed decisions and open questions in the section that owns the concept. Update examples, summaries, and tables when they become inaccurate or during a consistency review. Do not append a conversation transcript or duplicate a definition. Editing a file, recording a decision, and committing changes are separate actions. Accumulate related edits and commit them together when a coherent semantic block is complete, at a useful milestone, or when requested; a user answer by itself is not a commit trigger. Before committing, review the complete accumulated diff and remove unrelated edits.
+4. **Update the canonical specification.** Record agreed decisions and open questions in the section that owns the concept. Update examples, summaries, and tables when they become inaccurate or during a consistency review. Do not append a conversation transcript or duplicate a definition. Editing a file, recording a decision, and committing changes are separate actions. Follow [Commit discipline](#commit-discipline) when deciding what to commit and before creating a commit.
 5. **Check the consequences.** Check relevant items in [`SEMANTIC-RULES.md`](SEMANTIC-RULES.md). Look for contradictions, missing dependencies, and consequential edge cases. Distinguish behavior that does not apply from behavior that remains undefined. Keep implementation observations, published claims, and intended behavior distinct.
 6. **Continue or wrap up.** Repeat with the next consequential question until the user stops or the specification is ready for review. Summarize decisions captured, open questions and their impact, and remaining validation work.
 
@@ -25,7 +25,6 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 - State assumptions clearly. Ask before relying on an assumption that could materially change the design.
 - Keep open questions visible, but continue with work that does not depend on them.
 - Use the existing document structure, terminology, status labels, and section ownership. Do not create parallel standards or taxonomies.
-- **Batch commits, not decisions.** Ask one focused semantic question at a time, but group the resulting documentation edits into coherent commits. Do not create a commit merely because the user answered a question.
 - In progress updates, distinguish **decisions accepted**, **edits pending**, **changes committed**, and **validation performed**. Never imply that a change was committed or a check passed unless the relevant tool result confirms it.
 - When reporting a commit, include its GitHub URL or a descriptive Markdown link, not just its hash. Link each relevant commit.
 
@@ -40,8 +39,8 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 ## Commit discipline
 
 - Keep accepted decisions and their required documentation edits in the working tree while continuing independent specification work; do not commit after every answer.
-- Commit when a coherent semantic block is complete, when the user explicitly requests a commit, or when a commit is needed to preserve substantial work.
-- Before committing, review the full accumulated diff for that block, verify canonical ownership and cross-references, and ensure every edit follows from an accepted decision or removes a contradiction.
+- Commit when a coherent semantic block is complete, when the user explicitly requests a commit, or when a commit is needed to preserve substantial uncommitted work at risk of being lost. A milestone alone is not a reason to commit unless one of these conditions applies.
+- Before committing, review the full accumulated diff for that block, verify canonical ownership and cross-references, and ensure every edit follows from an accepted decision or corrects an inconsistency without changing agreed semantics.
 - Prefer one coherent commit per completed semantic block over one commit per decision. Do not rewrite existing history solely to reduce the commit count.
 
 ## Ready for review
