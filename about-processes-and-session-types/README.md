@@ -237,7 +237,7 @@ The inspected executor has no `ExternalCall` branch. The exact AST/runtime mappi
 - The supplied channel identities are pairwise distinct, including no overlap between `X` and `Ys`.
 - `X` and `Ys` account for **all channels bound in the invoking incarnation `P`**. No channel may be retained by `P` after the call.
 
-**Static validation:** The shared validation and execution-admission rule in [Section 4](#4-process-declarations-and-definitions) applies. A channel/type or positional mismatch is a static error. The implementation's conformance remains unverified.
+**Static validation:** The shared validation and execution-admission rule in [Section 4](#4-process-declarations-and-definitions) applies. A channel/type mismatch, positional or arity mismatch, or repeated channel identity (including overlap between `X` and `Ys`) is a static error. The implementation's conformance remains unverified.
 
 **Agreed channel-transfer and lifecycle decision:**
 
@@ -264,10 +264,10 @@ If a precondition fails before the transition commits—for example, the target 
 **Required invariants (intended contract):**
 
 - **Freshness:** `Q`'s incarnation identity has never been used, including by a terminated incarnation.
-- **Total transfer:** the domain of `P`'s channel environment is exactly the set of channel identities supplied by `X` and `Ys`; after commit, that environment is empty.
+- **Total transfer:** the set of channel identities referenced by `P`'s channel bindings is exactly the set supplied by `X` and `Ys`; after commit, `P` has no channel bindings.
 - **Exact rebinding:** each target placeholder is bound to the corresponding supplied channel identity, with `X` mapped to the provider placeholder and `Ys[i]` mapped to the (i\)-th client placeholder.
 - **Identity and protocol preservation:** transfer changes ownership/bindings, not channel identity or current session-protocol state.
-- **Single ownership:** after commit, no transferred channel remains bound to `P` or to an unrelated incarnation as a result of the handoff.
+- **Binding ownership:** after commit, none of the transferred channel bindings remain attached to `P`; each is bound to exactly its designated placeholder in `Q`. This does not remove the peer endpoint's ordinary binding to the same channel.
 - **All-or-nothing visibility:** observers see either the complete pre-state or the complete post-state, never a partial combination.
 
 **Focused conformance tests to add:** The following are test obligations for the implementation, not claims that current tests already pass.
