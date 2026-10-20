@@ -1,6 +1,6 @@
 # Documentation review standards
 
-These standards guide human and agent review of research documentation. They complement `AGENTS.md`: keep task-specific workflow instructions there, and use this file for recurring editorial judgment.
+These standards define recurring quality criteria for human and agent review of research and technical documentation. They complement `AGENTS.md`, which owns repository-wide workflow requirements. Specialized skills may prescribe when and how to apply these criteria, but should not redefine them.
 
 ## Semantic accuracy
 
@@ -39,4 +39,4 @@ Before committing a documentation change:
 6. Confirm that the diff changes only the intended files and that the final wording does not claim more than the available evidence supports.
 7. Apply the sentence-level no-op test and remove repeated claims or adjacent cross-references that add no navigation value.
 
-These are review criteria for technical documentation. Automate deterministic checks when a repository-supported tool or CI workflow is available; use editorial review for semantic accuracy, evidence quality, and clarity.
+These are review criteria, not a mandatory document template or a substitute for task workflow. Automate deterministic checks when a repository-supported tool or CI workflow is available; use editorial review for semantic accuracy, evidence quality, and clarity.
