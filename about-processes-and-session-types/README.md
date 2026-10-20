@@ -467,8 +467,8 @@ The transition relation and invariants for publication (`pub`), subscription (`s
 
 The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. The findings below are source-level discrepancies; execution support is assessed separately in Section 13.
 
-- `MsgFromExpSpec` has no branch for `CallSpec` (`ExternalCall`) or the process-expression AST constructor `LinkSpec` (`InternalCall`). A `CallSpec` passed through this conversion therefore reaches the adapter's unexpected-expression fallback rather than being serialized.
-- `MsgToExpSpec` reconstructs `CallSpec` without `CommChnlPH` and `ContExp`. It also reconstructs `LabSpec` without its `ContExp`, although the AST contains that field.
+- `MsgFromExpSpec` has no branch for `CallSpec` (`ExternalCall`) or the process-expression AST constructor `LinkSpec` (`InternalCall`). A `CallSpec` passed through this conversion therefore reaches the adapter's unexpected-expression fallback rather than being serialized; `LinkSpec` does too.
+- `MsgToExpSpec` does recognize the SDK `Call` kind, but reconstructs `CallSpec` by mapping `BindChnlPH` to `NewChnlPH` and copying `ProcTermQN` / `ValChnlPHs` only. It drops the AST's legacy `CommChnlPH` field and, importantly, `ContExp`; the AST therefore does not round-trip with its caller continuation through this adapter. The reverse converter has no `Link` case for `InternalCall`; if such a kind reaches the switch, it falls through to the unexpected-kind fallback. It also reconstructs `LabSpec` without its `ContExp`, although the AST contains that field.
 - In case-expression conversions, label data appears to be read from a fixed `Lab` field rather than the current branch entry. This occurs in message-to-AST conversion and in stored-data-to-AST conversions for both specs and records.
 - The send record conversion stores both continuation-channel and value-channel identifiers in one direction, but appears to restore only one in the reverse direction.
 - The receive record conversion appears not to preserve `ContChnlID` symmetrically.
