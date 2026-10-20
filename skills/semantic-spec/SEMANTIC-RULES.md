@@ -1,36 +1,36 @@
 # Checklist for defining behavior
 
-Use this checklist to identify important details when defining system behavior. For evidence, terminology, links, and writing quality, follow [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md). The workflow in [`SKILL.md`](SKILL.md) explains how to use this checklist during a specification task.
+Use this checklist during a specification task. For documentation quality, follow [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md); for the workflow, see [`SKILL.md`](SKILL.md).
 
-Use only the questions that matter for the behavior being specified. This checklist is not a complete formal model or a required document template.
+Select only the questions that could affect the behavior being specified. This is a review aid, not a complete formal model or a required template.
 
 ## Behavior and boundaries
 
-For each concept or operation, ask which details can change observable behavior:
+For each relevant concept or operation, consider:
 
-- **Scope and identity:** which entity or resource is involved, and what limits its scope (for example, user, organization, transaction, time window, trust boundary, or API version)?
-- **Preconditions:** what must already be true for the behavior to be allowed?
-- **Roles and permissions:** who initiates the action, owns the resource, can view or change it, approves it, or is accountable for it? These roles may differ.
-- **Trigger and rules:** what starts the behavior, and which validation, permission, condition, or precedence rule applies?
-- **Outcome:** what state changes, and what can an external observer see?
-- **Errors and rejection:** what happens if a prerequisite is missing, processing fails, or the request is rejected?
-- **Retries and concurrency:** can an operation be repeated, delayed, retried, or run at the same time as another? If so, what determines the outcome?
+- **Scope and identity:** Which entity or resource is involved, and what limits its scope (for example, user, organization, transaction, time window, trust boundary, or API version)?
+- **Preconditions:** What must be true before the behavior is allowed?
+- **Roles and permissions:** Who initiates the action, owns the resource, can view or change it, approves it, or is accountable for it? Can these roles differ?
+- **Trigger and rules:** What starts the behavior? Which validation, permission, condition, or precedence rule applies?
+- **Outcome:** What state changes, and what can an external observer see?
+- **Errors and rejection:** What happens if a prerequisite is missing, processing fails, or a request is rejected?
+- **Retries and concurrency:** Can the operation be repeated, delayed, retried, or run concurrently? What determines the outcome?
 
-Include only relevant questions. Distinguish between something that does not apply and behavior that has not yet been defined. If the difference could affect behavior, record it as an open question.
+Distinguish behavior that does not apply from behavior that is not yet defined. If that distinction could affect behavior, record an open question.
 
 ## State transitions
 
-When behavior changes state, describe the starting state, trigger, conditions, result, and failure behavior as needed. Specify ordering, retries, or concurrent behavior when they affect the result. Use examples to clarify ambiguity, not as a substitute for the rule.
+When behavior changes state, describe the starting state, trigger, relevant conditions, result, and failure behavior. Specify ordering, retries, and concurrent behavior only when they affect the outcome. Use examples to clarify the rule, not replace it.
 
 ## Interacting rules
 
-When multiple rules, events, sources, or updates can apply, explain their priority or order if it affects the outcome. Clarify whether an action transfers responsibility, creates a new entity, changes an existing one, or only changes a reference. Similar names do not mean the behavior is the same.
+When multiple rules, events, sources, or updates can apply, state their priority or order if it affects the outcome. Clarify whether an action transfers responsibility, creates an entity, changes an existing entity, or only changes a reference. Similar names do not imply identical behavior.
 
-## Actionable open questions
+## Open questions
 
-For each important open question, state:
+For each consequential open question, record:
 - what is unknown;
 - which behavior or design decision it affects;
-- what evidence, test, or person can resolve it.
+- what evidence, test, or person could resolve it.
 
-Ask questions that distinguish meaningfully different outcomes. Do not invent states or add boilerplate just to make a section look complete. Add other questions when the system needs them; do not add categories merely to complete the checklist.
+Prefer questions whose answers distinguish meaningfully different outcomes. Do not invent states or add boilerplate to make a section look complete. Add other questions when the system requires them.
