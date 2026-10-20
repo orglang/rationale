@@ -434,7 +434,7 @@ The transition relation and invariants for publication (`pub`), subscription (`s
 
 The adapter in `proc/termexp/adapter/tc.go` translates between AST, message, and stored representations. The findings below are source-level discrepancies; execution support is assessed separately in Section 13.
 
-- `MsgFromExpSpec` has no branch for the process-expression AST constructor `LinkSpec` (`InternalCall`).
+- `MsgFromExpSpec` has no branch for `CallSpec` (`ExternalCall`) or the process-expression AST constructor `LinkSpec` (`InternalCall`). A `CallSpec` passed through this conversion therefore reaches the adapter's unexpected-expression fallback rather than being serialized.
 - `MsgToExpSpec` reconstructs `CallSpec` without `CommChnlPH` and `ContExp`. It also reconstructs `LabSpec` without its `ContExp`, although the AST contains that field.
 - In case-expression conversions, label data appears to be read from a fixed `Lab` field rather than the current branch entry. This occurs in message-to-AST conversion and in stored-data-to-AST conversions for both specs and records.
 - The send record conversion stores both continuation-channel and value-channel identifiers in one direction, but appears to restore only one in the reverse direction.
