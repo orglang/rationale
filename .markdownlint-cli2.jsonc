@@ -1,13 +1,11 @@
 {
   "config": {
     "default": true,
-    "MD012": false,
-    "MD013": false,
-    "MD024": false,
-    "MD033": false,
-    "MD034": false,
-    "MD036": false,
-    "MD041": false,
-    "MD060": false
+    "MD012": false, // Existing documents contain intentional or legacy consecutive blank lines.
+    "MD013": false, // Prose and tables include long lines; enforce readability in review instead.
+    "MD033": false, // Some documentation intentionally uses inline HTML for formatting.
+    "MD036": false, // Bold standalone labels and TODO markers are used as lightweight section labels.
+    "MD041": false, // Some Markdown files begin with metadata comments or front matter before the H1.
+    "MD060": false // Existing tables use varied column-alignment styles.
   }
 }
