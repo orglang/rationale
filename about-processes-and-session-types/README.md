@@ -189,9 +189,6 @@ Both named-process call forms resolve a target process and associate its declare
 - **`ExternalCall`** reuses supplied client channels and creates a fresh provider channel for the new incarnation.
 - **`InternalCall`** reuses an existing provider channel and the specified client channels, transferring them to the new incarnation.
 
-The descriptions below use the same reading order: the state before the operation, the intended transition, the resulting state, and what remains unverified. This order is meant to make the two contracts easier to compare; it does not imply that every detail has already been formalized.
-
-
 ### `ExternalCall`
 
 **Before:** the caller is executing an `ExternalCall` expression, with its current channel environment and a continuation `ContExp` (the implementation field for the expression the caller should continue with).
@@ -200,10 +197,10 @@ The descriptions below use the same reading order: the state before the operatio
 
 **Intended transition:**
 
-1. Resolve the named process and bind each formal client-channel parameter to the corresponding existing channel supplied by the call.
+1. Resolve the named process and determine the mapping from each formal client-channel parameter to the corresponding existing channel supplied by the call.
 2. Check that each supplied channel's current session type is compatible with the type required by its formal parameter, accounting for the caller's and parameter's roles.
 3. Check that the new incarnation's provider-oriented session type is compatible with the type assigned to the caller's channel placeholder, accounting for the caller's client role. The exact compatibility rules remain to be formalized.
-4. Start a fresh incarnation with its own execution state and channel environment. Formal parameter names are local to that incarnation; the mapping associates them with existing channel identities.
+4. After the checks succeed, start a fresh incarnation with its own execution state and channel environment. Formal parameter names are local to that incarnation; the validated mapping associates them with existing channel identities.
 5. Transfer the mapped channels for use by the new incarnation and create a separate fresh provider channel connecting it to the caller.
 
 **After (intended):** the caller's continuation becomes eligible when it receives the fresh provider channel through the designated placeholder. The caller then uses the client endpoint according to that channel's protocol. The mapped channels retain their identities and protocol states, while their use transfers to the new incarnation; the fresh provider channel is distinct from them. General linearity and process-completion constraints from Section 2 still apply.
@@ -230,7 +227,7 @@ The inspected executor has no `ExternalCall` branch. The exact mapping among `Co
 4. Remove from `P` the bindings for `X` and every channel in `Ys`, then bind `Q`'s placeholders to those same channel identities.
 5. Because `X` and `Ys` account for all channels bound in `P`, no channel remains bound to `P`; `P` semantically terminates without a language-level continuation.
 
-The handoff preserves channel identities and changes only placeholder bindings. These steps describe the provisional contract, not verified runtime behavior.
+The handoff preserves channel identities and changes only placeholder bindings.
 
 **Mini-example (schematic, not OrgLang syntax):** suppose process `Old` has provider placeholder `x` bound to channel `c`, and client placeholder `y` bound to channel `d`. `Old` performs `InternalCall` to process `New`, passing `c` as `X` and `d` in `Ys`. The handoff unbinds both placeholders in `Old` and binds `New`'s corresponding placeholders to `c` and `d`; the channel identities are preserved.
 
