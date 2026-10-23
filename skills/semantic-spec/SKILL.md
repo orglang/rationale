@@ -11,12 +11,12 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 
 ## Steps
 
-1. **Read context.** Inspect the target and relevant sources. Identify existing decisions, conflicts, and the canonical location for each concept. Reuse instructions already consulted.
+1. **Read context.** Inspect the target and relevant sources. Identify existing decisions, conflicts, and the canonical location for each concept.
 2. **Find a consequential question.** Prioritize uncertainty that could change behavior, constraints, ownership, ordering, errors, or compatibility. Usually ask one focused question at a time; combine independent questions when useful.
 3. **Resolve uncertainty.** Ask rather than guess when interpretations materially differ or an assumption could change the design. If the user defers, record an open question and continue independent work. If an answer conflicts with an earlier decision or source, explain the conflict and ask how to resolve it.
 4. **Update the specification.** Record decisions and open questions in the section that owns the concept. Correct affected examples, summaries, and tables; do not append conversation transcripts or duplicate definitions. Keep edits, decisions, and commits distinct; follow [Commit discipline](#commit-discipline).
 5. **Check consequences.** Use [`SEMANTIC-RULES.md`](SEMANTIC-RULES.md) as a selective checklist. Look for contradictions, missing dependencies, and consequential edge cases. Distinguish inapplicable behavior from undefined behavior, and intended semantics from published claims or implementation evidence.
-6. **Continue or wrap up.** Repeat until the user stops or the specification is ready for review. Summarize captured decisions, consequential open questions and their impact, and remaining validation.
+6. **Continue or wrap up.** Repeat as needed. When wrapping up, summarize decisions captured, consequential open questions and their impact, and remaining validation.
 
 ## Stage gates
 
@@ -36,7 +36,6 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 - **Separate semantics from evidence:** missing code or tests do not make an agreed semantic contract undecided. Mark unverified implementation behavior separately.
 - **Research in batches:** read required instructions and canonical sources first; search related files around explicit hypotheses and repeat only when new evidence warrants it.
 - **Report at decision boundaries:** summarize changes, verification, and remaining questions at meaningful milestones without repeating unchanged findings.
-- **Use the smallest sufficient process:** avoid redundant checklists and documents; match validation effort to the change and automate mechanical rules where practical.
 
 ## Commit discipline
 
