@@ -304,7 +304,7 @@ The remaining rule must specify the reachable cases for positive and negative po
 
 ### Summary: compare the three operations
 
-`ExternalCall` and `InternalCall` are the two named-process call forms, with different channel effects and continuation behavior. Record each operation's OrgLang meaning, publication interpretation, and implementation behavior separately. `ExternalCall` starts a named-process incarnation with a fresh provider channel and preserves a continuation for the caller; `InternalCall` starts a named-process incarnation, transfers all of the caller's channels to it, and semantically terminates the old incarnation; `Fwd` connects two existing channel interactions, while named-process invocation is described by `ExternalCall` and `InternalCall`.
+`ExternalCall` and `InternalCall` are the two named-process call forms, with different channel effects and continuation behavior. Record each operation's OrgLang meaning, publication interpretation, and implementation behavior separately. `ExternalCall` starts a named-process incarnation with a fresh provider channel and preserves a continuation for the caller; `InternalCall` starts a named-process incarnation, transfers all of the caller's channels to it, and semantically terminates the old incarnation; `Fwd` redirects one interaction between two existing channels, while named-process invocation is described by `ExternalCall` and `InternalCall`.
 
 | Operation | Primary role | Intended control-flow effect | Intended channel effect | Semantic/evidential status | Implementation status |
 |---|---|---|---|---|
