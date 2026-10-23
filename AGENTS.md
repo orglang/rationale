@@ -10,5 +10,4 @@ These instructions apply across the repository. Use the linked documents for det
 
 - Before writing or reviewing technical documentation, read [`DOCUMENTATION_STANDARDS.md`](DOCUMENTATION_STANDARDS.md).
 - Inspect the relevant files and nearby documentation. Keep each concept in its established location and link to its canonical explanation instead of duplicating it.
-- For behavior and specification work, use the [semantic-spec workflow](skills/semantic-spec/SKILL.md) when its description matches the task or the user explicitly asks for it. For other tasks, activate the smallest set of relevant specialized skills; follow each activated workflow alongside these instructions.
 - Keep changes within the requested scope. Before finishing, review the diff and remove unrelated edits.
