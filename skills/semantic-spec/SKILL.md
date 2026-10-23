@@ -13,7 +13,7 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 
 1. **Read context.** Inspect the target and relevant sources. Identify existing decisions, conflicts, and the canonical location for each concept. Reuse instructions already consulted.
 2. **Find a consequential question.** Prioritize uncertainty that could change behavior, constraints, ownership, ordering, errors, or compatibility. Usually ask one focused question at a time; combine independent questions when useful.
-3. **Resolve uncertainty.** Ask rather than guess when interpretations materially differ. If the user defers, record an open question and continue independent work. If an answer conflicts with an earlier decision or source, explain the conflict and ask how to resolve it.
+3. **Resolve uncertainty.** Ask rather than guess when interpretations materially differ or an assumption could change the design. If the user defers, record an open question and continue independent work. If an answer conflicts with an earlier decision or source, explain the conflict and ask how to resolve it.
 4. **Update the specification.** Record decisions and open questions in the section that owns the concept. Correct affected examples, summaries, and tables; do not append conversation transcripts or duplicate definitions. Keep edits, decisions, and commits distinct; follow [Commit discipline](#commit-discipline).
 5. **Check consequences.** Use [`SEMANTIC-RULES.md`](SEMANTIC-RULES.md) as a selective checklist. Look for contradictions, missing dependencies, and consequential edge cases. Distinguish inapplicable behavior from undefined behavior, and intended semantics from published claims or implementation evidence.
 6. **Continue or wrap up.** Repeat until the user stops or the specification is ready for review. Summarize captured decisions, consequential open questions and their impact, and remaining validation.
@@ -26,7 +26,6 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 ## Interaction rules
 
 - Prioritize behavioral decisions over wording; do not reopen agreed decisions without meaningful new evidence.
-- State assumptions and ask before relying on one that could materially change the design.
 - Preserve existing structure, terminology, status labels, and section ownership; do not create parallel standards or taxonomies.
 - In progress updates, distinguish **decisions accepted**, **edits pending**, **changes committed**, and **validation performed**. Claim a commit or passing check only when confirmed by tool results.
 - When reporting a commit, link to it rather than giving only its hash.
