@@ -29,7 +29,6 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 - Prioritize behavioral decisions over wording; do not reopen agreed decisions without meaningful new evidence.
 - State assumptions and ask before relying on one that could materially change the design.
 - Keep open questions visible while continuing independent work.
-- Treat notes tagged `#retro` as deferred observations, not instructions for the current task. Do not debate or implement them until the user explicitly starts a retrospective; then collect and group the notes, compare them with concrete evidence, and decide which changes to accept, reject, or defer. Notes themselves are scoped to the current conversation unless the user asks to preserve them elsewhere.
 - Preserve existing structure, terminology, status labels, and section ownership; do not create parallel standards or taxonomies.
 - In progress updates, distinguish **decisions accepted**, **edits pending**, **changes committed**, and **validation performed**. Claim a commit or passing check only when confirmed by tool results.
 - When reporting a commit, link to it rather than giving only its hash.
