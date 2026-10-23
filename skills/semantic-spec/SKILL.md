@@ -20,7 +20,7 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 
 ## Stage gates
 
-- **Before editing:** establish the requested scope, canonical target sections, consequential uncertainties, and a proportionate validation plan. Ask about unresolved choices only when different answers would materially change the result; continue independent work while they remain open.
+- **Before editing:** choose a proportionate validation plan.
 - **Before reporting completion:** run relevant checks when available. State explicitly when a check cannot be run, and distinguish intended semantics from implementation behavior that has actually been verified.
 
 ## Interaction rules
