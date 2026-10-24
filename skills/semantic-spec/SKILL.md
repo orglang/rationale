@@ -34,7 +34,9 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 
 - **Derive before asking:** apply agreed rules by analogy where their scope permits; ask only when materially different interpretations remain.
 - **Separate semantics from evidence:** missing code or tests do not make an agreed semantic contract undecided. Mark unverified implementation behavior separately.
+- **Keep the task centered on the specification:** prioritize semantic decisions, the canonical spec, and directly affected summaries/examples. Inspect implementation code only to answer a concrete evidence question or verify a specific claim; avoid broad code exploration that does not affect the decision or spec.
 - **Research in batches:** read required instructions and canonical sources first; search related files around explicit hypotheses and repeat only when new evidence warrants it.
+- **Make consistency edits deliberately:** a semantic decision may require updates in several locations. Update the canonical explanation first, then only the summaries, tables, or examples that would otherwise become inconsistent. Explain the relationship in the diff/commit summary rather than shrinking the change at the cost of contradictions.
 - **Report at decision boundaries:** summarize changes, verification, and remaining questions at meaningful milestones without repeating unchanged findings.
 
 ## Commit discipline
