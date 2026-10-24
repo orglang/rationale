@@ -197,6 +197,7 @@ This section distinguishes two kinds of uncertainty:
 
 - **Intended but underspecified:** the broad behavior is stated here, but its precise rule, conditions, or edge cases still need to be written down and checked.
 - **Design question:** the available evidence does not settle which behavior or mechanism OrgLang should choose. Resolving it requires an explicit design decision.
+
 Both named-process call forms resolve a named callee process and associate its declared channel parameters with supplied channels. They differ in what happens to the provider channel:
 
 - **`ExternalCall`** reuses supplied client channels and creates a fresh provider channel for the new incarnation.
@@ -396,7 +397,8 @@ Treat these identifiers as distinct unless their mapping is established.
 
 The inspected process AST defines these constructors. Field names below are those observed in the Go AST; the short descriptions are provisional where noted.
 
-- **`CloseSpec`** — `ContChnlPH`: close/terminate a session endpoint.- **`WaitSpec`** — `ContChnlPH`, `ContExp`: wait on an endpoint, then continue.
+- **`CloseSpec`** — `ContChnlPH`: close/terminate a session endpoint.
+- **`WaitSpec`** — `ContChnlPH`, `ContExp`: wait on an endpoint, then continue.
 - **`SendSpec`** — `CommChnlPH`, `ValChnlPH`: send a channel/value over a communication endpoint.
 - **`RecvSpec`** — `CommChnlPH`, `NewChnlPH`, `ContExp`: receive and bind a channel, then continue.
 - **`LabSpec`** — `CommChnlPH`, `ValLabQN`, `ContExp`: select/send a label; use of the AST continuation needs verification.
