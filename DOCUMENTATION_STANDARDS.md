@@ -1,6 +1,6 @@
 # Documentation review standards
 
-Use these criteria for research and technical documentation. [`AGENTS.md`](AGENTS.md) defines repository-wide instructions; [`SKILL.md`](skills/semantic-spec/SKILL.md) defines the semantic-spec workflow. This file owns recurring documentation quality criteria.
+These criteria govern research and technical documentation. [`AGENTS.md`](AGENTS.md) owns repository-wide instructions; [`SKILL.md`](skills/semantic-spec/SKILL.md) owns the semantic-spec workflow. This file owns recurring documentation quality criteria.
 
 ## Accuracy and evidence
 
@@ -12,12 +12,10 @@ Use these criteria for research and technical documentation. [`AGENTS.md`](AGENT
 
 ## Structure and language
 
-- Give each section a clear purpose and keep details with the section that owns them.
-- Use tables for comparisons, not long prose; keep them readable on narrow screens.
-- Define abbreviations and symbols before use. Clarify whether a name is a language term, document notation, or implementation identifier.
-- Keep headings, terminology, status labels, and cross-references consistent.
-- State behavior, scope, and ownership directly. Use contrasts only when they clarify a real distinction; preserve qualifications that affect meaning.
-- Replace vague appeals to authority or generic requests for evidence with the specific source, test, or decision needed.
+- Give each section a clear purpose; keep details with the section that owns them and use links instead of duplicate explanations.
+- Use readable tables for comparisons, especially on narrow screens. Define abbreviations and symbols before use; clarify whether a name is a language term, document notation, or implementation identifier.
+- Keep headings, terminology, status labels, and cross-references consistent. State behavior, scope, and ownership directly; use contrasts only when they clarify a real distinction.
+- Replace vague appeals to authority or generic requests for evidence with the specific source, test, or decision needed. Preserve qualifications that affect meaning.
 
 ## References and final review
 
