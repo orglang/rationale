@@ -80,6 +80,16 @@ If no eligible pool is found, the next step remains unspecified in the current m
 
 The observable result of a serviced call is constrained by the canonical channel-placeholder rule in [Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
+### 4.5 Agreement timeout and pre-delivery cancellation
+
+**Agreed project decision:** for an `ExternalCall`, the timeout value is part of the agreement governing service between the caller's pool and the selected callee pool. The agreement carries this timeout parameter; who configures or supplies its value, and the representation of the parameter, remain open.
+
+The timeout clock starts when the selected callee pool accepts the call. Pool lookup and selection are not covered by this timeout and have no timeout under this contract. If the timeout expires before the fresh provider channel is delivered to the caller, automatic cancellation is initiated.
+
+Timeout expiry does not itself mean cancellation has completed. Cancellation remains pending until the incarnation is guaranteed unable to service the call and the supplied client channels have been returned with their original identities and protocol states. The selected pool may perform internal cleanup while cancellation is pending, but it must not expose partial cancellation as completed. See the canonical [ExternalCall commit and cancellation contract](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls) for the language-level invariants.
+
+Provider-channel delivery and cancellation must be serialized atomically so exactly one wins. If delivery wins, the call is committed and timeout cancellation cannot subsequently take effect. If cancellation wins, no provider channel is delivered and the full pre-commit rollback contract applies. This section specifies the process–pool timeout policy; it does not establish implementation conformance.
+
 ## 5. Evidence and rationale
 
 This section records the evidence and reasoning behind the working model. Claim status and implementation coverage remain distinct, as defined in Section 1.
