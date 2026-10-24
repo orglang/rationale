@@ -72,11 +72,11 @@ For `ExternalCall`, the current working sequence is:
 1. The engine searches for the first eligible pool using the inferred search order in Section 4.3.
 2. Only after a suitable pool has been found, the engine creates a fresh process incarnation together with a fresh provider channel.
 3. The engine associates the incarnation with the selected pool.
-4. The selected pool begins servicing the provider channel immediately, without a separate readiness-wait stage.
+4. The selected pool accepts the call; this acceptance starts the agreement timeout described in Section 4.5.
+5. The fresh provider channel is delivered to the caller. Delivery is the commit point.
+6. Only after delivery may the selected pool begin servicing the provider channel. Servicing and the caller's continuation may then execute in either order or interleave, subject to protocol and linearity constraints.
 
-The engine's message delivering the provider channel to the caller and the selected pool's start of servicing are **unordered**. The new incarnation body's readiness relative to these events remains unspecified.
-
-If no eligible pool is found, the next step remains unspecified in the current model; failure and cancellation semantics are deferred. Pool selection, agreements that guide the search, incarnation creation, channel delivery, and the start of servicing are conceptually distinct stages.
+If no eligible pool is found, the next step remains unspecified in the current model. Pool selection, agreement-guided search, incarnation creation, pool acceptance, channel delivery, and the start of servicing are conceptually distinct stages. Timeout-triggered cancellation after pool acceptance is specified in Section 4.5.
 
 The observable result of a serviced call is constrained by the canonical channel-placeholder rule in [Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
