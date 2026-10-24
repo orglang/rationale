@@ -2,12 +2,10 @@
 
 These instructions apply across the repository. Use the linked documents for detailed review criteria and task-specific workflows.
 
-## Branch and change discipline
+## Branches and diffs
 
-- Start every task that changes repository content in a new branch based on the current `main`; do not make task commits directly on `main`. Use an explicit branch name for every write and keep follow-up edits for the same PR on its existing topic branch.
-- Keep changes scoped to the requested outcome. Prefer small, targeted edits over reconstructing or rewriting an entire document from partial excerpts.
-- Before finishing or committing, inspect the complete diff against the branch base, not just the edited passage. Check for accidental whitespace changes, missing blank lines or list-item boundaries, and unrelated content changes. Verify the final text around each edit.
-- Group related semantic updates together when dependent summaries or cross-references must stay consistent; the number of changed locations alone is not a reason to omit necessary consistency updates.
+- Start each new repository task on a new branch from the current `main`; never commit task changes directly to `main`. Keep follow-up edits for an existing PR on its topic branch and explicitly target the branch for writes.
+- Keep edits targeted. Before finishing or committing, review the full diff against the branch base and remove accidental or unrelated changes.
 
 ## Deferred retrospective notes
 
@@ -16,5 +14,4 @@ These instructions apply across the repository. Use the linked documents for det
 ## Technical documentation
 
 - Before writing or reviewing technical documentation, read [`DOCUMENTATION_STANDARDS.md`](DOCUMENTATION_STANDARDS.md).
-- Inspect the relevant files and nearby documentation. Keep each concept in its established location and link to its canonical explanation instead of duplicating it.
-- Keep changes within the requested scope. Before finishing, review the diff and remove unrelated edits.
+- Inspect relevant files and nearby documentation. Keep each concept in its established location and link to its canonical explanation instead of duplicating it.
