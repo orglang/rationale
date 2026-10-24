@@ -10,7 +10,7 @@
 When a process invokes `ExternalCall`, the language-level operation requests service for a named process. The engine may need to perform two distinct tasks: create a fresh process incarnation and arrange for a pool to service the new incarnation's provider channel.
 
 - **`ExternalCall`** creates a fresh incarnation and delivers its fresh provider channel outward to the caller.
-- **`InternalCall`** creates a fresh incarnation and injects an existing channel inward into it.
+- **`InternalCall`** creates a fresh incarnation in the same pool as the invoking incarnation and transfers the invoking incarnation's existing channels into it; it does not perform pool selection.
 - **Process-incarnation creation** means creating a fresh instance of a process.
 - **Pool selection and servicing** determine which pool is associated with the incarnation and which pool services its provider channel.
 
@@ -41,11 +41,11 @@ Three concepts are important to keep separate:
 
 For `ExternalCall`, the current working model says that the engine creates a fresh incarnation together with a fresh provider channel, then associates the incarnation with a selected pool for servicing. The engine creates the incarnation; the selected pool services its provider channel. The pool-selection mechanism and transaction-type model are documented in [Pools and transaction types](../about-pools-and-transaction-types/README.md) and Section 4 below.
 
-The relevant boundary detail is channel provenance: `ExternalCall` uses a fresh provider channel, while `InternalCall` may inject a channel that predates the new incarnation. The language-level contracts for both forms are maintained in [Section 7 of the canonical document](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
+The relevant boundary detail is channel provenance and pool association: `ExternalCall` uses a fresh provider channel and selects an eligible pool, while `InternalCall` transfers existing channels and keeps the invoking incarnation's pool. The language-level contracts for both forms are maintained in [Section 7 of the canonical document](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
 ## 3. Working model of `ExternalCall` and `InternalCall`
 
-The language-level contracts and the distinction between `ExternalCall` and `InternalCall` are defined in the [canonical Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). This section records only the pool-related consequences: `ExternalCall` invokes pool selection before a fresh incarnation is created and serviced; `InternalCall` targets a new incarnation using an existing channel. The selection and servicing sequence is specified as a working model in Section 4 below.
+The language-level contracts and the distinction between `ExternalCall` and `InternalCall` are defined in the [canonical Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). This section records only the pool-related consequences: `ExternalCall` invokes pool selection before a fresh incarnation is created and serviced; `InternalCall` creates the new incarnation in the invoking incarnation's existing pool, without pool selection. The `ExternalCall` selection and servicing sequence is specified as a working model in Section 4 below.
 
 ## 4. Pool selection and servicing
 
@@ -84,7 +84,7 @@ The observable result of a serviced call is constrained by the canonical channel
 
 **Agreed project decision:** for an `ExternalCall`, the timeout value is part of the agreement governing service between the caller's pool and the selected callee pool. The agreement carries this timeout parameter; who configures or supplies its value, and the representation of the parameter, remain open.
 
-The timeout clock starts when the selected callee pool accepts the call. Pool lookup and selection are not covered by this timeout and have no timeout under this contract. If the timeout expires before the fresh provider channel is delivered to the caller, automatic cancellation is initiated.
+The timeout clock starts when the selected callee pool accepts an `ExternalCall` and covers the interval from acceptance until the fresh provider channel is delivered to the caller (the commit point). Pool lookup and selection occur before acceptance and are not covered by this timeout; they have no timeout under this contract. If the timeout expires before delivery/commit, automatic cancellation is initiated.
 
 Timeout expiry does not itself mean cancellation has completed. Cancellation remains pending until the incarnation is guaranteed unable to service the call and the supplied client channels have been returned with their original identities and protocol states. The selected pool may perform internal cleanup while cancellation is pending, but it must not expose partial cancellation as completed. See the canonical [ExternalCall commit and cancellation contract](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls) for the language-level invariants.
 
