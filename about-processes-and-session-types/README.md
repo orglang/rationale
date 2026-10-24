@@ -197,7 +197,6 @@ This section distinguishes two kinds of uncertainty:
 
 - **Intended but underspecified:** the broad behavior is stated here, but its precise rule, conditions, or edge cases still need to be written down and checked.
 - **Design question:** the available evidence does not settle which behavior or mechanism OrgLang should choose. Resolving it requires an explicit design decision.
-
 Both named-process call forms resolve a named callee process and associate its declared channel parameters with supplied channels. They differ in what happens to the provider channel:
 
 - **`ExternalCall`** reuses supplied client channels and creates a fresh provider channel for the new incarnation.
@@ -397,8 +396,7 @@ Treat these identifiers as distinct unless their mapping is established.
 
 The inspected process AST defines these constructors. Field names below are those observed in the Go AST; the short descriptions are provisional where noted.
 
-- **`CloseSpec`** — `ContChnlPH`: close/terminate a session endpoint.
-- **`WaitSpec`** — `ContChnlPH`, `ContExp`: wait on an endpoint, then continue.
+- **`CloseSpec`** — `ContChnlPH`: close/terminate a session endpoint.- **`WaitSpec`** — `ContChnlPH`, `ContExp`: wait on an endpoint, then continue.
 - **`SendSpec`** — `CommChnlPH`, `ValChnlPH`: send a channel/value over a communication endpoint.
 - **`RecvSpec`** — `CommChnlPH`, `NewChnlPH`, `ContExp`: receive and bind a channel, then continue.
 - **`LabSpec`** — `CommChnlPH`, `ValLabQN`, `ContExp`: select/send a label; use of the AST continuation needs verification.
@@ -551,6 +549,7 @@ A useful next validation milestone is one cohesive conformance suite: checker te
 2. **Partly decided — ExternalCall timeout escalation; cancellation commit point:** A timeout after pool selection and before provider-channel delivery is escalated to the already selected callee pool. The pool must keep the call pending and continue processing it; it may retry or select another incarnation, and must not produce a terminal refusal solely because an individual attempt failed. This does not guarantee eventual success or bounded-time completion. Delivery of the fresh provider channel commits the call: cancellation may take effect only before delivery and is impossible after it. Before delivery, channel-ownership and protocol-state invariants cannot be weakened by process agreement; the caller/callee agreement defines compensatable effects and compensation actions, and the outcome must distinguish complete rollback from incomplete compensation or irreversible residual effects. The remaining lifecycle questions include failures or cancellation at other stages. In particular:
 
    - Specify the observable call states around pool selection, incarnation creation, and provider-channel delivery, while preserving the agreed commit point at delivery.
+   - **Timeout source and clock (open):** Define who supplies or configures an `ExternalCall` timeout (the caller, the selected pool, or the execution environment), and when its clock starts. The existing rule specifies what happens when a timeout occurs after pool selection but before provider-channel delivery; it does not establish who sets the timeout or whether a timeout applies before pool selection. Do not infer either policy from the escalation rule.
    - For cancellation before delivery, apply the atomicity contract in Section 7: cancellation is not complete until the incarnation is guaranteed unable to service the call and the supplied client channels have been returned with their original identities and protocol states. For failures after delivery, recovery must account for protocol actions already performed without violating exclusive ownership or losing protocol-state accounting.
    - Define caller-continuation eligibility for each failure and cancellation outcome without weakening the successful-call rule.
    - Distinguish retryable outcomes from terminal outcomes and specify how retries avoid duplicate live incarnations, conflicting channel ownership, and repeated effects.
