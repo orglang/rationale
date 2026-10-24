@@ -5,7 +5,7 @@ description: Guide iterative, user-led specification of system behavior, domain 
 
 # Specification workflow
 
-Activate this workflow when the task matches the description or the user explicitly asks for it; repository instructions alone do not activate it.
+Activate this workflow only when the user explicitly asks to use it. Do not activate it automatically because a task matches this description or because repository instructions refer to it.
 
 Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for documentation quality and [`SEMANTIC-RULES.md`](SEMANTIC-RULES.md) for behavior questions.
 
