@@ -8,7 +8,8 @@ Use these instructions repository-wide; linked documents own detailed review cri
 
 ## Retrospectives
 
-- Treat `#retro` notes as deferred until the user explicitly starts a retrospective. Then group the notes, compare them with evidence, and decide what to accept, reject, or defer. Notes remain scoped to the current conversation unless the user asks to preserve them elsewhere.
+- Accumulate `#retro` notes during work and include them in the next suitable commit message. Keep notes scoped to the current conversation unless the user asks otherwise.
+- When the user starts a retrospective, group notes, compare them with evidence, and decide what to accept, reject, or defer. Notes do not authorize repository changes.
 
 ## Technical documentation
 

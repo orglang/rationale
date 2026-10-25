@@ -10,7 +10,7 @@
 When a process invokes `ExternalCall`, the language-level operation requests service for a named process. The engine may need to perform two distinct tasks: create a fresh process incarnation and arrange for a pool to service the new incarnation's provider channel.
 
 - **`ExternalCall`** creates a fresh incarnation and delivers its fresh provider channel outward to the caller.
-- **`InternalCall`** creates a fresh incarnation and injects an existing channel inward into it.
+- **`InternalCall`** creates a fresh incarnation in the same pool as the invoking incarnation and transfers the invoking incarnation's existing channels into it; it does not perform pool selection.
 - **Process-incarnation creation** means creating a fresh instance of a process.
 - **Pool selection and servicing** determine which pool is associated with the incarnation and which pool services its provider channel.
 
@@ -41,11 +41,11 @@ Three concepts are important to keep separate:
 
 For `ExternalCall`, the current working model says that the engine creates a fresh incarnation together with a fresh provider channel, then associates the incarnation with a selected pool for servicing. The engine creates the incarnation; the selected pool services its provider channel. The pool-selection mechanism and transaction-type model are documented in [Pools and transaction types](../about-pools-and-transaction-types/README.md) and Section 4 below.
 
-The relevant boundary detail is channel provenance: `ExternalCall` uses a fresh provider channel, while `InternalCall` may inject a channel that predates the new incarnation. The language-level contracts for both forms are maintained in [Section 7 of the canonical document](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
+The relevant boundary detail is channel provenance and pool association: `ExternalCall` uses a fresh provider channel and selects an eligible pool, while `InternalCall` transfers existing channels and keeps the invoking incarnation's pool. The language-level contracts for both forms are maintained in [Section 7 of the canonical document](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
 ## 3. Working model of `ExternalCall` and `InternalCall`
 
-The language-level contracts and the distinction between `ExternalCall` and `InternalCall` are defined in the [canonical Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). This section records only the pool-related consequences: `ExternalCall` invokes pool selection before a fresh incarnation is created and serviced; `InternalCall` targets a new incarnation using an existing channel. The selection and servicing sequence is specified as a working model in Section 4 below.
+The language-level contracts and the distinction between `ExternalCall` and `InternalCall` are defined in the [canonical Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). This section records only the pool-related consequences: `ExternalCall` invokes pool selection before a fresh incarnation is created and serviced; `InternalCall` creates the new incarnation in the invoking incarnation's existing pool, without pool selection. The `ExternalCall` selection and servicing sequence is specified as a working model in Section 4 below.
 
 ## 4. Pool selection and servicing
 
@@ -57,28 +57,42 @@ The language-level contracts and the distinction between `ExternalCall` and `Int
 
 **Inferred:** an incarnation is associated with at most one servicing pool at a time. Whether every incarnation requires a pool binding and whether that binding can change later remain **Open**.
 
-### 4.2 Eligibility
+### 4.2 Matching criterion
 
-**Inferred:** a candidate pool's transaction type provides the eligibility signal for whether it can service a process with a given name. The encoding and interpretation of that signal, and any additional runtime validation, belong to [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types) and remain **Open**. This section describes the pool-selection rule. The transaction-type model is documented in [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types).
+**Agreed project decision:** the current criterion for a suitable agreement is a match with the name of the called process. Additional matching criteria may be introduced in the future; they are not specified here. The role of transaction types in pool agreements remains a separate open question, documented in [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types).
 
 ### 4.3 Search order
 
-**Inferred:** for simplicity, pool selection searches for the first eligible pool, starting with the pool containing the caller and continuing through pools with which agreements are established. Agreements determine which further pools are considered; each candidate pool's own transaction type determines whether it is eligible. This remains an inferred working search model; available evidence has not confirmed it as a language rule.
+**Agreed project decision:** the search selects the first suitable agreement encountered in the search order. The order of traversal itself remains unspecified. No ranking or preference among matching agreements is defined beyond selecting the first one encountered.
+
+If the initial search finds no suitable agreement, the search is escalated to a participant of the calling process's pool for manual intervention. The participant's possible actions and the details of that intervention remain unspecified.
 
 ### 4.4 Creation and start of servicing after selection
 
 For `ExternalCall`, the current working sequence is:
 
-1. The engine searches for the first eligible pool using the inferred search order in Section 4.3.
-2. Only after a suitable pool has been found, the engine creates a fresh process incarnation together with a fresh provider channel.
-3. The engine associates the incarnation with the selected pool.
-4. The selected pool begins servicing the provider channel immediately, without a separate readiness-wait stage.
+1. The engine searches for a suitable agreement according to the current matching criterion and traversal rule in Section 4.3. The agreement-search timeout covers this search.
+2. If the initial search finds no suitable agreement, the search is escalated to a participant of the calling process's pool for manual intervention; this escalation remains within the same timeout.
+3. Only after a suitable agreement has been found, the engine creates a fresh process incarnation together with a fresh provider channel.
+4. The engine associates the incarnation with the selected pool. The agreement automatically obliges that pool to service the call; there is no separate discretionary acceptance step.
+5. The fresh provider channel is delivered to the caller. Delivery is the commit point.
+6. Only after delivery may the selected pool begin servicing the provider channel. Servicing and the caller's continuation may then execute in either order or interleave, subject to protocol and linearity constraints.
 
-The engine's message delivering the provider channel to the caller and the selected pool's start of servicing are **unordered**. The new incarnation body's readiness relative to these events remains unspecified.
-
-If no eligible pool is found, the next step remains unspecified in the current model; failure and cancellation semantics are deferred. Pool selection, agreements that guide the search, incarnation creation, channel delivery, and the start of servicing are conceptually distinct stages.
+The timeout-expiry outcome before a suitable agreement is found, including the pre-commit state, is specified in Section 4.5 below.
 
 The observable result of a serviced call is constrained by the canonical channel-placeholder rule in [Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
+
+### 4.5 Agreement-search timeout
+
+**Agreed project decision:** for an `ExternalCall`, the agreement-search timeout starts when the search for a suitable agreement begins. It covers the search and any escalation to a participant of the calling process's pool for manual intervention.
+
+Finding the first suitable agreement in the search order fixes the selection and ends the timeout's effect. No separate acceptance or confirmation step is required: the agreement automatically obliges the selected pool to service the matching call. If discovery and timeout expiry race, whichever event wins determines the outcome. If timeout expiry wins, the search for this call terminates definitively; an agreement discovered afterward cannot be selected for that call.
+
+If the timeout expires before a suitable agreement is found, the search ends without selecting a servicing pool. Under the current working sequence, no incarnation has yet been created and no provider channel has been delivered. The supplied client channels remain with the caller, with their original identities and protocol states. Failure reporting and recovery remain unspecified.
+
+Once a suitable agreement is found before timeout expiry, the timeout no longer governs the call. Subsequent engine work—including incarnation creation and provider-channel delivery—may be delayed without triggering this search timeout. Delivery remains the `ExternalCall` commit point, and the selected pool may begin servicing only after delivery. This is the intended process–pool contract, not a claim about implementation conformance.
+
+The source of the timeout value, who supplies or configures it, its representation, and its valid range remain unspecified. The convention that a value of `0` means an infinite timeout has been proposed but is not yet an agreed rule.
 
 ## 5. Evidence and rationale
 
@@ -118,7 +132,7 @@ The following points remain **Open** or are explicitly deferred:
 
 - **Pool binding:** must every incarnation always be bound to a pool, and can that binding change later?
 - **Eligibility representation:** how exactly is a pool's ability to service a named process encoded in its transaction type?
-- **No eligible pool:** what happens if the search finds no suitable pool?
+- **Manual-intervention outcome:** what happens after the calling pool's participant has been asked to intervene remains unspecified.
 - **Lifecycle and scheduling:** when is the incarnation's body ready to execute, and what further guarantees follow from the publication's cut/spawn rule, if any?
 - **Resource provisioning and reservation:** what role do these play, and when do they occur?
 - **Failures and abnormal termination:** how do they affect callers or held client channels?

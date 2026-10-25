@@ -31,6 +31,8 @@ _TODO: Specify the transaction-type constructors, their syntax, constraints, and
 
 **Open:** the precise encoding of pool eligibility in a pool's transaction type remains to be established. **Inferred:** the transaction type is a candidate signal for whether that pool can service a process with a given name. The search procedure is documented in [Process creation and pool selection, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing). Any additional runtime validation is also **Open**.
 
+**Tentative project direction:** transaction types are expected to be based on dependent-type mechanisms. How transaction types relate to pool agreements remains open. Under this direction, the agreement-search timeout might be expressed through a transaction-type parameter, but this remains a design hypothesis, not a defined type constructor or formal rule. The timeout's operational boundary is specified in [Process creation and pool selection, Section 4.5](../about-spawn/README.md#45-agreement-search-timeout). Its source, syntax, parameter instantiation, checking rules, and whether its value is statically fixed or dynamically determined remain open.
+
 ## 5. The pool's public transaction channel
 
 **Inferred:** the public channel discussed in [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85) is the pool's public transaction channel. Whether individual processes should have public channels remains **Open**.
@@ -57,6 +59,7 @@ _TODO: Map transaction-type and pool concepts to implementation structures and e
 
 ## 9. Open questions and next tests
 
+- How are agreement parameters, including timeout values, represented and checked if transaction types are based on dependent-type mechanisms?
 - What exactly do `Up` and `Down` guarantee about the transaction protocol and its continuation?
 - What happens to the private channel and any associated resources after `Down`?
 - Are public channels a pool-only concept, or can individual processes expose them as well?
