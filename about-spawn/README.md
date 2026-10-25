@@ -78,7 +78,7 @@ For `ExternalCall`, the current working sequence is:
 5. The fresh provider channel is delivered to the caller. Delivery is the commit point.
 6. Only after delivery may the selected pool begin servicing the provider channel. Servicing and the caller's continuation may then execute in either order or interleave, subject to protocol and linearity constraints.
 
-If the agreement-search timeout expires before a suitable agreement is found, the search ends without selecting a servicing pool. Under this working sequence, no incarnation has yet been created and no provider channel has been delivered. The supplied client channels remain with the caller, with their original identities and protocol states. The reaction to this pre-commit failure remains unspecified. If a suitable agreement is found before timeout expiry, later engine work, including incarnation creation and channel delivery, is not governed by this timeout.
+The timeout-expiry outcome before a suitable agreement is found, including the pre-commit state, is specified in Section 4.5 below.
 
 The observable result of a serviced call is constrained by the canonical channel-placeholder rule in [Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
