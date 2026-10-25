@@ -63,7 +63,9 @@ The language-level contracts and the distinction between `ExternalCall` and `Int
 
 ### 4.3 Search order
 
-**Inferred:** for simplicity, pool selection searches for the first eligible pool, starting with the pool containing the caller and continuing through pools with which agreements are established. Agreements determine which further pools are considered; each candidate pool's own transaction type determines whether it is eligible. This remains an inferred working search model; available evidence has not confirmed it as a language rule.
+**Agreed project decision:** the search selects the first suitable agreement encountered in the search order. The current matching criterion is the name of the called process; additional criteria may be introduced in the future. The order of traversal itself remains unspecified. No ranking or preference among matching agreements is defined beyond selecting the first one encountered.
+
+If the initial search finds no suitable agreement, the search is escalated to a participant of the calling process's pool for manual intervention. The participant's possible actions and the details of that intervention remain unspecified.
 
 ### 4.4 Creation and start of servicing after selection
 
@@ -82,11 +84,15 @@ The observable result of a serviced call is constrained by the canonical channel
 
 ### 4.5 Agreement-search timeout
 
-**Agreed project decision:** for an `ExternalCall`, the timeout bounds the search for a suitable pool agreement, including escalation to the pool of the calling process if the initial search finds no eligible pool. It does not bound the time from agreement discovery to provider-channel delivery or the time required to service the call.
+**Agreed project decision:** for an `ExternalCall`, the agreement-search timeout starts when the search for a suitable agreement begins. It covers the search and any escalation to a participant of the calling process's pool for manual intervention.
 
-The agreement automatically obliges the selected pool to service a matching call; there is no separate discretionary acceptance step and no separate right to delay or refuse acceptance. The search timeout ends when a suitable agreement is found. If the timeout expires first, the search ends without selecting a servicing pool; under the current working sequence, incarnation creation has not yet occurred and no provider channel is delivered. The supplied client channels remain with the caller, with their original identities and protocol states. The exact failure-reporting and recovery behavior remains unspecified.
+Finding the first suitable agreement in the search order fixes the selection and ends the timeout's effect. No separate acceptance or confirmation step is required: the agreement automatically obliges the selected pool to service the matching call. If discovery and timeout expiry race, whichever event wins determines the outcome. If timeout expiry wins, the search for this call terminates definitively; an agreement discovered afterward cannot be selected for that call.
 
-If a suitable agreement is found before timeout expiry, the timeout no longer governs the call. Subsequent engine work—including incarnation creation and provider-channel delivery—may be delayed without triggering this search timeout. Delivery remains the commit point, and the selected pool may begin servicing only after delivery. This section records the intended process–pool contract; it does not establish implementation conformance. The source of the timeout value when no suitable agreement has yet been found, who configures or supplies it, and its representation remain open; see [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types).
+If the timeout expires before a suitable agreement is found, the search ends without selecting a servicing pool. Under the current working sequence, no incarnation has yet been created and no provider channel has been delivered. The supplied client channels remain with the caller, with their original identities and protocol states. Failure reporting and recovery remain unspecified.
+
+Once a suitable agreement is found before timeout expiry, the timeout no longer governs the call. Subsequent engine work—including incarnation creation and provider-channel delivery—may be delayed without triggering this search timeout. Delivery remains the `ExternalCall` commit point, and the selected pool may begin servicing only after delivery. This is the intended process–pool contract, not a claim about implementation conformance.
+
+The source of the timeout value, who supplies or configures it, its representation, and its valid range remain unspecified. The convention that a value of `0` means an infinite timeout has been proposed but is not yet an agreed rule.
 
 ## 5. Evidence and rationale
 
