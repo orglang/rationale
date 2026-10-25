@@ -210,7 +210,7 @@ A call is not merely a jump to a named body. It resolves a process definition, c
 | Source incarnation after success | Remains live; its continuation becomes eligible after it receives the new provider channel. | Terminates semantically; there is no language-level continuation for the old incarnation. |
 | Pool association | Selects a suitable pool agreement for the named process. | Uses the invoking incarnation's pool; no pool selection occurs. |
 | Commit point | Delivery of the new provider channel to the caller. Before delivery, no target servicing or call-associated protocol action/effect is allowed. | The single atomic transition at which the complete post-state becomes observable. |
-| Pre-commit precondition failure | No incarnation/provider channel is created; supplied client channels remain with the caller unchanged. | No partial transfer; the invoking incarnation and its bindings remain unchanged and no new live incarnation is exposed. |
+| Pre-commit precondition failure | No partial incarnation or channel transfer is observable. If agreement search times out before selection, no incarnation/provider channel is created and supplied client channels remain with the caller unchanged. | No partial transfer; the invoking incarnation and its bindings remain unchanged and no new live incarnation is exposed. |
 | Cancellation after commit | Agreement-search timeout cannot cancel the call after a suitable agreement is found; post-delivery failure/recovery is outside this contract. | No cancellation that restores the old incarnation's channel environment; runtime failure during/after commit is outside this contract. |
 
 **Shared invariants on successful calls**
