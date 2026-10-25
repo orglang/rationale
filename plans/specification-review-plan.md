@@ -8,7 +8,7 @@
 |---|---|---|
 | Cross-document ownership | In progress | Canonical ownership preserved; updated pages link to the owning documents rather than duplicating call/selection semantics. |
 | Pool and transaction model | Initial pass complete | Replaced broad TODOs with working definitions, explicit status/limitations, and a question table identifying affected behavior and evidence needed. |
-| Process creation boundary | Initial pass complete | Reworked open questions around `SpawnSpec`, eligibility, scheduling, failures, and timeout/commit boundaries into actionable questions. |
+| Process creation boundary | Contract summary added | Added a concise `ExternalCall`/`InternalCall` comparison covering incarnation creation, channel identity transfer, continuation eligibility, pool association, commit points, and pre-commit failures. The existing detailed operation contracts remain canonical. |
 | `Fwd` transition gaps | Initial pass complete | Added a polarity/pending-interaction review matrix without inventing transition semantics. |
 | Implementation evidence | Partial source review; completeness unproven | The user confirms multiple process/call implementation attempts are incomplete. Code observations are retained as examples of partial attempts, not as a prerequisite to infer intended semantics or as evidence of a complete implementation. Full execution-path and test validation is not required to establish the spec's motivation and remains separate from semantic decisions. |
 | Final cross-document/link review | Pending | Recheck all changed sections, anchors, and the complete PR diff before considering the work ready for review. |
