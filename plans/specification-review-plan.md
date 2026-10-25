@@ -106,7 +106,7 @@ Inspect implementation only to answer concrete hypotheses raised by the semantic
 1. Define the minimum vocabulary and protocol boundaries in `about-pools-and-transaction-types/README.md`.
 2. Trace the intended complete process-spawning path and identify what must replace or complete the unfinished `SpawnSpec` attempt, without conflating it with the publication's cut/spawn rule.
 3. Specify the remaining `Fwd` transition cases and tests.
-4. Validate failure paths and implementation reachability, then perform the cross-document consistency pass.
+4. Validate pre-commit atomicity and implementation reachability, then perform the cross-document consistency pass.
 
 ## Out of scope
 
