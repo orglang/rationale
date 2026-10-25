@@ -5,6 +5,9 @@
 
 > **Canonical language contract:** the intended language-level semantics of `ExternalCall` and `InternalCall` are maintained in [Processes and session types, Section 7 — Intended semantics of named-process calls](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). This document focuses on the process–pool boundary, its supporting evidence, and its open questions. The canonical document defines the language-level contracts.
 
+> **Implementation status and purpose of this specification:** The process and call mechanisms discussed here have had multiple implementation attempts; none is known to be complete. This is why the project is writing a specification: to establish the intended behavior independently of any partial AST, adapter, executor, prototype, or test path. Implementation observations below are evidence about those attempts, not a claim that the language contract is already implemented. Do not infer intended semantics from whichever attempt happens to exist in code.
+
+
 ## 1. Purpose and mental model
 
 When a process invokes `ExternalCall`, the language-level operation requests service for a named process. The engine may need to perform two distinct tasks: create a fresh process incarnation and arrange for a pool to service the new incarnation's provider channel.
