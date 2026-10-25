@@ -49,9 +49,9 @@ Work in `about-pools-and-transaction-types/README.md`, preserving its preliminar
 
 **Exit criteria:** core terms are defined or have actionable open questions; established behavior is separated from hypotheses; no unsupported constructor or lifecycle rule is introduced.
 
-### 3. Resolve the process-creation boundary
+### 3. Specify the process-creation boundary
 
-Work primarily in `about-spawn/README.md`, referring to the canonical call contracts in `about-processes-and-session-types/README.md`.
+Work primarily in `about-spawn/README.md`, referring to the canonical call contracts in `about-processes-and-session-types/README.md`. The canonical call section now has a compact comparison table; detailed rules remain in the operation-specific subsections.
 
 - Preserve the distinction between `ExternalCall`, `InternalCall`, engine-level incarnation creation, and pool servicing.
 - Treat process-expression `SpawnSpec` as an unfinished implementation attempt, per the user's clarification; do not derive OrgLang semantics from it. Trace the intended complete process-spawning path separately from the publication's cut/spawn rule.
@@ -59,7 +59,7 @@ Work primarily in `about-spawn/README.md`, referring to the canonical call contr
 - Turn unresolved outcomes—manual intervention, search failure, recovery, cancellation, and abnormal termination—into focused questions that identify the affected behavior and evidence needed.
 - Keep timeout configuration and the proposed `0 = infinite` convention open unless explicitly decided.
 
-**Exit criteria:** the call/creation/servicing boundary is explicit; publication semantics are not presented as OrgLang semantics; each consequential failure-path question is actionable.
+**Exit criteria:** the call/creation/servicing boundary is explicit; publication semantics are not presented as OrgLang semantics; each consequential failure-path question is actionable. The call contracts must state the created incarnation, channel bindings and identity preservation, source-incarnation lifecycle, pool association, commit point, and pre-commit failure behavior.
 
 ### 4. Specify process/session transition gaps
 
