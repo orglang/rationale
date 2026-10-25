@@ -9,12 +9,14 @@ These criteria govern research and technical documentation. [`AGENTS.md`](AGENTS
 - Treat user-confirmed contracts as intended behavior, not proof of formal semantics, unless authoritative sources support that claim.
 - Mark uncertainty and disagreement. Keep claim status separate from implementation coverage; apply status labels to claims, not terms.
 - For important or disputed claims, identify sources, confidence/status, limitations, what the evidence establishes, and what remains unverified. Never imply a source was inspected or behavior tested when it was not.
+- Distinguish behavior that is intentionally inapplicable from behavior that remains undefined. Record an open question when that distinction could affect behavior.
+- For each consequential open question, state what is unknown, which behavior or decision it affects, and what evidence, test, or person could resolve it. Prefer questions whose answers distinguish meaningful outcomes; do not invent states or add boilerplate for completeness.
 
 ## Structure and language
 
 - Give each section a clear purpose; keep details with the section that owns them and use links instead of duplicate explanations.
 - Use readable tables for comparisons, especially on narrow screens. Define abbreviations and symbols before use; clarify whether a name is a language term, document notation, or implementation identifier.
-- Keep headings, terminology, status labels, and cross-references consistent. State behavior, scope, and ownership directly; use contrasts only when they clarify a real distinction.
+- Keep headings, terminology, status labels, and cross-references consistent. State behavior, the identity of the entity or resource involved, the boundaries of its scope, and ownership directly; use contrasts only when they clarify a real distinction.
 - Replace vague appeals to authority or generic requests for evidence with the specific source, test, or decision needed. Preserve qualifications that affect meaning.
 
 ## References and final review
