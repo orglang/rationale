@@ -196,6 +196,34 @@ Part III contains the constructor inventory, observed polarity assignments, chec
 
 **This is the canonical statement of the intended language-level behavior.** Implementation field names are not OrgLang keywords; their correspondence to language-level roles is documented in Section 9.
 
+### Contract summary: creation, channel ownership, and commit
+
+The rules below are the **working OrgLang contract adopted for this research draft**, independent of any current implementation. The detailed preconditions and failure cases follow in the operation-specific sections. This summary makes the shared model and the distinction between the two call forms explicit.
+
+A call is not merely a jump to a named body. It resolves a process definition, creates a fresh incarnation on success, and establishes which existing channel identities that incarnation owns. A channel's identity and residual protocol state are preserved when its binding is transferred; the transition changes which incarnation owns a binding, not the identity of the channel itself.
+
+| Property | `ExternalCall` | `InternalCall` |
+|---|---|---|
+| New incarnation | Creates a fresh incarnation of the named process. | Creates a fresh incarnation of the named process. |
+| Provider channel of target | Allocates a new, fresh provider channel. | Reuses the invoking incarnation's existing provider channel `X`. |
+| Target client channels | Reuses supplied existing channels in declaration order. | Reuses supplied existing channels `Ys` in declaration order. |
+| Source incarnation after success | Remains live; its continuation becomes eligible after it receives the new provider channel. | Terminates semantically; there is no language-level continuation for the old incarnation. |
+| Pool association | Selects a suitable pool agreement for the named process. | Uses the invoking incarnation's pool; no pool selection occurs. |
+| Commit point | Delivery of the new provider channel to the caller. Before delivery, no target servicing or call-associated protocol action/effect is allowed. | The single atomic transition at which the complete post-state becomes observable. |
+| Pre-commit precondition failure | No incarnation/provider channel is created; supplied client channels remain with the caller unchanged. | No partial transfer; the invoking incarnation and its bindings remain unchanged and no new live incarnation is exposed. |
+| Cancellation after commit | Agreement-search timeout cannot cancel the call after a suitable agreement is found; post-delivery failure/recovery is outside this contract. | No cancellation that restores the old incarnation's channel environment; runtime failure during/after commit is outside this contract. |
+
+**Shared invariants on successful calls**
+
+1. **Fresh incarnation identity:** every created incarnation receives an identity never allocated before; identities are never reused.
+2. **Positional binding:** formal client-channel placeholders of the target are bound to the supplied channels in declaration order. The target provider placeholder is bound as described for the relevant call form.
+3. **Linearity and no aliasing:** distinct formal channel parameters map to distinct channel identities. For `InternalCall`, `X` and `Ys` together account for the invoking incarnation's complete channel environment.
+4. **Channel preservation:** transferred channels keep their identities and current residual protocol states; a call does not silently reset or advance a protocol.
+5. **No partial visible transition:** observers see the pre-state or the specified committed post-state, not partially changed channel ownership.
+6. **Implementation independence:** these are intended language-level rules, not a claim that any existing implementation attempt completes them.
+
+**Out of scope for this contract:** crash consistency, automatic recovery/retry, the exact error-reporting mechanism, and a progress guarantee for a call that cannot be serviced. Such behavior requires a separate decision and must not be inferred from precondition atomicity.
+
 This section distinguishes two kinds of uncertainty:
 
 - **Intended but underspecified:** the broad behavior is stated here, but its precise rule, conditions, or edge cases still need to be written down and checked.
