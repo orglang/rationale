@@ -312,7 +312,22 @@ If neither channel has a pending interaction, `Fwd` initiates one on the corresp
 
 **Implementation observation:** the inspected executor has paths for positive and negative polarity, but this does not establish that every path is reachable or correct. Neutral polarity takes an unexpected-polarity error path; a negative-polarity branch has a type-mismatch TODO; and the existing e2e `fwd` test has no result assertion. The pending-turn lookup checks `CommChnlPH`; handling a turn pending only on the other channel is unverified. The implementation therefore does not yet establish the complete transition contract.
 
-The remaining rule must specify the reachable cases for positive and negative polarity when one side has a pending interaction, the treatment of neutral polarity, and the resulting continuation and one-shot consumption. Polarity is defined in Section 2; Section 9 records the checker's observed assignments. See Section 14 for the remaining question.
+The remaining rule must specify the reachable cases for positive and negative polarity when one side has a pending interaction, the treatment of neutral polarity, and the resulting continuation and one-shot consumption. Polarity is defined in Section 2; Section 9 records the checker's observed assignments.
+
+The following is a **review matrix, not a transition rule**. “Channel A” and “channel B” are the two existing channels supplied to `Fwd`; the exact direction mapping remains unresolved.
+
+| Polarity | Pending interaction state | Current status | Required semantic decision or evidence |
+|---|---|---|---|
+| Positive | Neither A nor B has a pending interaction | **Open** | Specify which endpoint initiates the interaction, which channel is used first, and the resulting continuation. |
+| Positive | Only A has a pending interaction | **Open** | Specify how the pending interaction is redirected and how A's pending state is consumed. |
+| Positive | Only B has a pending interaction | **Open** | Specify whether the same rule applies symmetrically or whether polarity makes this case invalid. |
+| Negative | Neither A nor B has a pending interaction | **Open** | Specify the initiation side and resulting continuation; compare with the positive-polarity case. |
+| Negative | Only A has a pending interaction | **Open** | Specify redirection, pending-state consumption, and continuation. |
+| Negative | Only B has a pending interaction | **Open** | Specify redirection, pending-state consumption, and continuation; do not infer symmetry without evidence. |
+| Neutral | Any state allowed by the model | **Open** | Decide whether neutral polarity is unreachable, invalid, or has defined behavior. The current executor error is implementation evidence, not a language rule. |
+| Any | Both A and B have pending interactions | Excluded by current model | Preserve the existing model constraint unless new evidence or an explicit decision revises it. |
+
+For every allowed row, the rule and tests should establish that the interaction is redirected at most once, neither linear endpoint is duplicated, and the resulting continuation agrees with the residual protocol states. Tests should assert observable results and relevant channel/pending-state invariants; merely executing the `Fwd` path is insufficient.
 
 ### Summary: compare the three operations
 
