@@ -128,17 +128,18 @@ Relevant comments: [Call versus internal spawning](https://github.com/orglang/go
 
 ## 6. Open questions and deferred topics
 
-The following points remain **Open** or are explicitly deferred:
+The current contract provides no progress guarantee for pending calls: it specifies neither eventual service nor a time bound. The following questions remain open because their answers can change observable behavior or resource ownership.
 
-- **Pool binding:** must every incarnation always be bound to a pool, and can that binding change later?
-- **Eligibility representation:** how exactly is a pool's ability to service a named process encoded in its transaction type?
-- **Manual-intervention outcome:** what happens after the calling pool's participant has been asked to intervene remains unspecified.
-- **Lifecycle and scheduling:** when is the incarnation's body ready to execute, and what further guarantees follow from the publication's cut/spawn rule, if any?
-- **Resource provisioning and reservation:** what role do these play, and when do they occur?
-- **Failures and abnormal termination:** how do they affect callers or held client channels?
-- **Cancellation and progress:** what happens to calls that cannot be serviced or remain pending?
+| Open question | Behavior/decision affected | Evidence or decision needed |
+|---|---|---|
+| Must every incarnation be bound to a servicing pool, and can the binding change? | Which pool is responsible for service and whether responsibility can migrate. | Explicit lifecycle/ownership decision; then verify the corresponding runtime transition. |
+| How is eligibility represented in a pool's transaction type? | Whether a matching agreement is sufficient for selection and whether additional validation can reject it. | A transaction-type/agreement contract in [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types), with positive and negative examples. |
+| What is the language-level role of `SpawnSpec`? | Whether it denotes a source-language operation, an engine operation, or an implementation representation of another rule. | Authoritative OrgLang source or explicit project decision; inspect AST/executor paths only as implementation evidence. The publication's cut/spawn rule alone does not settle this. |
+| What can the participant do after manual intervention is requested? | Whether the call can remain pending, select an agreement, fail, or be cancelled. | Project decision describing allowed outcomes and their ordering; tests once behavior is agreed. |
+| When may the new incarnation's body execute relative to channel delivery and the caller's continuation? | Observable scheduling and whether servicing can race with caller behavior. | Explicit scheduling contract and concurrency tests. The publication's cut/spawn rule does not establish OrgLang scheduling guarantees. |
+| When are resources provisioned or reserved? | Whether selection reserves capacity and what happens if provisioning fails after agreement selection. | Pool/transaction model plus a decision about pre-commit versus post-commit failure. |
+| What happens on failure, abnormal termination, or cancellation? | Caller-visible errors, client-channel ownership, cleanup, and whether late service is possible. | Explicit failure-state decisions, especially before versus after the delivery commit point; tests for races and cleanup. |
+| What guarantees exist for a call that remains pending? | Whether callers can rely on eventual service or a time bound. | An explicit progress guarantee or an explicit statement that no such guarantee is provided. The current model provides none. |
 
-The current contract provides no progress guarantee for pending calls: it specifies neither eventual service nor a time bound.
-
-Pool negotiation, transaction initiation, and resource reservation are outside the current phase except where needed to clarify how an incarnation is associated with the pool responsible for servicing it. Implementation structures, call paths, and mappings between AST/API representations are also deferred until the semantic model is sufficiently stable.
+Pool negotiation, transaction initiation, and resource reservation remain outside the current specification except where needed to define pool association and servicing. Implementation structures, call paths, and AST/API mappings should be inspected to answer these specific questions, not treated as semantic definitions in their own right.
 
