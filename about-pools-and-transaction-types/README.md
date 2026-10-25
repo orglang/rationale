@@ -84,7 +84,7 @@ For each rule adopted in this section, record:
 1. **Preconditions:** the participant roles, channel/type state, and any agreement or resource prerequisites.
 2. **Action:** which participant sends, receives, selects, or applies a continuation.
 3. **Result:** the next protocol state, the identity and ownership of any channel/resource, and any change to pool state.
-4. **Failure or race behavior:** what happens for an invalid message, unavailable resource, cancellation, or competing timeout/event, where applicable.
+4. **Observable state at a transition boundary:** where relevant, state the pre-state/post-state and ordering constraints needed to preserve protocol and resource invariants. Detailed error reporting, recovery, retries, and abnormal-termination semantics are outside this specification pass.
 5. **Evidence:** the source for the intended language rule, plus separate implementation-path/test evidence where conformance is claimed.
 
 Until these points are settled, keep the rule explicitly **Inferred** or **Open** and link to the relevant question in Section 9.
