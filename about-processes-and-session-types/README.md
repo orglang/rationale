@@ -203,6 +203,8 @@ Both named-process call forms resolve a named callee process and associate its d
 - **`ExternalCall`** reuses supplied client channels and creates a fresh provider channel for the new incarnation.
 - **`InternalCall`** reuses an existing provider channel and the specified client channels, transferring them to the new incarnation.
 
+**Shared failed-precondition atomicity rule:** For either call form, if a precondition fails before that operation commits, the operation does not expose a partial transition: the pre-state remains intact, with no partially transferred channel bindings and no new live incarnation exposed. This common rule does not define how a failure is reported or recovered from. The operations retain their distinct lifecycle contracts: `ExternalCall` has its specified pre-delivery timeout cancellation, while `InternalCall` has no cancellation outcome after its successful transition commits. Runtime failures during or after a transition are not covered by this rule.
+
 ### `ExternalCall`
 
 **Before:** the caller is executing an `ExternalCall` expression, with its current channel environment and a continuation `ContExp` (the implementation field for the expression the caller should continue with).
