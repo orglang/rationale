@@ -242,7 +242,7 @@ The pre-commit failure and delivery contract preserves these invariants:
 
 General process/pool failure handling, recovery after a servicing incarnation fails, restart guarantees, and retry policy are outside the scope of this ExternalCall contract. In particular, this section makes no guarantee of recovery or successful completion after provider-channel delivery; it neither requires nor prohibits mechanisms that a separate fault-tolerance contract may define.
 
-**Timeout configuration and scope:** The agreement-search timeout applies to `ExternalCall`; its boundary and interaction with agreement discovery are specified in [about-spawn, Section 4.5](../about-spawn/README.md#45-agreement-search-timeout). Its source, who configures or supplies it, and its representation remain open. The timeout policy does not guarantee eventual success or completion within a bounded time.
+**Timeout configuration and scope:** The agreement-search timeout applies to `ExternalCall`; its boundary and unresolved configuration questions are documented in [about-spawn, Section 4.5](../about-spawn/README.md#45-agreement-search-timeout). The timeout policy does not guarantee eventual success or completion within a bounded time.
 
 The inspected executor has no `ExternalCall` branch. The exact AST/runtime mapping among `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH` remains open; this is an implementation-mapping question, not an unresolved choice about the intended positional channel contract. See [issue #85: Call versus internal spawning](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290893).
 
