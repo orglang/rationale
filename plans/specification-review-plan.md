@@ -10,7 +10,7 @@
 | Pool and transaction model | Initial pass complete | Replaced broad TODOs with working definitions, explicit status/limitations, and a question table identifying affected behavior and evidence needed. |
 | Process creation boundary | Initial pass complete | Reworked open questions around `SpawnSpec`, eligibility, scheduling, failures, and timeout/commit boundaries into actionable questions. |
 | `Fwd` transition gaps | Initial pass complete | Added a polarity/pending-interaction review matrix without inventing transition semantics. |
-| Implementation evidence | Not yet verified | Repository/source access and targeted implementation traces still need to establish concrete paths and test coverage. |
+| Implementation evidence | Partial source review | Confirmed the process AST `SpawnSpec` has no branch in the inspected executor and an older branch is commented out; the pool API `Spawn` creates an execution record but does not itself instantiate a body. Full execution-path and test validation remains pending. |
 | Final cross-document/link review | Pending | Recheck all changed sections, anchors, and the complete PR diff before considering the work ready for review. |
 
 ## Goal
