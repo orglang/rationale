@@ -4,6 +4,9 @@
 
 **Audience:** readers who need to understand OrgLang process expressions and session types, and contributors verifying how those concepts are represented in `orglang/go-engine`. This research draft records the current model and evidence pending a normative language specification.
 
+> **Implementation status and purpose of this specification:** The process and call mechanisms discussed here have had multiple implementation attempts; none is known to be complete. This is why the project is writing a specification: to establish the intended behavior independently of any partial AST, adapter, executor, prototype, or test path. Implementation observations below are evidence about those attempts, not a claim that the language contract is already implemented. Do not infer intended semantics from whichever attempt happens to exist in code.
+
+
 **How to use this document:**
 - Parts I and II describe the language model, intended operation semantics, and comparison with the publication.
 - Part III records implementation evidence and open questions. The intended language semantics are stated in Part I.
