@@ -1,6 +1,17 @@
 # Specification review and alignment plan
 
-> **Status: proposed work plan.** This plan organizes a follow-up review of the three preliminary research documents. It does not itself decide unresolved language semantics or claim implementation conformance.
+> **Status: in progress.** This plan organizes a follow-up review of the three preliminary research documents. It does not itself decide unresolved language semantics or claim implementation conformance.
+
+## Progress
+
+| Work item | Status | Result so far |
+|---|---|---|
+| Cross-document ownership | In progress | Canonical ownership preserved; updated pages link to the owning documents rather than duplicating call/selection semantics. |
+| Pool and transaction model | Initial pass complete | Replaced broad TODOs with working definitions, explicit status/limitations, and a question table identifying affected behavior and evidence needed. |
+| Process creation boundary | Initial pass complete | Reworked open questions around `SpawnSpec`, eligibility, scheduling, failures, and timeout/commit boundaries into actionable questions. |
+| `Fwd` transition gaps | Initial pass complete | Added a polarity/pending-interaction review matrix without inventing transition semantics. |
+| Implementation evidence | Not yet verified | Repository/source access and targeted implementation traces still need to establish concrete paths and test coverage. |
+| Final cross-document/link review | Pending | Recheck all changed sections, anchors, and the complete PR diff before considering the work ready for review. |
 
 ## Goal
 
