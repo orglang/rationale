@@ -57,9 +57,9 @@ The language-level contracts and the distinction between `ExternalCall` and `Int
 
 **Inferred:** an incarnation is associated with at most one servicing pool at a time. Whether every incarnation requires a pool binding and whether that binding can change later remain **Open**.
 
-### 4.2 Eligibility
+### 4.2 Matching criterion
 
-**Inferred:** a candidate pool's transaction type provides the eligibility signal for whether it can service a process with a given name. The encoding and interpretation of that signal, and any additional runtime validation, belong to [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types) and remain **Open**. This section describes the pool-selection rule. The transaction-type model is documented in [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types).
+**Agreed project decision:** the current criterion for a suitable agreement is a match with the name of the called process. Additional matching criteria may be introduced in the future; they are not specified here. The role of transaction types in pool agreements remains a separate open question, documented in [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types).
 
 ### 4.3 Search order
 
@@ -71,8 +71,8 @@ If the initial search finds no suitable agreement, the search is escalated to a 
 
 For `ExternalCall`, the current working sequence is:
 
-1. The engine searches for a suitable agreement with an eligible pool using the inferred search order in Section 4.3. The agreement-search timeout covers this search.
-2. If no eligible pool is found in the initial search, the search is escalated to the pool of the calling process; this escalation remains within the same timeout.
+1. The engine searches for a suitable agreement according to the current matching criterion and traversal rule in Section 4.3. The agreement-search timeout covers this search.
+2. If the initial search finds no suitable agreement, the search is escalated to a participant of the calling process's pool for manual intervention; this escalation remains within the same timeout.
 3. Only after a suitable agreement has been found, the engine creates a fresh process incarnation together with a fresh provider channel.
 4. The engine associates the incarnation with the selected pool. The agreement automatically obliges that pool to service the call; there is no separate discretionary acceptance step.
 5. The fresh provider channel is delivered to the caller. Delivery is the commit point.
