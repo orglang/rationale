@@ -14,7 +14,11 @@ When a process invokes `ExternalCall`, the language-level operation requests ser
 - **Process-incarnation creation** means creating a fresh instance of a process.
 - **Pool selection and servicing** determine which pool is associated with the incarnation and which pool services its provider channel.
 
-**Inferred:** `Spawn` is shorthand here for engine-level incarnation creation. Under the current model, creating a fresh incarnation is part of servicing either `ExternalCall` or `InternalCall`; a distinct source-language role for `Spawn` remains a question for authoritative language evidence.
+**Project clarification:** `SpawnSpec` is an unfinished implementation attempt for process spawning, not evidence of a separate, established source-language operation. It should not be used to define OrgLang semantics.
+
+**Implementation evidence:** the repository contains several similarly named representations that must be kept distinct. The process-expression `SpawnSpec` has no execution branch in the inspected process executor; an older `SpawnSpecOld` branch remains commented out. Separately, the pool API's `Spawn` method creates a new process-execution record, but the inspected implementation does not instantiate or attach a process body there. These observations support the status “incomplete implementation attempt”; they do not define the intended replacement semantics.
+
+Under the current language-level working model, creating a fresh incarnation is part of servicing either `ExternalCall` or `InternalCall`; pool selection is specific to `ExternalCall`. See the implementation evidence in [Processes and session types, Section 12](../about-processes-and-session-types/README.md#12-implementation-evidence-and-open-conformance-gaps) and the [pool executor implementation](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/compexec/core/core.go) and [process executor implementation](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/compexec/core/core.go).
 
 The purpose of this document is to clarify the process–pool boundary before examining implementation structures or call paths. `Call` is the umbrella term for the two named-process call forms, `ExternalCall` and `InternalCall`.
 
@@ -113,7 +117,7 @@ The supplied calculus gives the following cut/spawn rule:
 
 Here `P` is the body of the process being spawned and `Q` is the original process's continuation. The rule allocates a fresh channel `a`, substitutes it for `x` in both expressions, and runs the two resulting processes so they can communicate over that shared channel. It therefore combines fresh-channel allocation and process spawning in this particular calculus.
 
-This rule establishes the publication's cut/spawn semantics. Its correspondence to OrgLang, the role of OrgLang's `SpawnSpec`, and the lifecycle and scheduling guarantees remain **Open**.
+This rule establishes the publication's cut/spawn semantics. Its correspondence to OrgLang, and the lifecycle and scheduling guarantees remain **Open**. The process `SpawnSpec` is an unfinished implementation attempt, not the source of an OrgLang language rule.
 
 ### 5.3 Issue #85 discussion
 
@@ -134,7 +138,7 @@ The current contract provides no progress guarantee for pending calls: it specif
 |---|---|---|
 | Must every incarnation be bound to a servicing pool, and can the binding change? | Which pool is responsible for service and whether responsibility can migrate. | Explicit lifecycle/ownership decision; then verify the corresponding runtime transition. |
 | How is eligibility represented in a pool's transaction type? | Whether a matching agreement is sufficient for selection and whether additional validation can reject it. | A transaction-type/agreement contract in [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types), with positive and negative examples. |
-| What is the language-level role of `SpawnSpec`? | Whether it denotes a source-language operation, an engine operation, or an implementation representation of another rule. | Authoritative OrgLang source or explicit project decision; inspect AST/executor paths only as implementation evidence. The publication's cut/spawn rule alone does not settle this. |
+| What is the intended, complete process-creation path in the implementation after the unfinished `SpawnSpec` attempt? | How fresh process incarnations are actually created and connected to their provider/client channels; whether the current `ExternalCall`/`InternalCall` working model has a complete executable path. | Trace the current AST, checker, adapter, executor, and runtime path; identify focused tests with observable assertions. Do not treat the unfinished `SpawnSpec` as a language contract. |
 | What can the participant do after manual intervention is requested? | Whether the call can remain pending, select an agreement, fail, or be cancelled. | Project decision describing allowed outcomes and their ordering; tests once behavior is agreed. |
 | When may the new incarnation's body execute relative to channel delivery and the caller's continuation? | Observable scheduling and whether servicing can race with caller behavior. | Explicit scheduling contract and concurrency tests. The publication's cut/spawn rule does not establish OrgLang scheduling guarantees. |
 | When are resources provisioned or reserved? | Whether selection reserves capacity and what happens if provisioning fails after agreement selection. | Pool/transaction model plus a decision about pre-commit versus post-commit failure. |
