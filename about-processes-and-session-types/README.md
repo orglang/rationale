@@ -388,7 +388,7 @@ Do not conflate named-process call with the separate cut/spawn rule `x ← P ; Q
 
 ### The publication's cut/spawn rule
 
-The publication separately describes cut/spawn as allocating a fresh channel shared by a spawned process and the original process's continuation. The detailed rule is documented in [about-spawn, Section 2.2](../about-spawn/README.md#22-existing-rationale-publication-cutspawn-rule); OrgLang's `Spawn` semantics remain a separate question.
+The publication separately describes cut/spawn as allocating a fresh channel shared by a spawned process and the original process's continuation. The detailed rule is documented in [about-spawn, Section 2.2](../about-spawn/README.md#52-publications-cutspawn-rule); OrgLang's `Spawn` semantics remain a separate question.
 
 The publication also gives the following forwarding rules. For clarity, the mode parameter `m` is omitted; this discussion focuses on forwarding.
 
