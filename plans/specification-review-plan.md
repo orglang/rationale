@@ -56,10 +56,10 @@ Work primarily in `about-spawn/README.md`, referring to the canonical call contr
 - Preserve the distinction between `ExternalCall`, `InternalCall`, engine-level incarnation creation, and pool servicing.
 - Treat process-expression `SpawnSpec` as an unfinished implementation attempt, per the user's clarification; do not derive OrgLang semantics from it. Trace the intended complete process-spawning path separately from the publication's cut/spawn rule.
 - Keep the agreed pool-selection sequence, first-suitable-agreement rule, timeout boundary, and delivery commit point intact unless new evidence reveals a conflict.
-- Turn unresolved outcomes—manual intervention, search failure, recovery, cancellation, and abnormal termination—into focused questions that identify the affected behavior and evidence needed.
+- Clarify only the state and ordering guarantees that are part of the agreed call contract, especially the pre-/post-delivery boundary. Do not specify error reporting, recovery, retries, or abnormal-termination semantics in this pass.
 - Keep timeout configuration and the proposed `0 = infinite` convention open unless explicitly decided.
 
-**Exit criteria:** the call/creation/servicing boundary is explicit; publication semantics are not presented as OrgLang semantics; each consequential failure-path question is actionable. The call contracts must state the created incarnation, channel bindings and identity preservation, source-incarnation lifecycle, pool association, commit point, and pre-commit failure behavior.
+**Exit criteria:** the call/creation/servicing boundary is explicit; publication semantics are not presented as OrgLang semantics; pre-/post-commit state invariants are explicit. Error reporting, recovery, retry, and abnormal-termination semantics remain out of scope. The call contracts must state the created incarnation, channel bindings and identity preservation, source-incarnation lifecycle, pool association, commit point, and pre-commit failure behavior.
 
 ### 4. Specify process/session transition gaps
 
