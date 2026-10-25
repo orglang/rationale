@@ -31,7 +31,7 @@ _TODO: Specify the transaction-type constructors, their syntax, constraints, and
 
 **Open:** the precise encoding of pool eligibility in a pool's transaction type remains to be established. **Inferred:** the transaction type is a candidate signal for whether that pool can service a process with a given name. The search procedure is documented in [Process creation and pool selection, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing). Any additional runtime validation is also **Open**.
 
-**Tentative project direction:** transaction types, also called agreements between pools, are expected to be based on dependent-type mechanisms. Under this direction, a timeout may be expressed as a parameter of the agreement's transaction type. This is a design hypothesis, not a defined type constructor or formal rule. The syntax, parameter instantiation, checking rules, and whether a particular timeout value is statically fixed or determined dynamically remain **Open**.
+**Tentative project direction:** transaction types, also called agreements between pools, are expected to be based on dependent-type mechanisms. Under this direction, a timeout may be expressed as a parameter of the agreement's transaction type. This is a design hypothesis, not a defined type constructor or formal rule. The syntax, parameter instantiation, checking rules, and whether a particular timeout value is statically fixed or determined dynamically remain **Open**. The current project direction allows timeout values to differ for different called processes rather than requiring one uniform timeout for every call covered by an inter-pool agreement. How the called process determines the relevant parameter remains **Open**.
 
 ## 5. The pool's public transaction channel
 
