@@ -63,7 +63,7 @@ The language-level contracts and the distinction between `ExternalCall` and `Int
 
 ### 4.3 Search order
 
-**Agreed project decision:** the search selects the first suitable agreement encountered in the search order. The current matching criterion is the name of the called process; additional criteria may be introduced in the future. The order of traversal itself remains unspecified. No ranking or preference among matching agreements is defined beyond selecting the first one encountered.
+**Agreed project decision:** the search selects the first suitable agreement encountered in the search order. The order of traversal itself remains unspecified. No ranking or preference among matching agreements is defined beyond selecting the first one encountered.
 
 If the initial search finds no suitable agreement, the search is escalated to a participant of the calling process's pool for manual intervention. The participant's possible actions and the details of that intervention remain unspecified.
 
