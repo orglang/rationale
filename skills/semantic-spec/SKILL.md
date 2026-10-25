@@ -19,14 +19,15 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
    - For state-changing behavior, consider the starting state, trigger, relevant conditions, result, and failure behavior. Use an explicit state-transition model only when it helps clarify meaningful behavior.
    - Consider retries, delays, and concurrency when they could change outcomes or create conflicts or duplicate effects.
    - When multiple rules, events, sources, or updates can apply, clarify priority or order if it affects the outcome.
-   - Distinguish actions that transfer responsibility, create an entity, change an existing entity, or only change a reference when that distinction matters. Similar names alone do not establish identical behavior.
-   - Check for contradictions, missing dependencies, and consequential edge cases. Distinguish intentionally inapplicable behavior from behavior that remains undefined, and intended semantics from published claims or implementation evidence.
+   - Distinguish actions that transfer responsibility, create an entity, change an existing entity, or only change a reference when that distinction matters.
+   - Do not infer identical behavior from similar names alone.
+   - Check for contradictions, missing dependencies, and consequential edge cases.
 6. **Continue or wrap up.** Repeat as needed. Summarize decisions captured, consequential open questions and their impact, and remaining validation.
 
 ## Stage gates
 
 - **Before editing:** choose a proportionate validation plan.
-- **Before reporting completion:** run relevant available checks. State when a check cannot be run; distinguish intended semantics from implementation behavior actually verified.
+- **Before reporting completion:** run relevant available checks. State when a check cannot be run, and report only checks confirmed by results.
 
 ## Interaction rules
 
