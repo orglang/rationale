@@ -132,7 +132,7 @@ The following points remain **Open** or are explicitly deferred:
 
 - **Pool binding:** must every incarnation always be bound to a pool, and can that binding change later?
 - **Eligibility representation:** how exactly is a pool's ability to service a named process encoded in its transaction type?
-- **No eligible pool:** what reaction does the calling pool take when no eligible pool is found and the condition is escalated to it?
+- **Manual-intervention outcome:** what happens after the calling pool's participant has been asked to intervene remains unspecified.
 - **Lifecycle and scheduling:** when is the incarnation's body ready to execute, and what further guarantees follow from the publication's cut/spawn rule, if any?
 - **Resource provisioning and reservation:** what role do these play, and when do they occur?
 - **Failures and abnormal termination:** how do they affect callers or held client channels?
