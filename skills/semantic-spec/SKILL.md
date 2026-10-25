@@ -7,7 +7,7 @@ description: Guide iterative, user-led specification of system behavior, domain 
 
 Activate this workflow only when the user explicitly asks to use it. Do not activate it automatically because a task matches this description or repository instructions refer to it.
 
-Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for documentation quality and [`SEMANTIC-RULES.md`](SEMANTIC-RULES.md) for behavior questions.
+Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for documentation quality and use the checks below as a selective review aid, not a required template.
 
 ## Steps
 
@@ -15,7 +15,12 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 2. **Find consequential questions.** Prioritize uncertainty that could change behavior, constraints, ownership, ordering, errors, or compatibility. Usually ask one focused question at a time; combine independent questions when useful.
 3. **Resolve uncertainty.** Ask rather than guess when interpretations materially differ or assumptions could change the design. If the user defers, record an open question and continue independent work. If an answer conflicts with an earlier decision or source, explain the conflict and ask how to resolve it.
 4. **Update the specification.** Record decisions and open questions where the concept belongs. Correct affected examples, summaries, and tables; do not append transcripts or duplicate definitions. Keep edits, decisions, and commits distinct; follow [Commit discipline](#commit-discipline).
-5. **Check consequences.** Select relevant checks from [`SEMANTIC-RULES.md`](SEMANTIC-RULES.md). Look for contradictions, missing dependencies, and consequential edge cases. Distinguish inapplicable from undefined behavior, and intended semantics from published claims or implementation evidence.
+5. **Check consequences.** Select only checks relevant to the behavior being specified:
+   - For state-changing behavior, consider the starting state, trigger, relevant conditions, result, and failure behavior. Use an explicit state-transition model only when it helps clarify meaningful behavior.
+   - Consider retries, delays, and concurrency when they could change outcomes or create conflicts or duplicate effects.
+   - When multiple rules, events, sources, or updates can apply, clarify priority or order if it affects the outcome.
+   - Distinguish actions that transfer responsibility, create an entity, change an existing entity, or only change a reference when that distinction matters. Similar names alone do not establish identical behavior.
+   - Check for contradictions, missing dependencies, and consequential edge cases. Distinguish intentionally inapplicable behavior from behavior that remains undefined, and intended semantics from published claims or implementation evidence.
 6. **Continue or wrap up.** Repeat as needed. Summarize decisions captured, consequential open questions and their impact, and remaining validation.
 
 ## Stage gates
