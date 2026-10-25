@@ -222,7 +222,7 @@ A call is not merely a jump to a named body. It resolves a process definition, c
 5. **No partial visible transition:** observers see the pre-state or the specified committed post-state, not partially changed channel ownership.
 6. **Implementation independence:** these are intended language-level rules, not a claim that any existing implementation attempt completes them.
 
-**Out of scope for this contract:** crash consistency, automatic recovery/retry, the exact error-reporting mechanism, and a progress guarantee for a call that cannot be serviced. Such behavior requires a separate decision and must not be inferred from precondition atomicity.
+**Out of scope for this contract:** error reporting or propagation, recovery or retries after commit, and crash consistency. The only pre-commit guarantee specified here is that the operation does not expose a partial state.
 
 This section distinguishes two kinds of uncertainty:
 
