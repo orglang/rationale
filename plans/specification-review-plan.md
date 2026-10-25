@@ -54,7 +54,7 @@ Work in `about-pools-and-transaction-types/README.md`, preserving its preliminar
 Work primarily in `about-spawn/README.md`, referring to the canonical call contracts in `about-processes-and-session-types/README.md`.
 
 - Preserve the distinction between `ExternalCall`, `InternalCall`, engine-level incarnation creation, and pool servicing.
-- Investigate the language-level role of `SpawnSpec` separately from the publication's cut/spawn rule. Do not infer equivalence from similar names.
+- Treat process-expression `SpawnSpec` as an unfinished implementation attempt, per the user's clarification; do not derive OrgLang semantics from it. Trace the intended complete process-spawning path separately from the publication's cut/spawn rule.
 - Keep the agreed pool-selection sequence, first-suitable-agreement rule, timeout boundary, and delivery commit point intact unless new evidence reveals a conflict.
 - Turn unresolved outcomes—manual intervention, search failure, recovery, cancellation, and abnormal termination—into focused questions that identify the affected behavior and evidence needed.
 - Keep timeout configuration and the proposed `0 = infinite` convention open unless explicitly decided.
@@ -104,7 +104,7 @@ Inspect implementation only to answer concrete hypotheses raised by the semantic
 ## Initial priority
 
 1. Define the minimum vocabulary and protocol boundaries in `about-pools-and-transaction-types/README.md`.
-2. Resolve the `SpawnSpec` versus incarnation-creation question without conflating it with the publication's cut/spawn rule.
+2. Trace the intended complete process-spawning path and identify what must replace or complete the unfinished `SpawnSpec` attempt, without conflating it with the publication's cut/spawn rule.
 3. Specify the remaining `Fwd` transition cases and tests.
 4. Validate failure paths and implementation reachability, then perform the cross-document consistency pass.
 
