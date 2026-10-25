@@ -76,7 +76,7 @@ For `ExternalCall`, the current working sequence is:
 5. The fresh provider channel is delivered to the caller. Delivery is the commit point.
 6. Only after delivery may the selected pool begin servicing the provider channel. Servicing and the caller's continuation may then execute in either order or interleave, subject to protocol and linearity constraints.
 
-If no eligible pool is found, the next step remains unspecified in the current model. Pool selection, agreement-guided search, incarnation creation, pool acceptance, channel delivery, and the start of servicing are conceptually distinct stages. Timeout-triggered cancellation after pool acceptance is specified in Section 4.5.
+If no eligible pool is found, this is escalated to the pool of the calling process; it is not handled as a local `ExternalCall` failure or by `ExternalCall` waiting or retrying the search. The reaction to that escalation is governed by the calling pool's semantics and remains unspecified here. Pool selection, agreement-guided search, incarnation creation, pool acceptance, channel delivery, and the start of servicing are conceptually distinct stages. Timeout-triggered cancellation after pool acceptance is specified in Section 4.5.
 
 The observable result of a serviced call is constrained by the canonical channel-placeholder rule in [Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
@@ -128,7 +128,7 @@ The following points remain **Open** or are explicitly deferred:
 
 - **Pool binding:** must every incarnation always be bound to a pool, and can that binding change later?
 - **Eligibility representation:** how exactly is a pool's ability to service a named process encoded in its transaction type?
-- **No eligible pool:** what happens if the search finds no suitable pool?
+- **No eligible pool:** what reaction does the calling pool take when no eligible pool is found and the condition is escalated to it?
 - **Lifecycle and scheduling:** when is the incarnation's body ready to execute, and what further guarantees follow from the publication's cut/spawn rule, if any?
 - **Resource provisioning and reservation:** what role do these play, and when do they occur?
 - **Failures and abnormal termination:** how do they affect callers or held client channels?
