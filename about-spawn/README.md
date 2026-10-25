@@ -82,7 +82,7 @@ The observable result of a serviced call is constrained by the canonical channel
 
 ### 4.5 Agreement timeout and pre-delivery cancellation
 
-**Agreed project decision:** for an `ExternalCall`, the timeout value is part of the agreement governing service between the caller's pool and the selected callee pool. **Tentative project direction:** the timeout is expected to be expressed through the agreement's transaction type, with transaction types (agreements) potentially based on dependent-type mechanisms. This is not yet a formal typing rule: the encoding, parameter instantiation, and checking rules remain open.
+**Agreed project decision:** for an `ExternalCall`, the timeout value is part of the agreement governing service between the caller's pool and the selected callee pool. Its intended expression through transaction types, including the tentative dependent-type direction and the possibility of different timeout values for different called processes, is documented canonically in [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types). The timeout's runtime boundary and cancellation behavior are specified below.
 
 For `ExternalCall`, the agreement automatically places the call under the selected pool's service; there is no separate discretionary acceptance step. The timeout clock starts at this acceptance boundary and covers the interval until the fresh provider channel is delivered to the caller (the commit point). Pool lookup and selection occur before acceptance and are not covered by this timeout; they have no timeout under this contract. If the timeout expires before delivery/commit, automatic cancellation is initiated.
 
