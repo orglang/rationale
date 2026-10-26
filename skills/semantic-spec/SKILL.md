@@ -13,7 +13,7 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 
 1. **Read context.** Inspect the target and relevant sources; identify existing decisions, conflicts, and each concept's canonical location.
 2. **Find consequential questions.** Prioritize uncertainty that could change behavior, constraints, ownership, ordering, errors, or compatibility. Usually ask one focused question at a time; combine independent questions when useful.
-3. **Resolve uncertainty.** Ask rather than guess when interpretations materially differ or assumptions could change the design. If the user defers, record an open question and continue independent work. If an answer conflicts with an earlier decision or source, explain the conflict and ask how to resolve it.
+3. **Resolve uncertainty.** Ask rather than guess when interpretations materially differ or assumptions could change the design. If the user defers, record the topic as open with its current scope and continue independent work. Do not ask follow-up questions that further subdivide a deferred topic unless the user reopens it or new evidence makes resolution necessary. If an answer conflicts with an earlier decision or source, explain the conflict and ask how to resolve it.
 4. **Update the specification.** Record decisions and open questions where the concept belongs. Correct affected examples, summaries, and tables; do not append transcripts or duplicate definitions. Keep edits, decisions, and commits distinct; follow [Commit discipline](#commit-discipline).
 5. **Check consequences.** Select only checks relevant to the behavior being specified:
    - For state-changing behavior, consider the starting state, trigger, relevant conditions, result, and failure behavior. Use an explicit state-transition model only when it helps clarify meaningful behavior.
@@ -47,6 +47,7 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 - Keep accepted decisions and required edits in the working tree while pursuing independent specification work; do not commit after every answer.
 - Commit when a coherent semantic block is complete, the user requests it, or substantial uncommitted work is at risk. A milestone alone is insufficient.
 - Before committing, review the full accumulated diff for that block, check canonical ownership and cross-references, remove unrelated edits, and ensure changes follow accepted decisions or correct inconsistencies without changing agreed semantics.
+- Search for other occurrences of each changed concept; update the canonical contract first, then align affected summaries, examples, tables, and cross-references. Confirm that no open question was silently resolved.
 - Prefer one coherent commit per semantic block. Do not rewrite existing history solely to reduce commit count.
 
 ## Ready for review

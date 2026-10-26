@@ -8,8 +8,9 @@ Use these instructions repository-wide; linked documents own detailed review cri
 
 ## Retrospectives
 
-- Accumulate `#retro` notes during work and include them in the next suitable commit message. Keep notes scoped to the current conversation unless the user asks otherwise.
-- When the user starts a retrospective, group notes, compare them with evidence, and decide what to accept, reject, or defer. Notes do not authorize repository changes.
+- Accumulate `#retro` notes during work and add them to the existing retrospective comment in the relevant pull request; do not use commit messages as a store for retrospective notes.
+- When the user starts a retrospective, group notes, compare them with evidence, and decide what to accept, reject, or defer. Notes do not authorize repository changes; agree on the scope of instruction changes before editing them.
+- Prefer correcting an existing instruction that failed to guide behavior over adding a duplicate rule. Keep retrospective notes scoped to the current conversation unless the user asks otherwise.
 
 ## Technical documentation
 
