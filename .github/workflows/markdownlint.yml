@@ -11,11 +11,14 @@ permissions:
   contents: read
 
 jobs:
-  markdownlint:
-    name: markdownlint-cli2
+  sources-check:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
       - name: Lint Markdown
         uses: DavidAnson/markdownlint-cli2-action@v19
+      - name: Check local Markdown links and anchors
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --offline --include-fragments --no-progress './**/*.md'
