@@ -5,6 +5,9 @@
 
 > **Canonical language contract:** the intended language-level semantics of `ExternalCall` and `InternalCall` are maintained in [Processes and session types, Section 7 — Intended semantics of named-process calls](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). This document focuses on the process–pool boundary, its supporting evidence, and its open questions. The canonical document defines the language-level contracts.
 
+> **Implementation status and purpose of this specification:** The process and call mechanisms discussed here have had multiple implementation attempts; none is known to be complete. This is why the project is writing a specification: to establish the intended behavior independently of any partial AST, adapter, executor, prototype, or test path. Implementation observations below are evidence about those attempts, not a claim that the language contract is already implemented. Do not infer intended semantics from whichever attempt happens to exist in code.
+
+
 ## 1. Purpose and mental model
 
 When a process invokes `ExternalCall`, the language-level operation requests service for a named process. The engine may need to perform two distinct tasks: create a fresh process incarnation and arrange for a pool to service the new incarnation's provider channel.
@@ -14,7 +17,11 @@ When a process invokes `ExternalCall`, the language-level operation requests ser
 - **Process-incarnation creation** means creating a fresh instance of a process.
 - **Pool selection and servicing** determine which pool is associated with the incarnation and which pool services its provider channel.
 
-**Inferred:** `Spawn` is shorthand here for engine-level incarnation creation. Under the current model, creating a fresh incarnation is part of servicing either `ExternalCall` or `InternalCall`; a distinct source-language role for `Spawn` remains a question for authoritative language evidence.
+**Project clarification:** `SpawnSpec` is an unfinished implementation attempt for process spawning, not evidence of a separate, established source-language operation. It should not be used to define OrgLang semantics.
+
+**Implementation evidence:** the repository contains several similarly named representations that must be kept distinct. The process-expression `SpawnSpec` has no execution branch in the inspected process executor; an older `SpawnSpecOld` branch remains commented out. Separately, the pool API's `Spawn` method creates a new process-execution record, but the inspected implementation does not instantiate or attach a process body there. These observations support the status “incomplete implementation attempt”; they do not define the intended replacement semantics.
+
+Under the current language-level working model, creating a fresh incarnation is part of servicing either `ExternalCall` or `InternalCall`; pool selection is specific to `ExternalCall`. See the implementation evidence in [Processes and session types, Section 13](../about-processes-and-session-types/README.md#13-what-the-execution-path-establishes) and the [pool executor implementation](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/compexec/core/core.go) and [process executor implementation](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/compexec/core/core.go).
 
 The purpose of this document is to clarify the process–pool boundary before examining implementation structures or call paths. `Call` is the umbrella term for the two named-process call forms, `ExternalCall` and `InternalCall`.
 
@@ -113,7 +120,7 @@ The supplied calculus gives the following cut/spawn rule:
 
 Here `P` is the body of the process being spawned and `Q` is the original process's continuation. The rule allocates a fresh channel `a`, substitutes it for `x` in both expressions, and runs the two resulting processes so they can communicate over that shared channel. It therefore combines fresh-channel allocation and process spawning in this particular calculus.
 
-This rule establishes the publication's cut/spawn semantics. Its correspondence to OrgLang, the role of OrgLang's `SpawnSpec`, and the lifecycle and scheduling guarantees remain **Open**.
+This rule establishes the publication's cut/spawn semantics. Its correspondence to OrgLang, and the lifecycle and scheduling guarantees remain **Open**. The process `SpawnSpec` is an unfinished implementation attempt, not the source of an OrgLang language rule.
 
 ### 5.3 Issue #85 discussion
 
@@ -128,17 +135,18 @@ Relevant comments: [Call versus internal spawning](https://github.com/orglang/go
 
 ## 6. Open questions and deferred topics
 
-The following points remain **Open** or are explicitly deferred:
+The current contract provides no progress guarantee for pending calls: it specifies neither eventual service nor a time bound. The following questions remain open because their answers can change observable behavior or resource ownership.
 
-- **Pool binding:** must every incarnation always be bound to a pool, and can that binding change later?
-- **Eligibility representation:** how exactly is a pool's ability to service a named process encoded in its transaction type?
-- **Manual-intervention outcome:** what happens after the calling pool's participant has been asked to intervene remains unspecified.
-- **Lifecycle and scheduling:** when is the incarnation's body ready to execute, and what further guarantees follow from the publication's cut/spawn rule, if any?
-- **Resource provisioning and reservation:** what role do these play, and when do they occur?
-- **Failures and abnormal termination:** how do they affect callers or held client channels?
-- **Cancellation and progress:** what happens to calls that cannot be serviced or remain pending?
+| Open question | Behavior/decision affected | Evidence or decision needed |
+|---|---|---|
+| Must every incarnation be bound to a servicing pool, and can the binding change? | Which pool is responsible for service and whether responsibility can migrate. | Explicit lifecycle/ownership decision; then verify the corresponding runtime transition. |
+| How is eligibility represented in a pool's transaction type? | Whether a matching agreement is sufficient for selection and whether additional validation can reject it. | A transaction-type/agreement contract in [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types), with positive and negative examples. |
+| What is the intended, complete process-creation path in the implementation after the unfinished `SpawnSpec` attempt? | How fresh process incarnations are actually created and connected to their provider/client channels; whether the current `ExternalCall`/`InternalCall` working model has a complete executable path. | Trace the current AST, checker, adapter, executor, and runtime path; identify focused tests with observable assertions. Do not treat the unfinished `SpawnSpec` as a language contract. |
+| What can the participant do after manual intervention is requested? | Whether the call remains pending or a suitable agreement can be selected after intervention. | Project decision describing the allowed intervention outcomes and their ordering; tests once behavior is agreed. |
+| When may the new incarnation's body execute relative to channel delivery and the caller's continuation? | Observable scheduling and whether servicing can race with caller behavior. | Explicit scheduling contract and concurrency tests. The publication's cut/spawn rule does not establish OrgLang scheduling guarantees. |
+| When are resources provisioned or reserved? | Whether selection reserves capacity and whether provisioning occurs before or after the call's commit point. | Pool/transaction model plus an explicit ordering rule relative to the commit point. |
+| What state is observable on each side of the `ExternalCall` delivery commit point? | Whether a call can expose a partial incarnation/channel transfer or begin servicing before delivery. | Preserve the pre-commit invariants in Section 4.5 and test them; error reporting, recovery, retry, and abnormal-termination semantics are out of scope. |
+| What guarantees exist for a call that remains pending? | Whether callers can rely on eventual service or a time bound. | An explicit progress guarantee or an explicit statement that no such guarantee is provided. The current model provides none. |
 
-The current contract provides no progress guarantee for pending calls: it specifies neither eventual service nor a time bound.
-
-Pool negotiation, transaction initiation, and resource reservation are outside the current phase except where needed to clarify how an incarnation is associated with the pool responsible for servicing it. Implementation structures, call paths, and mappings between AST/API representations are also deferred until the semantic model is sufficiently stable.
+Pool negotiation, transaction initiation, and resource reservation remain outside the current specification except where needed to define pool association and servicing. Implementation structures, call paths, and AST/API mappings should be inspected to answer these specific questions, not treated as semantic definitions in their own right.
 

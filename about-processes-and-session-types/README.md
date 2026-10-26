@@ -4,6 +4,9 @@
 
 **Audience:** readers who need to understand OrgLang process expressions and session types, and contributors verifying how those concepts are represented in `orglang/go-engine`. This research draft records the current model and evidence pending a normative language specification.
 
+> **Implementation status and purpose of this specification:** The process and call mechanisms discussed here have had multiple implementation attempts; none is known to be complete. This is why the project is writing a specification: to establish the intended behavior independently of any partial AST, adapter, executor, prototype, or test path. Implementation observations below are evidence about those attempts, not a claim that the language contract is already implemented. Do not infer intended semantics from whichever attempt happens to exist in code.
+
+
 **How to use this document:**
 - Parts I and II describe the language model, intended operation semantics, and comparison with the publication.
 - Part III records implementation evidence and open questions. The intended language semantics are stated in Part I.
@@ -193,6 +196,34 @@ Part III contains the constructor inventory, observed polarity assignments, chec
 
 **This is the canonical statement of the intended language-level behavior.** Implementation field names are not OrgLang keywords; their correspondence to language-level roles is documented in Section 9.
 
+### Contract summary: creation, channel ownership, and commit
+
+The rules below are the **working OrgLang contract adopted for this research draft**, independent of any current implementation. The detailed preconditions and commit-boundary rules follow in the operation-specific sections. This summary makes the shared model and the distinction between the two call forms explicit.
+
+A call is not merely a jump to a named body. It resolves a process definition, creates a fresh incarnation on success, and establishes which existing channel identities that incarnation owns. A channel's identity and residual protocol state are preserved when its binding is transferred; the transition changes which incarnation owns a binding, not the identity of the channel itself.
+
+| Property | `ExternalCall` | `InternalCall` |
+|---|---|---|
+| New incarnation | Creates a fresh incarnation of the named process. | Creates a fresh incarnation of the named process. |
+| Provider channel of target | Allocates a new, fresh provider channel. | Reuses the invoking incarnation's existing provider channel `X`. |
+| Target client channels | Reuses supplied existing channels in declaration order. | Reuses supplied existing channels `Ys` in declaration order. |
+| Source incarnation after success | Remains live; its continuation becomes eligible after it receives the new provider channel. | Terminates semantically; there is no language-level continuation for the old incarnation. |
+| Pool association | Selects a suitable pool agreement for the named process. | Uses the invoking incarnation's pool; no pool selection occurs. |
+| Commit point | Delivery of the new provider channel to the caller. Before delivery, no target servicing or call-associated protocol action/effect is allowed. | The single atomic transition at which the complete post-state becomes observable. |
+| Pre-commit precondition failure | No partial incarnation or channel transfer is observable. If agreement search times out before selection, no incarnation/provider channel is created and supplied client channels remain with the caller unchanged. | No partial transfer; the invoking incarnation and its bindings remain unchanged and no new live incarnation is exposed. |
+| Cancellation after commit | Agreement-search timeout cannot cancel the call after a suitable agreement is found; post-delivery failure/recovery is outside this contract. | No cancellation that restores the old incarnation's channel environment; runtime failure during/after commit is outside this contract. |
+
+**Shared invariants on successful calls**
+
+1. **Fresh incarnation identity:** every created incarnation receives an identity never allocated before; identities are never reused.
+2. **Positional binding:** formal client-channel placeholders of the target are bound to the supplied channels in declaration order. The target provider placeholder is bound as described for the relevant call form.
+3. **Linearity and no aliasing:** distinct formal channel parameters map to distinct channel identities. For `InternalCall`, `X` and `Ys` together account for the invoking incarnation's complete channel environment.
+4. **Channel preservation:** transferred channels keep their identities and current residual protocol states; a call does not silently reset or advance a protocol.
+5. **No partial visible transition:** observers see the pre-state or the specified committed post-state, not partially changed channel ownership.
+6. **Implementation independence:** these are intended language-level rules, not a claim that any existing implementation attempt completes them.
+
+**Out of scope for this contract:** error reporting or propagation, recovery or retries after commit, and crash consistency. The only pre-commit guarantee specified here is that the operation does not expose a partial state.
+
 This section distinguishes two kinds of uncertainty:
 
 - **Intended but underspecified:** the broad behavior is stated here, but its precise rule, conditions, or edge cases still need to be written down and checked.
@@ -312,7 +343,22 @@ If neither channel has a pending interaction, `Fwd` initiates one on the corresp
 
 **Implementation observation:** the inspected executor has paths for positive and negative polarity, but this does not establish that every path is reachable or correct. Neutral polarity takes an unexpected-polarity error path; a negative-polarity branch has a type-mismatch TODO; and the existing e2e `fwd` test has no result assertion. The pending-turn lookup checks `CommChnlPH`; handling a turn pending only on the other channel is unverified. The implementation therefore does not yet establish the complete transition contract.
 
-The remaining rule must specify the reachable cases for positive and negative polarity when one side has a pending interaction, the treatment of neutral polarity, and the resulting continuation and one-shot consumption. Polarity is defined in Section 2; Section 9 records the checker's observed assignments. See Section 14 for the remaining question.
+The remaining rule must specify the reachable cases for positive and negative polarity when one side has a pending interaction, the treatment of neutral polarity, and the resulting continuation and one-shot consumption. Polarity is defined in Section 2; Section 9 records the checker's observed assignments.
+
+The following is a **review matrix, not a transition rule**. “Channel A” and “channel B” are the two existing channels supplied to `Fwd`; the exact direction mapping remains unresolved.
+
+| Polarity | Pending interaction state | Current status | Required semantic decision or evidence |
+|---|---|---|---|
+| Positive | Neither A nor B has a pending interaction | **Open** | Specify which endpoint initiates the interaction, which channel is used first, and the resulting continuation. |
+| Positive | Only A has a pending interaction | **Open** | Specify how the pending interaction is redirected and how A's pending state is consumed. |
+| Positive | Only B has a pending interaction | **Open** | Specify whether the same rule applies symmetrically or whether polarity makes this case invalid. |
+| Negative | Neither A nor B has a pending interaction | **Open** | Specify the initiation side and resulting continuation; compare with the positive-polarity case. |
+| Negative | Only A has a pending interaction | **Open** | Specify redirection, pending-state consumption, and continuation. |
+| Negative | Only B has a pending interaction | **Open** | Specify redirection, pending-state consumption, and continuation; do not infer symmetry without evidence. |
+| Neutral | Any state allowed by the model | **Open** | Decide whether neutral polarity is unreachable, invalid, or has defined behavior. The current executor error is implementation evidence, not a language rule. |
+| Any | Both A and B have pending interactions | Excluded by current model | Preserve the existing model constraint unless new evidence or an explicit decision revises it. |
+
+For every allowed row, the rule and tests should establish that the interaction is redirected at most once, neither linear endpoint is duplicated, and the resulting continuation agrees with the residual protocol states. Tests should assert observable results and relevant channel/pending-state invariants; merely executing the `Fwd` path is insufficient.
 
 ### Summary: compare the three operations
 
@@ -342,7 +388,7 @@ Do not conflate named-process call with the separate cut/spawn rule `x ← P ; Q
 
 ### The publication's cut/spawn rule
 
-The publication separately describes cut/spawn as allocating a fresh channel shared by a spawned process and the original process's continuation. The detailed rule is documented in [about-spawn, Section 2.2](../about-spawn/README.md#22-existing-rationale-publication-cutspawn-rule); OrgLang's `Spawn` semantics remain a separate question.
+The publication separately describes cut/spawn as allocating a fresh channel shared by a spawned process and the original process's continuation. The detailed rule is documented in [about-spawn, Section 2.2](../about-spawn/README.md#52-publications-cutspawn-rule); OrgLang's `Spawn` semantics remain a separate question.
 
 The publication also gives the following forwarding rules. For clarity, the mode parameter `m` is omitted; this discussion focuses on forwarding.
 
@@ -519,13 +565,13 @@ This subsection records executor-level findings. Adapter discrepancies are liste
 The inspected `ExternalCall`-related `call` scenario in `test/e2e/pool_test.go` is inconclusive: the top-level `TestPool` does not run the subtest, its result assertion is a TODO, and the callee declaration has no corresponding process body. The current process HTTP endpoint `POST /api/v1/procs/:id/steps` converts the supplied SDK step and calls `proc/compexec.API.Take`. That method runs `checkType` before `takeWith` and only then reaches the explicit transaction that calls `ModifyRec`; the checker’s default panic therefore occurs before this service’s execution-record modification step. The handler returns ordinary errors from `Take`, but has no local panic recovery. No conclusion is drawn here about whether outer Echo middleware recovers the panic, so the HTTP status/connection behavior remains unverified. Since `CallSpec` has no checker or executor branch, this inspected process-execution route does not implement `ExternalCall` even if the expression reaches it. Separately, `proc/termdef` service/repository operations are stubs, but the evidence does not establish that this storage path is used by the HTTP step route. The message-adapter and stored-DTO gaps in Section 12 add further obstacles to round-tripping a call. This is an implementation-evidence gap, not an unresolved choice about the intended channel contract in Section 7.
 **Implementation observation:** `InternalCall` is represented by the process-expression AST constructor `LinkSpec`. Its `X` (provider channel) and `Ys` (client channels) are intended to identify caller-side channels. The AST types these fields as `identity.ADT` channel identifiers; placeholder names use `symbol.ADT`. No complete adapter or executor path was found. The AST `CallSpec` has an explicit `ContExp`; `LinkSpec` does not. See Section 14 for the open lifecycle and representation questions.
 
-The pool API has a `Spawn` operation that carries a process declaration reference and optional references to existing process incarnations. This implementation-level API name alone cannot establish that OrgLang exposes a user-written `Spawn` operation. The repository contains three distinct `Spawn` representations; they should not be treated as one implementation:
+The pool API has a `Spawn` operation that carries a process declaration reference and optional references to existing process incarnations. This implementation-level API name alone cannot establish that OrgLang exposes a user-written `Spawn` operation. The repository contains several similarly named, incomplete or separate implementation representations; they should not be treated as one complete process-spawning path:
 
-- **Process-expression AST — `SpawnSpec`:** carries a communication-channel placeholder, process-term name, new-channel placeholders, and continuation. The inspected dispatcher has no execution branch; an older `SpawnSpecOld` branch remains commented out.
+- **Process-expression AST — `SpawnSpec`:** carries a communication-channel placeholder, process-term name, new-channel placeholders, and continuation. The inspected dispatcher has no execution branch; an older `SpawnSpecOld` branch remains commented out. This is an unfinished implementation attempt, not an established language construct.
 - **Pool API — `SpawnSpec2`:** names a process declaration and optional existing process incarnations. Its `Spawn` method creates a new execution record in linear mode, but does not itself instantiate or attach a process body. The pool executor's separate `Take` route handles pool-level expressions (`Accept`, `Acquire`, `Apply`, `Hire`, `Detach`, `Release`); this does not supply the missing process-level `CallSpec` / `LinkSpec` transitions. Wiring the fresh channel described by the publication's cut rule is also not performed by `Spawn` itself.
 - **Separate prototype — `proto/rast2` `spawn` reduction:** creates a fresh channel and two process entries. This resembles the publication's allocate-and-spawn shape and belongs to a separate prototype. It does not establish behavior of the current AST or pool API.
 
-The publication's cut rule describes allocating a fresh channel, starting `P[a/x]`, and continuing the original process as `Q[a/x]`. This provides useful comparison context. Evidence that OrgLang exposes a standalone source-level `Spawn` remains unavailable. Recursion through cyclic dependencies among process definitions remains a hypothesis, not an established mechanism.
+The publication's cut rule describes allocating a fresh channel, starting `P[a/x]`, and continuing the original process as `Q[a/x]`. This provides useful comparison context but does not define OrgLang behavior. The intended complete process-spawning path and the replacement for the unfinished `SpawnSpec` attempt remain **Open**. Recursion through cyclic dependencies among process definitions remains a hypothesis, not an established mechanism.
 
 ### Forwarding remains a separate open question
 
