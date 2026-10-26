@@ -1,6 +1,6 @@
 # Documentation review standards
 
-These criteria govern research, technical documentation, and agent-facing instructions. [`AGENTS.md`](AGENTS.md) owns repository-wide instructions; [`SKILL.md`](skills/semantic-spec/SKILL.md) owns the semantic-spec workflow. This file owns recurring documentation quality criteria.
+These criteria govern research and technical documentation. [`AGENTS.md`](AGENTS.md) owns repository-wide instructions; [`SKILL.md`](skills/semantic-spec/SKILL.md) owns the semantic-spec workflow. This file owns recurring documentation quality criteria.
 
 ## Accuracy and evidence
 
@@ -19,13 +19,6 @@ These criteria govern research, technical documentation, and agent-facing instru
 - Keep headings, terminology, status labels, and cross-references consistent. State behavior, the identity of the entity or resource involved, the boundaries of its scope, and ownership directly; use contrasts only when they clarify a real distinction.
 - Replace vague appeals to authority or generic requests for evidence with the specific source, test, or decision needed. Preserve qualifications that affect meaning.
 
-## Agent-facing instructions
-
-- Make each context pointer explicit about when its target must be read; name the relevant task or decision branch instead of using a vague reference.
-- Keep workflow steps and reference material distinct. Put guidance needed on every path in the main instructions and link branch-specific detail where it is needed.
-- Give each consequential step an observable completion criterion. Prefer criteria that can be checked for completeness over vague goals such as "understand" or "be thorough."
-- Keep always-loaded instructions lean: remove rules that do not change behavior, and avoid restating facts that can be cheaply and reliably discovered from configuration, command help, or repository structure.
-- State the desired action directly. Keep prohibitions for genuine guardrails and pair them with the positive behavior expected instead.
 
 ## References and final review
 
