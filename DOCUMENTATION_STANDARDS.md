@@ -19,7 +19,6 @@ These criteria govern research and technical documentation. [`AGENTS.md`](AGENTS
 - Keep headings, terminology, status labels, and cross-references consistent. State behavior, the identity of the entity or resource involved, the boundaries of its scope, and ownership directly; use contrasts only when they clarify a real distinction.
 - Replace vague appeals to authority or generic requests for evidence with the specific source, test, or decision needed. Preserve qualifications that affect meaning.
 
-
 ## References and final review
 
 - Prefer direct source links and precise section references. Verify changed links, heading anchors, and examples.
