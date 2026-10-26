@@ -11,8 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  markdownlint:
-    name: markdownlint-cli2 and local links
+  sources-check:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
