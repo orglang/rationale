@@ -85,11 +85,9 @@ For `ExternalCall`, the current working sequence is:
 5. The same overall timeout covers automatic search, manual intervention, candidate selection, and agreement negotiation. If no candidate is selected before expiry, the call terminates without a result. If candidates have all been tried unsuccessfully while time remains, what happens next remains open.
 6. Only after the parties agree on the terms before timeout expiry does the call proceed to creation of a fresh process incarnation together with a fresh provider channel.
 7. The engine atomically transfers all channels involved in the call to both sides: the fresh provider channel to the caller and the corresponding channel endpoints/bindings to the selected pool and new incarnation. This is one indivisible delivery operation; partial delivery is not a possible state. Delivery is mandatory for successful completion of the call.
-8. Once this atomic transfer succeeds, the protocol-level call is successfully complete. The selected pool may begin servicing immediately without waiting for the caller's continuation to resume; the selected pool and caller may execute in either order or interleave, subject to protocol and linearity constraints. The call produces no separate result value beyond delivery of the fresh provider channel. A protocol-level failure after successful delivery is not a possible outcome.
+8. Once this atomic transfer succeeds, the protocol-level call is successfully complete. The caller may resume its continuation and use the fresh provider channel immediately, including sending its first protocol action before the selected pool takes its first action. The selected pool may also begin servicing immediately. Their execution may proceed in either order or interleave, subject to protocol and linearity constraints.
 
 The timeout-expiry outcome when an agreement has not been successfully negotiated, including the pre-commit state, is specified in Section 4.5 below.
-
-A successful `ExternalCall` produces no separate result value: its call-specific outcome is delivery of the fresh provider channel, as specified by the canonical channel-placeholder contract in [Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
 ### 4.5 Agreement-search timeout
 
