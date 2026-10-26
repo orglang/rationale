@@ -1,11 +1,12 @@
 ---
 name: semantic-spec
-description: Guide iterative, user-led specification of system behavior, domain rules, protocols, requirements, and technical semantics by resolving consequential decisions and updating the canonical document. Do not use for routine proofreading or documentation-only edits.
+description: Iterative, user-led workflow for specifying system behavior and technical semantics.
+disable-model-invocation: true
 ---
 
 # Specification workflow
 
-Activate this workflow only when the user explicitly asks to use it. Do not activate it automatically because a task matches this description or repository instructions refer to it.
+Use this workflow only when the user explicitly asks for the semantic-spec workflow. The repository router points here for that case.
 
 Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for recurring documentation-quality criteria; this skill owns the semantic-spec workflow, not a second set of documentation standards.
 
@@ -46,7 +47,7 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for recurr
 - Keep accepted decisions and required edits in the working tree while pursuing independent specification work; do not commit after every answer.
 - Commit when a coherent semantic block is complete, the user requests it, or substantial uncommitted work is at risk. A milestone alone is insufficient.
 - Before committing, review the full accumulated diff for that block, confirm each edit follows accepted decisions or corrects an inconsistency without changing agreed semantics, and remove unrelated edits.
-- Check that no open question was silently resolved.
+- Search for other occurrences of each changed concept; update the canonical contract first, then align affected summaries, examples, tables, and cross-references. Check that no open question was silently resolved.
 - Prefer one coherent commit per semantic block. Do not rewrite existing history solely to reduce commit count.
 
 ## Ready for review
