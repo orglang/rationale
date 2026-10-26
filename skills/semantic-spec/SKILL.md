@@ -7,7 +7,7 @@ description: Guide iterative, user-led specification of system behavior, domain 
 
 Activate this workflow only when the user explicitly asks to use it. Do not activate it automatically because a task matches this description or repository instructions refer to it.
 
-Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for documentation quality and use the checks below as a selective review aid, not a required template.
+Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for recurring documentation-quality criteria; this skill owns the semantic-spec workflow, not a second set of documentation standards.
 
 ## Steps
 
@@ -32,7 +32,6 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 ## Interaction rules
 
 - Prioritize behavioral decisions over wording; reopen agreed decisions only when meaningful new evidence warrants it.
-- Preserve existing structure, terminology, status labels, and section ownership. Do not create parallel standards or taxonomies.
 - In progress updates, distinguish **decisions accepted**, **edits pending**, **changes committed**, and **validation performed**. Claim a commit or passing check only when confirmed by tool results; link reported commits.
 
 ## Efficiency and decision discipline
@@ -46,8 +45,8 @@ Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for docume
 
 - Keep accepted decisions and required edits in the working tree while pursuing independent specification work; do not commit after every answer.
 - Commit when a coherent semantic block is complete, the user requests it, or substantial uncommitted work is at risk. A milestone alone is insufficient.
-- Before committing, review the full accumulated diff for that block, check canonical ownership and cross-references, remove unrelated edits, and ensure changes follow accepted decisions or correct inconsistencies without changing agreed semantics.
-- Search for other occurrences of each changed concept; update the canonical contract first, then align affected summaries, examples, tables, and cross-references. Confirm that no open question was silently resolved.
+- Before committing, review the full accumulated diff for that block, confirm each edit follows accepted decisions or corrects an inconsistency without changing agreed semantics, and remove unrelated edits.
+- Check that no open question was silently resolved.
 - Prefer one coherent commit per semantic block. Do not rewrite existing history solely to reduce commit count.
 
 ## Ready for review
