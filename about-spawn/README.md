@@ -91,7 +91,7 @@ The observable result of a serviced call is constrained by the canonical channel
 
 ### 4.5 Agreement-search timeout
 
-**Agreed project decision:** for an `ExternalCall`, the agreement-search timeout starts when the search for a suitable agreement begins. It covers the search and any escalation to a participant of the calling process's pool for manual intervention.
+**Agreed project decision:** for an `ExternalCall`, the agreement-search timeout belongs to the search mechanism, not to the transaction type. It starts when the search for a suitable agreement begins and covers the search and any escalation to a participant of the calling process's pool for manual intervention. Timeout expiry is a search outcome, not a type-compatibility judgment; it does not by itself establish that no suitable agreement exists.
 
 Finding the first suitable agreement in the search order fixes the selection and ends the timeout's effect. No separate acceptance or confirmation step is required: the agreement automatically obliges the selected pool to service the matching call. If discovery and timeout expiry race, whichever event wins determines the outcome. If timeout expiry wins, the search for this call terminates definitively; an agreement discovered afterward cannot be selected for that call.
 
