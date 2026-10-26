@@ -6,7 +6,7 @@ Use this file as the repository-wide router. Keep detailed rules in their canoni
 
 Before writing or reviewing technical documentation or agent instructions, read [`DOCUMENTATION_STANDARDS.md`](DOCUMENTATION_STANDARDS.md). It owns recurring documentation-quality criteria.
 
-When the user explicitly asks to specify system behavior, domain rules, protocols, requirements, or technical semantics, follow [`skills/semantic-spec/SKILL.md`](skills/semantic-spec/SKILL.md). Do not activate that workflow for routine proofreading or documentation-only edits.
+When the user explicitly asks to use the semantic-spec workflow for system behavior, domain rules, protocols, requirements, or technical semantics, follow [`skills/semantic-spec/SKILL.md`](skills/semantic-spec/SKILL.md). Do not activate that workflow for routine proofreading or documentation-only edits.
 
 ## Changes and review
 
