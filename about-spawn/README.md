@@ -99,7 +99,7 @@ If the timeout expires before a suitable agreement is found, the search ends wit
 
 Once a suitable agreement is found before timeout expiry, the timeout no longer governs the call. Subsequent engine work—including incarnation creation and provider-channel delivery—may be delayed without triggering this search timeout. Delivery remains the `ExternalCall` commit point, and the selected pool may begin servicing only after delivery. This is the intended process–pool contract, not a claim about implementation conformance.
 
-The source of the timeout value, who supplies or configures it, its representation, and its valid range remain unspecified. The convention that a value of `0` means an infinite timeout has been proposed but is not yet an agreed rule.
+**Agreed project decision:** the agreement-search timeout is configured by the calling pool. It is a setting of the search mechanism, not a parameter of the transaction type. The exact representation, configuration interface, scope (for example, whether the setting can vary per call), and valid range remain unspecified. The convention that a value of `0` means an infinite timeout has been proposed but is not yet an agreed rule.
 
 ## 5. Evidence and rationale
 
