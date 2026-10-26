@@ -86,7 +86,7 @@ For `ExternalCall`, the current working sequence is:
 6. The engine associates the incarnation with the selected pool and delivers the fresh provider channel to the caller. Delivery is the commit point.
 7. Only after delivery may the selected pool begin servicing the provider channel. Servicing and the caller's continuation may then execute in either order or interleave, subject to protocol and linearity constraints.
 
-The timeout-expiry outcome before a suitable agreement is found, including the pre-commit state, is specified in Section 4.5 below.
+The timeout-expiry outcome when an agreement has not been successfully negotiated, including the pre-commit state, is specified in Section 4.5 below.
 
 The observable result of a serviced call is constrained by the canonical channel-placeholder rule in [Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
@@ -102,7 +102,7 @@ If timeout expiry occurs before the agreement is successfully negotiated, the ca
 
 This is the intended process–pool contract, not a claim about implementation conformance.
 
-**Agreed project decision:** the agreement-search timeout is configured by the calling pool. It is a setting of the search mechanism, not a parameter of the transaction type. The exact representation, configuration interface, scope (for example, whether the setting can vary per call), and valid range remain unspecified. The convention that a value of `0` means an infinite timeout has been proposed but is not yet an agreed rule.
+**Open:** the convention that a value of `0` means an infinite timeout has been proposed but is not yet an agreed rule.
 
 ## 5. Evidence and rationale
 
