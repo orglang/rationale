@@ -84,8 +84,8 @@ For `ExternalCall`, the current working sequence is:
 4. If negotiation with a candidate does not succeed, the participant may select a different candidate before timeout expiry, but may not retry a candidate already tried during this call. Selecting another candidate does not restart the timeout.
 5. The same overall timeout covers automatic search, manual intervention, candidate selection, and agreement negotiation. If no candidate is selected before expiry, the call terminates without a result. If candidates have all been tried unsuccessfully while time remains, what happens next remains open.
 6. Only after the parties agree on the terms before timeout expiry does the call proceed to creation of a fresh process incarnation together with a fresh provider channel.
-7. The engine associates the incarnation with the selected pool and delivers the fresh provider channel to the caller. Delivery is the commit point.
-8. Only after delivery may the selected pool begin servicing the provider channel. Servicing and the caller's continuation may then execute in either order or interleave, subject to protocol and linearity constraints.
+7. The engine atomically transfers all channels involved in the call to both sides: the fresh provider channel to the caller and the corresponding channel endpoints/bindings to the selected pool and new incarnation. This is one indivisible delivery operation; partial delivery is not a possible state. Delivery is mandatory for successful completion of the call.
+8. Once this atomic transfer succeeds, the protocol-level call is successfully complete. The selected pool may service the provider channel and the caller's continuation may proceed; they may execute in either order or interleave, subject to protocol and linearity constraints. A protocol-level failure after successful delivery is not a possible outcome.
 
 The timeout-expiry outcome when an agreement has not been successfully negotiated, including the pre-commit state, is specified in Section 4.5 below.
 
