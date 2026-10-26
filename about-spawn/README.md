@@ -72,18 +72,19 @@ The language-level contracts and the distinction between `ExternalCall` and `Int
 
 **Agreed project decision:** the search selects the first suitable agreement encountered in the search order. The order of traversal itself remains unspecified. No ranking or preference among matching agreements is defined beyond selecting the first one encountered.
 
-If the initial search finds no suitable agreement, the search is escalated to a participant of the calling process's pool for manual intervention. The participant's possible actions and the details of that intervention remain unspecified.
+If the initial search finds no suitable agreement, the search is escalated to a participant of the calling process's pool for manual intervention. The participant can select a candidate pool. This selection begins agreement negotiation; it does not itself establish a completed agreement. The negotiation participants and detailed negotiation semantics remain unspecified here because they belong to the transaction-type model.
 
 ### 4.4 Creation and start of servicing after selection
 
 For `ExternalCall`, the current working sequence is:
 
-1. The engine searches for a suitable agreement according to the current matching criterion and traversal rule in Section 4.3. The agreement-search timeout covers this search.
-2. If the initial search finds no suitable agreement, the search is escalated to a participant of the calling process's pool for manual intervention; this escalation remains within the same timeout.
-3. Only after a suitable agreement has been found, the engine creates a fresh process incarnation together with a fresh provider channel.
-4. The engine associates the incarnation with the selected pool. The agreement automatically obliges that pool to service the call; there is no separate discretionary acceptance step.
-5. The fresh provider channel is delivered to the caller. Delivery is the commit point.
-6. Only after delivery may the selected pool begin servicing the provider channel. Servicing and the caller's continuation may then execute in either order or interleave, subject to protocol and linearity constraints.
+1. The engine searches for a suitable agreement according to the current matching criterion and traversal rule in Section 4.3.
+2. If the initial search finds no suitable agreement, the search is escalated to a participant of the calling process's pool for manual intervention. The participant may select a candidate pool.
+3. Selecting a candidate pool begins agreement negotiation; it does not itself complete the agreement. The parties must agree on the terms. The negotiation's participant roles and detailed rules belong to the transaction-type model and are not defined here.
+4. The agreement-search timeout covers the automatic search, escalation and manual intervention, and agreement negotiation. It is not restarted when a candidate pool is selected.
+5. Only after the parties agree on the terms before timeout expiry does the call proceed to creation of a fresh process incarnation together with a fresh provider channel.
+6. The engine associates the incarnation with the selected pool and delivers the fresh provider channel to the caller. Delivery is the commit point.
+7. Only after delivery may the selected pool begin servicing the provider channel. Servicing and the caller's continuation may then execute in either order or interleave, subject to protocol and linearity constraints.
 
 The timeout-expiry outcome before a suitable agreement is found, including the pre-commit state, is specified in Section 4.5 below.
 
@@ -91,13 +92,15 @@ The observable result of a serviced call is constrained by the canonical channel
 
 ### 4.5 Agreement-search timeout
 
-**Agreed project decision:** for an `ExternalCall`, the agreement-search timeout belongs to the search mechanism, not to the transaction type. It starts when the search for a suitable agreement begins and covers the search and any escalation to a participant of the calling process's pool for manual intervention. Timeout expiry is a search outcome, not a type-compatibility judgment; it does not by itself establish that no suitable agreement exists.
+**Agreed project decisions:** for an `ExternalCall`, the agreement-search timeout belongs to the search mechanism, not to the transaction type. The calling pool supplies one shared timeout setting for all agreement searches initiated by calls from that pool. The timeout starts when the search begins and covers the automatic search, escalation to a participant of the calling process's pool, manual selection of a candidate pool, and negotiation of the agreement with that candidate. Selecting a candidate pool does not restart the timeout.
 
-Finding the first suitable agreement in the search order fixes the selection and ends the timeout's effect. No separate acceptance or confirmation step is required: the agreement automatically obliges the selected pool to service the matching call. If discovery and timeout expiry race, whichever event wins determines the outcome. If timeout expiry wins, the search for this call terminates definitively; an agreement discovered afterward cannot be selected for that call.
+Timeout expiry is an outcome of the overall search-and-negotiation operation, not a type-compatibility judgment; it does not establish that no suitable agreement exists. If the initial search finds no suitable agreement, the participant may manually select a candidate pool. That selection begins agreement negotiation and is not itself a completed agreement. The parties must agree on the terms for the agreement to be considered successfully negotiated. The participants and detailed negotiation rules belong to the transaction-type model and remain outside this section.
 
-If the timeout expires before a suitable agreement is found, the search ends without selecting a servicing pool. Under the current working sequence, no incarnation has yet been created and no provider channel has been delivered. The supplied client channels remain with the caller, with their original identities and protocol states. Failure reporting and recovery remain unspecified.
+If the parties agree on the terms before timeout expiry, the call proceeds to the incarnation-creation and provider-channel-delivery sequence in Section 4.4. Whether the caller receives anything beyond the result specified by the existing call/channel contract remains open. Once agreement negotiation succeeds, this timeout no longer governs subsequent engine work.
 
-Once a suitable agreement is found before timeout expiry, the timeout no longer governs the call. Subsequent engine work—including incarnation creation and provider-channel delivery—may be delayed without triggering this search timeout. Delivery remains the `ExternalCall` commit point, and the selected pool may begin servicing only after delivery. This is the intended process–pool contract, not a claim about implementation conformance.
+If timeout expiry occurs before the agreement is successfully negotiated, the call terminates without a result; there is no alternative outcome. No servicing pool is selected for the call, no incarnation has yet been created, and no provider channel has been delivered. The caller's supplied client channels remain with the caller, with their original identities and protocol states, as required by the call's atomicity. A later agreement cannot be applied to the terminated call; another attempt requires a new call. Failure reporting details remain unspecified.
+
+This is the intended process–pool contract, not a claim about implementation conformance.
 
 **Agreed project decision:** the agreement-search timeout is configured by the calling pool. It is a setting of the search mechanism, not a parameter of the transaction type. The exact representation, configuration interface, scope (for example, whether the setting can vary per call), and valid range remain unspecified. The convention that a value of `0` means an infinite timeout has been proposed but is not yet an agreed rule.
 
@@ -142,10 +145,11 @@ The current contract provides no progress guarantee for pending calls: it specif
 | Must every incarnation be bound to a servicing pool, and can the binding change? | Which pool is responsible for service and whether responsibility can migrate. | Explicit lifecycle/ownership decision; then verify the corresponding runtime transition. |
 | How is eligibility represented in a pool's transaction type? | Whether a matching agreement is sufficient for selection and whether additional validation can reject it. | A transaction-type/agreement contract in [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types), with positive and negative examples. |
 | What is the intended, complete process-creation path in the implementation after the unfinished `SpawnSpec` attempt? | How fresh process incarnations are actually created and connected to their provider/client channels; whether the current `ExternalCall`/`InternalCall` working model has a complete executable path. | Trace the current AST, checker, adapter, executor, and runtime path; identify focused tests with observable assertions. Do not treat the unfinished `SpawnSpec` as a language contract. |
-| What can the participant do after manual intervention is requested? | Whether the call remains pending or a suitable agreement can be selected after intervention. | Project decision describing the allowed intervention outcomes and their ordering; tests once behavior is agreed. |
+| How is negotiation with a manually selected candidate pool defined by the transaction-type model? | Which parties participate, how terms are negotiated, and what constitutes agreement at the type level. | Transaction-type semantics and examples of successful and unsuccessful negotiation. |
 | When may the new incarnation's body execute relative to channel delivery and the caller's continuation? | Observable scheduling and whether servicing can race with caller behavior. | Explicit scheduling contract and concurrency tests. The publication's cut/spawn rule does not establish OrgLang scheduling guarantees. |
 | When are resources provisioned or reserved? | Whether selection reserves capacity and whether provisioning occurs before or after the call's commit point. | Pool/transaction model plus an explicit ordering rule relative to the commit point. |
 | What state is observable on each side of the `ExternalCall` delivery commit point? | Whether a call can expose a partial incarnation/channel transfer or begin servicing before delivery. | Preserve the pre-commit invariants in Section 4.5 and test them; error reporting, recovery, retry, and abnormal-termination semantics are out of scope. |
+| What does the caller receive after agreement negotiation succeeds, beyond the existing provider-channel delivery contract? | The observable result of successful negotiation and whether it has any separate result value. | Explicit project decision tied to the canonical call/channel contract. |
 | What guarantees exist for a call that remains pending? | Whether callers can rely on eventual service or a time bound. | An explicit progress guarantee or an explicit statement that no such guarantee is provided. The current model provides none. |
 
 Pool negotiation, transaction initiation, and resource reservation remain outside the current specification except where needed to define pool association and servicing. Implementation structures, call paths, and AST/API mappings should be inspected to answer these specific questions, not treated as semantic definitions in their own right.
