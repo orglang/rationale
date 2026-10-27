@@ -146,6 +146,14 @@ Implementation conformance has not been established by this document. The follow
 
 These paths suggest that the implementation has a **pending registration** stage followed by a **matching/continuation-binding** stage. Do not call the whole interaction atomic without defining the relevant observable boundary: the database mutation and broker scheduling path, and concurrent interleavings, would need to be traced to settle that question.
 
+### 8.1 Proposed language-level rule: access begins on matching
+
+**Decision recorded from semantic review:** for `Up`, access becomes active only when the provider-side `accept` and client-side `acquire` have been matched. Issuing either operation alone is not sufficient to establish access. A pending operation is a waiting state, not an active-access state.
+
+At the matching point, the semantics must establish the continuation channel for both participants and permit their continuations to proceed according to the protocol. The exact linearization/observability boundary, including failure and cancellation between registration and matching, remains to be specified; this decision does not assert that the current implementation has already been verified against every interleaving.
+
+The same principle should not automatically be generalized to `Down` or `One` without an explicit decision about their state transitions.
+
 The next implementation evidence pass should inspect type checking for the pool operations and tests with observable assertions. Absence from the paths above does not establish system-wide absence.
 
 ## 9. Open questions and next tests
@@ -153,7 +161,7 @@ The next implementation evidence pass should inspect type checking for the pool 
 | Open question | Behavior/decision affected | Evidence or test needed |
 |---|---|---|
 | Which transaction-type constructors and syntax are part of OrgLang, rather than only the companion model? | Grammar, type checking, and compatibility of programs. | Adopted grammar/project decision; compare parser and type-checker support separately. |
-| What are the exact transition rules for `One`, `Up`, and `Down`, including matching, ordering, and continuation/channel identity? | Determines when an operation is enabled, when each participant may continue, and what state is observable between peer operations. | Adopt the obligations in Section 6.1 as explicit rules; then test permitted and prohibited transitions. |
+| What are the exact transition rules for `One`, `Up`, and `Down`, including matching, ordering, and continuation/channel identity? | Determines when an operation is enabled, when each participant may continue, and what state is observable between peer operations. | Section 8.1 records the decision that `Up` access begins only on matching; specify the remaining transition rules, then test permitted and prohibited transitions. |
 | What happens to the private channel and associated resources after `Down`? | Resource ownership, reuse, closure, and potential leaks or aliasing. | Explicit lifecycle decision; tests for subsequent use and resource disposition. |
 | Are `accept`/`acquire` and `detach`/`release` atomic paired transitions, or can intermediate states be observed? | Ordering, concurrency, cancellation, and whether access can be considered active before both participants have matched. | Specify transition boundaries and observable state; add tests for interleavings and peer absence. |
 | Can individual processes expose public transaction channels, or is this pool-only? | Public API and which entity owns the public protocol endpoint. | Project decision grounded in language examples or source rules; inspect implementation only as conformance evidence. |
