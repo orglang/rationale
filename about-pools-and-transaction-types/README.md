@@ -52,7 +52,7 @@ The companion [transaction introduction](../about-transaction/README.md) present
 | Question | Current status | Why it matters | Evidence needed |
 |---|---|---|---|
 | Which constructors belong to the OrgLang transaction-type language, and what is their exact syntax? | **Open** | Determines what specifications and programs may express. | An adopted language grammar or an explicit project decision; compare with the companion model and implementation parser/type definitions. |
-| What do `Up` and `Down` require of each participant? | **Open** | Determines message direction, continuation obligations, and when a critical section ends. | A language-level transition rule with preconditions and continuation effects; then focused protocol tests. |
+| What are the exact transition rules for `One`, `Up`, and `Down`, including matching, ordering, and continuation/channel identity? | **Open** | Determines when an operation is enabled, when each participant may continue, and what state is observable between peer operations. | Adopt the obligations in Section 6.1 as explicit rules; then test both permitted and prohibited transitions. |
 | How are pool eligibility and process-name matching represented in a transaction type? | **Open** | Determines whether a candidate pool is eligible and whether matching is static, dynamic, or both. | An explicit agreement/type contract and examples distinguishing eligible from ineligible pools. |
 | Are constraints on pool state part of type checking, runtime validation, or both? | **Open** | Determines which constraints are checked statically and which require runtime validation. | A typing rule and implementation-path evidence, with negative examples. |
 | How exactly does a transaction type represent a pool agreement, including dependent details specific to a particular agreement? | **Open** | Determines how agreement terms, participant-specific details, and compatibility are represented. | A project decision specifying the agreement/type relationship and how dependent types participate in it; do not infer a checking or instantiation algorithm yet. |
@@ -76,6 +76,39 @@ This pool-level protocol is conceptually distinct from a process's provider chan
 ## 6. Intended semantics and formal rules
 
 This section does not yet define a complete operational semantics. The current working claims in Section 5 are **Inferred**; they should not be promoted to language rules until their preconditions and transitions are agreed and supported.
+
+### 6.1 Minimal transaction-type constructors
+
+**Status: Inferred working semantics**, grounded in the project's current mapping between transaction-type constructors and the provider/client operations represented in `orglang/go-engine`. This subsection records the proposed minimum contract; it is not yet a normative operational semantics.
+
+A transaction type describes the protocol exposed by a pool through its public transaction channel. A client's interactions must conform to this provider-side protocol, evaluated against the current protocol state. No separately declared client-side transaction type is required by this model.
+
+| Constructor | Provider-side operation | Client-side operation | Minimal intended meaning | Boundary and limitation |
+|---|---|---|---|---|
+| `One` | `close` | `wait` | The provider performs the terminal `close` interaction; the client waits for that interaction. After a successful `wait`, the client's enclosing expression may continue according to its continuation. | `One` is terminal for this protocol interaction. It does not, by itself, imply termination of the client process. Exact matching and scheduling rules remain open. |
+| `Up A` | `accept` | `acquire` | The provider accepts the access interaction and the client acquires access; both sides have continuations corresponding to `A`. | The exact pairing point, channel identity/ownership, and whether the two operations form one atomic transition remain open. |
+| `Down` | `detach` | `release` | The provider detaches or withdraws the current access; the client releases that access. | This ends the current access interaction. It does not specify what happens to the underlying resource afterward, nor does it imply termination of either process. Neither operation has a continuation in the current operation model. |
+
+The operation names above are implementation identifiers, not proposed surface syntax. The pool-side operation declarations are in [`pool/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/main/pool/termexp/core/core.go); the process-side declarations are in [`proc/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/termexp/core/core.go). These declarations support the provider/client operation mapping, but by themselves do not establish the runtime transition order or full language semantics.
+
+#### Transition obligations to settle
+
+Before treating the table as normative, specify for each paired operation:
+
+- **Precondition:** the current protocol state, participant roles, and any agreement/access prerequisites.
+- **Action and matching:** which operation enables or matches the peer operation, and whether matching is atomic or has observable intermediate states.
+- **Result:** the next protocol state and the continuation/channel identity available to each participant.
+- **Failure boundary:** what happens when the peer operation is absent or the protocol state does not permit the operation. Error recovery and retries remain outside this initial proposal unless they affect safety.
+- **Evidence:** the language-level rule, then implementation-path and observable-test evidence for conformance.
+
+#### Initial conformance examples
+
+These are acceptance criteria for future tests, not claims that tests already exist or pass:
+
+1. **`One`:** a client waiting for the provider's `close` may proceed to its own continuation only after the close interaction is observed; the close interaction does not itself terminate the enclosing client process.
+2. **`Up`:** a client cannot treat access as acquired unless the provider-side protocol permits and matches the acquisition; both participants continue according to the continuation associated with `Up`.
+3. **`Down`:** after a valid detach/release interaction, the current access cannot be treated as still active. The test must not assume resource destruction, reuse, or process termination unless a separate lifecycle rule specifies it.
+4. **Protocol conformance:** an operation that contradicts the current provider-side protocol state is rejected or otherwise prevented according to a separately specified checking/enforcement rule; that enforcement mechanism is currently open.
 
 For each rule adopted in this section, record:
 
@@ -119,6 +152,7 @@ Record each finding as an implementation observation with coverage status; absen
 | Which transaction-type constructors and syntax are part of OrgLang, rather than only the companion model? | Grammar, type checking, and compatibility of programs. | Adopted grammar/project decision; compare parser and type-checker support separately. |
 | What do `Up`, its continuation, and `Down` guarantee? | Direction of communication, continuation obligations, and end of the protocol-bounded critical section. | Explicit transition rule plus tests for valid and invalid continuation sequences. |
 | What happens to the private channel and associated resources after `Down`? | Resource ownership, reuse, closure, and potential leaks or aliasing. | Explicit lifecycle decision; tests for subsequent use and resource disposition. |
+| Are `accept`/`acquire` and `detach`/`release` atomic paired transitions, or can intermediate states be observed? | Ordering, concurrency, cancellation, and whether access can be considered active before both participants have matched. | Specify transition boundaries and observable state; add tests for interleavings and peer absence. |
 | Can individual processes expose public transaction channels, or is this pool-only? | Public API and which entity owns the public protocol endpoint. | Project decision grounded in language examples or source rules; inspect implementation only as conformance evidence. |
 | How is pool eligibility encoded and checked? | Selection outcome and whether an apparently matching pool may still reject service. | Agreement/type rule plus positive and negative examples; identify static/runtime validation boundaries. |
 | How are agreement parameters and timeout values represented? | Who supplies timeout, how it is checked, and whether it is static or dynamic. | Project decision; do not assume the proposed `0 = infinite` convention. |
