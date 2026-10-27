@@ -156,6 +156,16 @@ At the matching point, the semantics must establish the continuation channel for
 
 **Decision recorded from semantic review — `One`:** the transaction is complete only when provider-side `close` and client-side `wait` have been matched. Registering either operation alone does not complete the transaction; a pending operation remains unresolved until its peer operation matches. The exact observable transition boundary, and behavior under cancellation or failure before matching, remain open.
 
+### 8.2 Matching boundary and continuation behavior
+
+**Decisions recorded from semantic review:**
+
+- For each of the three operation pairs in Section 8.1, registering only one side creates a pending operation; it does not itself change the transaction's publicly observable protocol state. The language-level transition occurs when the two corresponding operations match.
+- After matching, both participants may proceed through their respective continuations independently, subject to the constraints of the transaction type. Matching does not impose an additional ordering between the continuations or guarantee simultaneous execution.
+- For `Up`, matching `accept` and `acquire` establishes one new shared channel identity for the two participants' continuations. It is not two independent channel identities. The continuation behavior remains constrained by the agreed protocol type.
+
+These are language-level semantic decisions, not a claim that every implementation interleaving has been verified. The exact implementation linearization point, cancellation/failure behavior, and other abnormal interleavings remain out of scope for this pass. Cancellation semantics are explicitly deferred.
+
 The next implementation evidence pass should inspect type checking for the pool operations and tests with observable assertions. Absence from the paths above does not establish system-wide absence.
 
 ## 9. Open questions and next tests
