@@ -91,6 +91,10 @@ A transaction type describes the protocol exposed by a pool through its public t
 
 The operation names above are implementation identifiers, not proposed surface syntax. The pool-side operation declarations are in [`pool/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/main/pool/termexp/core/core.go); the process-side declarations are in [`proc/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/termexp/core/core.go). These declarations support the provider/client operation mapping, but by themselves do not establish the runtime transition order or full language semantics.
 
+#### Continuation correspondence: open typing question
+
+The participant-specific continuation expressions are not required to be textually identical. That does not, by itself, define which expressions are valid: the type-level continuation `A` must constrain what each participant may do after the match. The minimal contract still needs to state how `A` determines the obligations for the provider-side and client-side continuations, including whether those obligations are expressed through dual endpoint views, a single shared type interpretation, or another rule. Until that relationship is specified, do not infer that arbitrary `ContExp` values are valid merely because the operations match.
+
 #### Transition obligations to settle
 
 Before treating the table as normative, specify for each paired operation:
@@ -175,6 +179,7 @@ This is a language-level design decision; it does not claim that the current `go
 |---|---|---|
 | Which transaction-type constructors and syntax are part of OrgLang, rather than only the companion model? | Grammar, type checking, and compatibility of programs. | Adopted grammar/project decision; compare parser and type-checker support separately. |
 | What remains to be specified about `One`, `Up`, and `Down` transitions? | Matching points and the shared-new-identity rule for all three constructors are decided; the relationship between type continuations and participant-specific operation continuations, type-state progression, ownership, and observable boundaries remain open. | Specify the relationship between the resulting channel's protocol type and each participant's continuation expression; then add tests for permitted and prohibited transitions without reopening settled matching or shared-identity decisions. |
+| What makes a participant continuation valid for `A`? | The participant continuations may differ, but `A` must constrain their behavior; the exact typing relation is Open. | Define the obligations on each participant continuation induced by `A`, then test valid and invalid continuation pairs. |
 | What happens to the private channel and associated resources after `Down`? | Resource ownership, reuse, closure, and potential leaks or aliasing. | Explicit lifecycle decision; tests for subsequent use and resource disposition. |
 | Are `accept`/`acquire` and `detach`/`release` atomic paired transitions, or can intermediate states be observed? | Ordering, concurrency, cancellation, and whether access can be considered active before both participants have matched. | Specify transition boundaries and observable state; add tests for interleavings and peer absence. |
 | Can individual processes expose public transaction channels, or is this pool-only? | Public API and which entity owns the public protocol endpoint. | Project decision grounded in language examples or source rules; inspect implementation only as conformance evidence. |
