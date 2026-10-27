@@ -130,6 +130,18 @@ The [transaction introduction](../about-transaction/README.md) contains a formal
 
 This establishes that the publication model associates `↑ A` and `↓ A` with continuation behavior at the type level. It does **not** establish that OrgLang's provider-side and client-side operation expressions must be identical, that both runtime operations carry `ContExp`, or how one type-level `A` constrains two participant-specific continuations. Those are separate correspondence/typing questions. The publication table's send/accept wording also should not be equated mechanically with the current runtime operation names (`accept`/`acquire`, `detach`/`release`) without an explicit role and polarity mapping.
 
+### Initial constructor/role correspondence table
+
+The table below separates the publication model's token polarity from OrgLang's current provider/client operation names. It is a working correspondence, not a claim that the runtime implementation already conforms.
+
+| Type constructor | Publication-level action | Provider-side OrgLang operation | Client-side OrgLang operation | Established minimum | Still open |
+|---|---|---|---|---|---|
+| `One` (`𝟏`) | Send `close`; the publication continuation grammar has a `close` case | `close` | `wait` | The pair must match before the interaction counts as complete; matching establishes one shared new channel identity. | Whether the publication's terminal `close` case directly corresponds to the client's enclosing continuation, and how the shared identity is typed for this terminal case. |
+| `Up A` (`↑ A`) | Send `grant`, then continue as `A` | `accept` | `acquire` | Access starts only when the pair matches; both participants use the shared new channel identity. | Which side's operation corresponds to sending `grant` in the publication model, and the precise typing obligation on each participant continuation. |
+| `Down A` (`↓ A`) | Accept `revoke`, then continue as `A` | `detach` | `release` | Access ends only when the pair matches; both participant-specific `ContExp` values are enabled after matching and use the shared new channel identity. | Which side receives `revoke`, how the two participant continuations are constrained by `A`, and how the type-level continuation identity relates to runtime channel identity. |
+
+**Polarity caution:** the publication's phrases “send `grant`” and “accept `revoke`” describe actions in its formal model. The names `accept`, `acquire`, `detach`, and `release` describe current runtime operations. The correspondence must be justified from the roles and protocol, not inferred from the English verbs alone.
+
 The initial comparison should cover:
 - the grammar and reduction/application operation for values, continuations, and pool terms;
 - the transaction-type constructors and their side conditions;
