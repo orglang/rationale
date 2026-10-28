@@ -66,7 +66,7 @@ The language-level contracts and the distinction between `ExternalCall` and `Int
 
 ### 4.2 Matching criterion
 
-**Agreed project decision:** the current criterion for a suitable agreement is a match with the name of the called process. Additional matching criteria may be introduced in the future; they are not specified here. The role of transaction types in pool agreements remains a separate open question, documented in [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types).
+**Agreed project decision:** the current criterion for a suitable agreement is a match with the name of the called process. The agreement itself is the transaction type between the client and the pool; the unresolved question is how that type agreement and any dependent details are used to determine suitability, not whether a separate transaction-type mechanism exists. Additional matching criteria may be introduced in the future; they are not specified here. See [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types).
 
 ### 4.3 Search order
 
@@ -142,7 +142,7 @@ The current contract provides no progress guarantee for pending calls: it specif
 | Open question | Behavior/decision affected | Evidence or decision needed |
 |---|---|---|
 | Must every incarnation be bound to a servicing pool, and can the binding change? | Which pool is responsible for service and whether responsibility can migrate. | Explicit lifecycle/ownership decision; then verify the corresponding runtime transition. |
-| How is eligibility represented in a pool's transaction type? | Whether a matching agreement is sufficient for selection and whether additional validation can reject it. | A transaction-type/agreement contract in [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types), with positive and negative examples. |
+| How does the transaction-type agreement determine whether a pool is suitable for the named process? | How the agreement's type and any dependent details are matched to the process name; no separate agreement-versus-type distinction is assumed. | A precise matching rule in [Pools and transaction types, Section 4](../about-pools-and-transaction-types/README.md#4-transaction-types), with positive and negative examples. |
 | What is the intended, complete process-creation path in the implementation after the unfinished `SpawnSpec` attempt? | How fresh process incarnations are actually created and connected to their provider/client channels; whether the current `ExternalCall`/`InternalCall` working model has a complete executable path. | Trace the current AST, checker, adapter, executor, and runtime path; identify focused tests with observable assertions. Do not treat the unfinished `SpawnSpec` as a language contract. |
 | How is negotiation with a manually selected candidate pool defined by the transaction-type model? | Which parties participate, how terms are negotiated, and what constitutes agreement at the type level. | Transaction-type semantics and examples of successful and unsuccessful negotiation. |
 | What happens if all available candidate pools have been tried unsuccessfully but the shared timeout has not expired? | Whether manual intervention waits for more candidates or the call terminates earlier. | An explicit project decision; do not infer this from timeout expiry or atomicity. |
