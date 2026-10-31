@@ -277,7 +277,7 @@ General process/pool failure handling, recovery after a servicing incarnation fa
 
 **Timeout configuration and scope:** The search-and-negotiation timeout applies to `ExternalCall`; its boundary and unresolved configuration questions are documented in [Matching and spawn, Section 4.5](../about-matching-and-spawn/README.md#45-search-and-negotiation-timeout). The timeout policy does not guarantee eventual success or completion within a bounded time.
 
-The inspected executor has no `ExternalCall` branch. The exact AST/runtime mapping among `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH` remains open; this is an implementation-mapping question, not an unresolved choice about the intended positional channel contract. See [issue #85: Call versus internal spawning](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290893).
+The inspected executor has no `ExternalCall` branch. The exact AST/runtime mapping among `CommChnlPH`, `ValChnlPHs`, and `NewChnlPH` remains open; this is an implementation-mapping question, not an unresolved choice about the intended positional channel contract.
 
 ### `InternalCall`
 
@@ -333,7 +333,7 @@ These tests should exercise the adapter, type checker, executor, and persistence
 
 ### Boundary with pool semantics
 
-Process invocation and incarnation creation are distinct from the pool mechanism that services a provider channel. Calls describe named-process and channel effects, while the pool's `Up … Down` protocol describes interaction through the pool's public channel. The pool's public channel belongs to the pool. Pool association, selection, and eligibility are pool-level concerns documented in [Matching and spawn, Section 4](../about-matching-and-spawn/README.md#4-pool-selection-and-servicing) and [Section 5](../about-pools-and-transaction-types/README.md#5-the-pools-public-transaction-channel). The discovery of an existing agreement and negotiation of a new one are described in the matching-and-spawn document; the detailed negotiation protocol, reservation semantics, failure behavior when no eligible pool exists, and resource provisioning remain underspecified. See also the [issue #85 proposal concerning the pool's offer channel](https://github.com/orglang/go-workspace/issues/85#issuecomment-6231176672).
+Process invocation and incarnation creation are distinct from the pool mechanism that services a provider channel. Calls describe named-process and channel effects, while the pool's `Up … Down` protocol describes interaction through the pool's public channel. The pool's public channel belongs to the pool. Pool association, selection, and eligibility are pool-level concerns documented in [Matching and spawn, Section 4](../about-matching-and-spawn/README.md#4-pool-selection-and-servicing) and [Section 5](../about-pools-and-transaction-types/README.md#5-the-pools-public-transaction-channel). The discovery of an existing agreement and negotiation of a new one are described in the matching-and-spawn document; the detailed negotiation protocol, reservation semantics, failure behavior when no eligible pool exists, and resource provisioning remain underspecified.
 
 ### `Fwd`
 

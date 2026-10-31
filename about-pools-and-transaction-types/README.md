@@ -25,23 +25,23 @@ The following are **working definitions inferred from the current explanatory mo
 |---|---|---|
 | Pool | A participant that can communicate with other pools and may service a process incarnation under an agreement. | **Inferred** from the explanatory model and the current process–pool model. Pool lifecycle, internal state, and whether every incarnation must always be bound to one pool remain **Open**. |
 | Pool term | An executable expression describing a pool's communication or state transition. | **Inferred** from the companion model's distinction between terms, values, and continuations. Its runtime representation in OrgLang is **Open**. |
-| Transaction | A pool-to-pool interaction (and, in the current model, its private communication channel) through which participants exchange messages to establish or modify an agreement. | **Inferred** from the explanatory model and issue #85. Whether every transaction has a distinct private channel, how that channel is created, and the transaction's ownership, cancellation, and completion rules remain **Open**. |
+| Transaction | A pool-to-pool interaction through which participants exchange messages to establish or modify an agreement. | **Inferred** from the explanatory model. The interaction's channel representation, ownership, cancellation, and completion rules remain **Open**. |
 | Agreement | A concrete arrangement reached by client and servicing pools through interaction governed by a transaction type. It may also be found as an already established agreement. | **Inferred** from the current project direction. Whether it is represented as a value, a dependent type, or another structure remains **Open**. |
 | Transaction identifier | An identifier used to refer to a transaction or its channel in the pool model. | **Inferred**. Its concrete representation, allocation/uniqueness guarantees, and exact referent are **Open**. Do not assume it is identical to a process channel identity or to the agreement itself. |
 | Transaction type | The protocol by which pools interact to reach an agreement; it governs which negotiation messages and transitions are permitted. A dependent part may encode agreement-specific results. | **Inferred** from the companion model's transaction-type grammar and current project direction. Exact OrgLang syntax, checking rules, runtime enforcement, and the representation of the resulting agreement remain **Open**. |
-| Pool's public transaction channel | The channel through which a client interacts with the pool-level transaction protocol. | **Inferred** from [issue #85](https://github.com/orglang/go-workspace/issues/85) and the current explanatory model. Whether individual processes can expose analogous public channels remains **Open**. |
+| Pool's public transaction channel | The channel through which a client interacts with the pool-level transaction protocol. | **Inferred** from the current explanatory model. Whether individual processes can expose analogous public channels remains **Open**. |
 | Process provider channel | The channel on which a process incarnation provides its named-process service. | Defined in [Processes and session types, Section 2](../about-processes-and-session-types/README.md#2-core-concepts). It is distinct from the pool's public transaction channel. |
 
 A transaction identifier and a process channel identity must not be conflated merely because both are called identifiers or channels. The current model uses identifiers for different resources depending on interpretation; a precise mapping requires evidence from the language contract or a verified execution path.
 
-For consistent usage in this document, distinguish the **transaction** (the pool-to-pool interaction, potentially carried over a private channel), the **transaction type** (the protocol governing that interaction), and the **agreement** (the concrete arrangement established or modified through that interaction, which may also have been established earlier). The transaction type is not merely a post-selection protocol or an independent compatibility test: it governs the interaction through which an agreement is reached. A **transaction identifier** refers to a transaction or its channel; it is not an agreement identifier unless a separate rule establishes that mapping.
+For consistent usage in this document, distinguish the **transaction** (the pool-to-pool interaction), the **transaction type** (the protocol governing that interaction), and the **agreement** (the concrete arrangement established or modified through that interaction, which may also have been established earlier). The transaction type is not merely a post-selection protocol or an independent compatibility test: it governs the interaction through which an agreement is reached. A **transaction identifier** refers to a transaction in the pool model; it is not an agreement identifier unless a separate rule establishes that mapping.
 
 ## 2.1 Negotiation protocol and established agreement
 
 The current model distinguishes three things that must not be collapsed into one object:
 
 1. **Transaction type:** the protocol that governs how pools interact while establishing an agreement. It describes permitted messages, choices, constraints, and continuations.
-2. **Negotiation transaction:** the private communication relationship over which those protocol interactions take place. In the explanatory calculus, identifiers such as `c` can denote such pool-to-pool transactions.
+2. **Negotiation interaction:** the pool-to-pool exchange governed by that protocol. Its precise channel representation remains unspecified.
 3. **Agreement:** the concrete arrangement accepted by the participating pools. Once established, it can be found and reused by a later `ExternalCall`; finding it is distinct from negotiating it.
 
 This separation is supported by the project contract for `ExternalCall`: discovery may select an already established agreement, while negotiation with a candidate pool is a separate route to establishing a new one. Candidate selection alone is not agreement establishment, and neither discovery nor negotiation creates a process incarnation. Incarnation creation and provider-channel delivery follow only after a suitable agreement has been found or successfully negotiated; see [Matching and spawn, Sections 4.3–4.4](../about-matching-and-spawn/README.md#43-search-and-agreement-negotiation).
@@ -58,20 +58,6 @@ The grammar in the [transaction introduction](../about-transaction/README.md) gi
 These details show that `Q` participates in the protocol's evolving state and constrains which process-spawn interactions are described. They do **not** establish that `Q` is the agreement record, that the agreement is the entire dependent type, or that a successful negotiation simply returns `Q`. In particular, the model does not yet define a distinct syntax or judgment for constructing, accepting, persisting, or looking up an agreement.
 
 A useful provisional reading is therefore: the transaction type specifies the negotiation protocol and its state-indexed obligations; an agreement is the result accepted by the parties under that protocol; and `Q` is one state component used by the protocol. Whether the agreement contains `Q`, is represented by a value derived from `Q`, or has a different dependent representation remains **Open**. This reading is a separation of roles, not a final representation decision.
-
-### Public entry point and per-attempt negotiation: an earlier working hypothesis
-
-The discussion in [go-workspace issue #85, comment on public/private channels and agreements](https://github.com/orglang/go-workspace/issues/85#issuecomment-6231176672) adds a useful distinction, but explicitly presents it as a working hypothesis rather than an adopted rule:
-
-- A pool's **public structural channel** may be a reusable entry point describing a template offer: the protocol for negotiating and the resource scope within which an agreement may be reached. It is not necessarily one already-established agreement.
-- Each invocation through that public channel may create a distinct **private linear channel** for one negotiation attempt. That attempt has its own protocol progress and may end with an individual agreement or without a completed agreement.
-- The same public channel may be used later to propose a change to an existing agreement. A new public channel need not be created for every change.
-- While a proposed change is being negotiated, the previously established agreement is hypothesized to remain in force. If the proposal fails, the old agreement remains; if there was no old agreement, there may be no agreement after the failed attempt.
-- The discussion suggests that a successful transition can potentially be represented by a typed protocol branch and its continuation; it does not require a primitive `commit agreement` operation. This is a design possibility, not a selected encoding.
-
-This hypothesis refines the vocabulary above: the public channel, the private negotiation attempt, and the resulting agreement are potentially three distinct entities. It also raises a question about how this model relates to the current `ExternalCall` flow, which searches for an existing suitable agreement and otherwise negotiates with a selected candidate. The project has not yet established whether every `ExternalCall` negotiation is an invocation of this public structural channel, whether negotiation may update an existing agreement as well as create one, or how the resource scope of the public offer is represented.
-
-The same issue comment leaves two important points open: whether an agreement is a one-sided commitment or a mutual agreement, and where agreement state is stored (pool state or another state object). The earlier discussion also explicitly leaves open whether resources are reserved before an obligation is accepted or secured after it is accepted; both orderings were intended to remain possible in the eventual model. These are not details to infer from the current `ExternalCall` sequence.
 
 ### Agreement lifecycle: current contract and missing rules
 
@@ -97,7 +83,7 @@ Until these questions are answered, do not use “transaction type”, “negoti
 
 ## 3. Pool model
 
-**Inferred working model:** a pool is represented by a pool term/state and exposes a public transaction channel. Other pools interact with it through transactions governed by a transaction type. This summary reflects the current explanatory model; it does not establish a complete operational semantics for pools in OrgLang.
+**Inferred working model:** a pool is represented by a pool term/state and has a public transaction channel in the explanatory model. Other pools interact with it through transactions governed by a transaction type. This summary reflects the current explanatory model; it does not establish a complete operational semantics for pools in OrgLang.
 
 The following boundaries are currently supported by the document set:
 
@@ -142,7 +128,7 @@ The detailed eligibility question and the evidence needed to resolve it are trac
 
 ## 5. The pool's public transaction channel
 
-**Inferred:** the public channel discussed in [go-workspace issue #85](https://github.com/orglang/go-workspace/issues/85) is the pool's public transaction channel. Whether individual processes should have public channels remains **Open**.
+**Inferred:** the pool's public transaction channel is part of the current explanatory pool model. Whether individual processes should have public channels remains **Open**.
 
 The pool's public transaction channel is described by a transaction type whose protocol may move from public access into a private interaction and later return to public access. The exact matching points, participant continuations, and logical/physical channel-identity rules are specified canonically in [Section 6.2](#62-matched-transitions-continuations-and-channel-identity); this section does not restate those rules.
 

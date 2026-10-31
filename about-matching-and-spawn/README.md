@@ -125,17 +125,6 @@ Here `P` is the body of the process being spawned and `Q` is the original proces
 
 This rule establishes the publication's cut/spawn semantics. Its correspondence to OrgLang, and the lifecycle and scheduling guarantees remain **Open**. The process `SpawnSpec` is an unfinished implementation attempt, not the source of an OrgLang language rule.
 
-### 5.3 Issue #85 discussion
-
-The issue comments are the strongest current evidence for the conceptual separation, but remain provisional:
-
-- `ExternalCall` inside a process is the trigger for requesting work identified by `qn`; it is distinguished from a separate `spawn` message.
-- Creating a process incarnation is described as an internal engine operation that services `ExternalCall`.
-- An agreement between pools may enable service. Process-incarnation creation is a separate engine operation.
-- Resource provisioning, reservation, and the exact point of incarnation creation are unresolved.
-
-Relevant comments: [Call versus internal spawning](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290893), [pool agreements and transactions](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290639), [transactional types and process creation](https://github.com/orglang/go-workspace/issues/85#issuecomment-6230290369), and [end-to-end service scenario](https://github.com/orglang/go-workspace/issues/85#issuecomment-6232198226).
-
 ## 6. Open questions and deferred topics
 
 The current contract provides no progress guarantee for pending calls: it specifies neither eventual service nor a time bound. The following questions remain open because their answers can change observable behavior or resource ownership.
