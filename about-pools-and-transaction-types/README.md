@@ -25,7 +25,7 @@ The following are **working definitions inferred from the current explanatory mo
 |---|---|---|
 | Pool | A participant that can communicate with other pools and may service a process incarnation under an agreement. | **Inferred** from the explanatory model and the current process–pool model. Pool lifecycle, internal state, and whether every incarnation must always be bound to one pool remain **Open**. |
 | Pool term | An executable expression describing a pool's communication or state transition. | **Inferred** from the companion model's distinction between terms, values, and continuations. Its runtime representation in OrgLang is **Open**. |
-| Transaction | A private communication relationship between pools, used to exchange protocol messages under an agreement. | **Inferred** from the explanatory model. A transaction is the communication relationship, not the agreement's terms; creation, ownership, cancellation, and completion rules are not fully specified. |
+| Transaction | A pool-to-pool interaction (and, in the current model, its private communication channel) through which participants exchange messages to establish or modify an agreement. | **Inferred** from the explanatory model and issue #85. Whether every transaction has a distinct private channel, how that channel is created, and the transaction's ownership, cancellation, and completion rules remain **Open**. |
 | Agreement | A concrete arrangement reached by client and servicing pools through interaction governed by a transaction type. It may also be found as an already established agreement. | **Inferred** from the current project direction. Whether it is represented as a value, a dependent type, or another structure remains **Open**. |
 | Transaction identifier | An identifier used to refer to a transaction or its channel in the pool model. | **Inferred**. Its concrete representation, allocation/uniqueness guarantees, and exact referent are **Open**. Do not assume it is identical to a process channel identity or to the agreement itself. |
 | Transaction type | The protocol by which pools interact to reach an agreement; it governs which negotiation messages and transitions are permitted. A dependent part may encode agreement-specific results. | **Inferred** from the companion model's transaction-type grammar and current project direction. Exact OrgLang syntax, checking rules, runtime enforcement, and the representation of the resulting agreement remain **Open**. |
@@ -34,7 +34,66 @@ The following are **working definitions inferred from the current explanatory mo
 
 A transaction identifier and a process channel identity must not be conflated merely because both are called identifiers or channels. The current model uses identifiers for different resources depending on interpretation; a precise mapping requires evidence from the language contract or a verified execution path.
 
-For consistent usage in this document, distinguish the **transaction** (the pool-to-pool communication relationship), the **transaction type** (the protocol by which the pools negotiate), and the **agreement** (the concrete result of that negotiation, which may also have been established earlier). The transaction type is not merely a post-selection protocol or an independent compatibility test: it governs the interaction through which an agreement is reached. A **transaction identifier** refers to a transaction or its channel; it is not an agreement identifier unless a separate rule establishes that mapping.
+For consistent usage in this document, distinguish the **transaction** (the pool-to-pool interaction, potentially carried over a private channel), the **transaction type** (the protocol governing that interaction), and the **agreement** (the concrete arrangement established or modified through that interaction, which may also have been established earlier). The transaction type is not merely a post-selection protocol or an independent compatibility test: it governs the interaction through which an agreement is reached. A **transaction identifier** refers to a transaction or its channel; it is not an agreement identifier unless a separate rule establishes that mapping.
+
+## 2.1 Negotiation protocol and established agreement
+
+The current model distinguishes three things that must not be collapsed into one object:
+
+1. **Transaction type:** the protocol that governs how pools interact while establishing an agreement. It describes permitted messages, choices, constraints, and continuations.
+2. **Negotiation transaction:** the private communication relationship over which those protocol interactions take place. In the explanatory calculus, identifiers such as `c` can denote such pool-to-pool transactions.
+3. **Agreement:** the concrete arrangement accepted by the participating pools. Once established, it can be found and reused by a later `ExternalCall`; finding it is distinct from negotiating it.
+
+This separation is supported by the project contract for `ExternalCall`: discovery may select an already established agreement, while negotiation with a candidate pool is a separate route to establishing a new one. Candidate selection alone is not agreement establishment, and neither discovery nor negotiation creates a process incarnation. Incarnation creation and provider-channel delivery follow only after a suitable agreement has been found or successfully negotiated; see [Matching and spawn, Sections 4.3–4.4](../about-matching-and-spawn/README.md#43-search-and-agreement-negotiation).
+
+### What the formal transaction-type model establishes
+
+The grammar in the [transaction introduction](../about-transaction/README.md) gives evidence for a **state-indexed protocol**:
+
+- The type constructors describe interactions such as `grant`, `revoke`, `choice`, `coop`, `isol`, and `spawn`.
+- The `Coop` and `Isol` constructors carry a state annotation `Q` and produce an updated annotation `Q'`; the continuation is indexed by that updated state.
+- The spawn constructor has a process-name side condition involving `Q`, and its continuation retains the stated `Q`.
+- The type grammar also places a continuation `A` after these state constraints and transitions.
+
+These details show that `Q` participates in the protocol's evolving state and constrains which process-spawn interactions are described. They do **not** establish that `Q` is the agreement record, that the agreement is the entire dependent type, or that a successful negotiation simply returns `Q`. In particular, the model does not yet define a distinct syntax or judgment for constructing, accepting, persisting, or looking up an agreement.
+
+A useful provisional reading is therefore: the transaction type specifies the negotiation protocol and its state-indexed obligations; an agreement is the result accepted by the parties under that protocol; and `Q` is one state component used by the protocol. Whether the agreement contains `Q`, is represented by a value derived from `Q`, or has a different dependent representation remains **Open**. This reading is a separation of roles, not a final representation decision.
+
+### Public entry point and per-attempt negotiation: an earlier working hypothesis
+
+The discussion in [go-workspace issue #85, comment on public/private channels and agreements](https://github.com/orglang/go-workspace/issues/85#issuecomment-6231176672) adds a useful distinction, but explicitly presents it as a working hypothesis rather than an adopted rule:
+
+- A pool's **public structural channel** may be a reusable entry point describing a template offer: the protocol for negotiating and the resource scope within which an agreement may be reached. It is not necessarily one already-established agreement.
+- Each invocation through that public channel may create a distinct **private linear channel** for one negotiation attempt. That attempt has its own protocol progress and may end with an individual agreement or without a completed agreement.
+- The same public channel may be used later to propose a change to an existing agreement. A new public channel need not be created for every change.
+- While a proposed change is being negotiated, the previously established agreement is hypothesized to remain in force. If the proposal fails, the old agreement remains; if there was no old agreement, there may be no agreement after the failed attempt.
+- The discussion suggests that a successful transition can potentially be represented by a typed protocol branch and its continuation; it does not require a primitive `commit agreement` operation. This is a design possibility, not a selected encoding.
+
+This hypothesis refines the vocabulary above: the public channel, the private negotiation attempt, and the resulting agreement are potentially three distinct entities. It also raises a question about how this model relates to the current `ExternalCall` flow, which searches for an existing suitable agreement and otherwise negotiates with a selected candidate. The project has not yet established whether every `ExternalCall` negotiation is an invocation of this public structural channel, whether negotiation may update an existing agreement as well as create one, or how the resource scope of the public offer is represented.
+
+The same issue comment leaves two important points open: whether an agreement is a one-sided commitment or a mutual agreement, and where agreement state is stored (pool state or another state object). The earlier discussion also explicitly leaves open whether resources are reserved before an obligation is accepted or secured after it is accepted; both orderings were intended to remain possible in the eventual model. These are not details to infer from the current `ExternalCall` sequence.
+
+### Agreement lifecycle: current contract and missing rules
+
+| Stage | Current project contract | Still unspecified |
+|---|---|---|
+| Existing-agreement discovery | Search established agreements for one suitable for the called process; the current agreed suitability criterion is the called process name. | Storage and indexing, visibility/ownership, concurrency with agreement changes, and exact matching against dependent details. |
+| Candidate selection | If discovery finds none, manual intervention selects a candidate pool. Selection does not itself establish an agreement. | Authorization, candidate presentation, and whether candidates can be rejected before negotiation starts. |
+| Negotiation | The candidate pools interact according to the applicable transaction type. A failed candidate may be replaced before the shared timeout expires. | The exact message sequence, who proposes and accepts each term, how partial progress is rolled back, and what constitutes successful agreement. |
+| Establishment | Successful negotiation yields a new agreement that can be used by the call and potentially discovered by later calls. | The atomic commit point, durable representation, identity/versioning, scope, lifetime, revocation, and whether both pools record it simultaneously. |
+| Service activation | Only after a suitable existing agreement is found or a new one is successfully established does the engine create the incarnation and deliver the provider channel. | Resource reservation/consumption semantics and failure handling between agreement establishment and channel delivery. |
+
+The table deliberately separates **agreement establishment** from **service activation**. The former concludes the pool-level negotiation; the latter is the subsequent engine operation that creates and connects a process incarnation. A specification should identify the agreement's commit point before defining retries, timeout boundaries, or recovery from a failure during activation.
+
+### Questions required to complete the agreement model
+
+- What is the formal result of successful negotiation: a value, a dependent-type witness, a persistent pool relation, a transaction identifier, or a structured combination?
+- Which parts of the transaction type describe the negotiation protocol, and which parts constrain or determine the resulting agreement?
+- Is `Q` merely an evolving resource/process state during negotiation, a component of the established agreement, or both? If it is part of the result, which exact value and invariants are committed?
+- What operation or judgment distinguishes a negotiation that is still in progress from one whose agreement has been accepted by both parties?
+- What makes an established agreement reusable, and how are updates, revocation, or replacement observed by concurrent `ExternalCall` searches?
+
+Until these questions are answered, do not use “transaction type”, “negotiation transaction”, “agreement”, and “`Q`” interchangeably.
 
 ## 3. Pool model
 
@@ -59,6 +118,23 @@ The companion [transaction introduction](../about-transaction/README.md) present
 | Which agreement-specific details, if any, supplement the agreed process-name match when determining whether an existing agreement is suitable? | **Open** | The process-name match is the current agreed criterion; whether dependent type details further constrain suitability remains unsettled. | Determine whether suitability means membership of the called process name in `Q`, equality with a multiset, or another relation, and whether multiplicity matters; add positive/negative examples without treating the transaction type as a separate post-agreement compatibility mechanism. |
 | Are constraints on pool state part of type checking, runtime validation, or both? | **Open** | Determines which constraints expressed by the transaction-type agreement are checked statically and which require runtime validation. | A typing/validation rule and implementation-path evidence, with negative examples. |
 | What is the relationship between an agreement and the dependent part of a transaction type? | **Open** | Determines whether the agreement is a value represented by the dependent part, the dependent type itself, or another result of negotiation. | Compare the dependent component with `Q` in the [transaction introduction](../about-transaction/README.md), which is explicitly a multiset of named processes and constrains the spawn form through `q ∈ Q`. Determine whether `Q` is the agreement itself, its representation, or only a related resource set; this mapping remains open. |
+
+### Reading the `Q` transitions
+
+The equations in the companion transaction introduction allow a few consequences to be stated, while leaving important parts of the algebra undefined. The examples below are literal readings of the displayed equations, not adopted OrgLang rules.
+
+- **Cooperation:** `[w·q ∉ Q] ⇱ [Q'] A` requires the exact weighted entry `w·q` not to be present and defines `Q' = Q ⋃ {w·q}`. For example, from `Q = {v·p}`, adding `w·q` gives `Q' = {v·p, w·q}` when the new entry is absent. The formula does not say that an existing entry for the same process name but a different weight blocks this transition.
+- **Isolation:** `[w·q ∈ Q] ⇲ [Q'] A` requires the exact entry `w·q` and defines `Q' = Q ⋂ {w·q}`. On an ordinary set reading, if `Q = {w·q, v·p}`, the result is `Q' = {w·q}`: all entries other than the selected weighted process are filtered out. This is not an arithmetic reduction of the weight and is not equivalent to subtracting a share. The explanatory prose calls this a reduction of the process's share, but that effect does not follow from the displayed intersection equation alone.
+- **Spawn:** the side condition is written `q ∈ Q`, while the elements described for `Q` are weighted names such as `w·q`. A plausible interpretation is membership in the process-name support of `Q`, namely `q ∈ names(Q)` where `names(Q) = {q | there exists w such that w·q ∈ Q}`. The source does not define this projection, so it remains a candidate interpretation rather than a settled rule.
+
+There is also a representation-level ambiguity: the text calls `Q` a **multiset**, but writes ordinary union and intersection with singleton collections. It does not define whether these operators combine multiplicities additively, by maximum/minimum multiplicity, or in some other way. Consequently, examples involving repeated identical weighted entries cannot yet be evaluated unambiguously. Nor can the effect of two different weights attached to the same process name be reduced to a single aggregate share without an additional rule.
+
+| Open point | Why it matters | Evidence needed |
+|---|---|---|
+| What are the exact algebraic meanings of `⋃` and `⋂` when applied to the stated multiset `Q`? | Determines whether repeated entries accumulate, collapse, or are filtered, and therefore changes the result of `Coop` and `Isol`. | A definition of multiset union/intersection in this model, plus examples with repeated identical entries. |
+| Does `Isol` select one weighted process entry, filter the pool to that entry, or reduce an existing share? | The displayed intersection with a singleton filters to that singleton under ordinary set semantics; the prose suggests a reduction. | An explicit transition rule and an example showing the before/after values of `Q`. |
+| Does `q ∈ Q` mean exact membership, or membership of the process name in the weighted entries of `Q`? | Determines which process names may be spawned when `Q` contains weighted entries. | A formal definition of the projection from weighted entries to process names, or a corrected side condition. |
+| Can `Q` contain multiple distinct weights for the same process name, and if so how are they interpreted? | Affects suitability, spawn eligibility, and whether weights are independent allocations or an aggregate share. | A well-formedness invariant and examples with `w·q` and `v·q` for `w ≠ v`. |
 
 The detailed eligibility question and the evidence needed to resolve it are tracked in the table above; the search procedure itself remains canonical in [Matching and spawn, Section 4](../about-matching-and-spawn/README.md#4-pool-selection-and-servicing).
 
