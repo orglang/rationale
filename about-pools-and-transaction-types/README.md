@@ -55,7 +55,7 @@ The companion [transaction introduction](../about-transaction/README.md) present
 | Question | Current status | Why it matters | Evidence needed |
 |---|---|---|---|
 | Which constructors belong to the OrgLang transaction-type language, and what is their exact syntax? | **Open** | Determines what specifications and programs may express. | An adopted language grammar or an explicit project decision; compare with the companion model and implementation parser/type definitions. |
-| What are the remaining exact transition rules for `One`, `Up`, and `Down`, including type-state progression, ownership, and observable boundaries? | **Partly decided; partly Open** | Matching is the transition point; the remaining state progression and observability details govern conformance. | Preserve Section 8.1 decisions; specify remaining obligations, then test permitted and prohibited transitions. |
+| What are the remaining exact transition rules for `One`, `Up`, and `Down`, including type-state progression, ownership, and observable boundaries? | **Partly decided; partly Open** | Matching is the transition point; the remaining state progression and observability details govern conformance. | Preserve the adopted decisions in Section 6.2; specify remaining obligations, then test permitted and prohibited transitions. |
 | Which agreement-specific details, if any, supplement the agreed process-name match when determining pool suitability? | **Open** | The process-name match is the current agreed criterion; whether dependent type details further constrain suitability remains unsettled. | Define the role of dependent type details and add positive/negative examples; do not introduce a separate compatibility mechanism beyond the agreement itself. |
 | Are constraints on pool state part of type checking, runtime validation, or both? | **Open** | Determines which constraints expressed by the transaction-type agreement are checked statically and which require runtime validation. | A typing/validation rule and implementation-path evidence, with negative examples. |
 | How do dependent types express agreement-specific details, and how do those details participate in matching or instantiation? | **Open** | Determines how participant-specific or agreement-specific terms are expressed within the transaction-type agreement. | A project decision about dependent-type meaning and its role in matching/instantiation; the transaction type expresses the agreement's protocol terms, rather than acting as a separate compatibility mechanism. |
@@ -130,7 +130,7 @@ Section 6.2 records the adopted matching and continuation behavior. To complete 
 
 #### Initial conformance examples
 
-These examples translate the decisions in Section 8 into acceptance criteria for future tests; they are not claims that tests already exist or pass:
+These examples translate the decisions in Section 6.2 into acceptance criteria for future tests; they are not claims that tests already exist or pass:
 
 1. **`One`:** a client waiting for the provider's `close` may proceed to its own continuation only after the close/wait pair matches; matching establishes one channel identity shared by both sides. The close interaction does not itself terminate the enclosing client process.
 2. **`Up`:** a client cannot treat access as acquired unless the provider-side protocol permits and matches the acquisition; both participants continue according to the continuation associated with `Up`.
@@ -145,7 +145,7 @@ For each rule adopted in this section, record:
 4. **Observable state at a transition boundary:** where relevant, state the pre-state/post-state and ordering constraints needed to preserve protocol and resource invariants. Detailed error reporting, recovery, retries, and abnormal-termination semantics are outside this specification pass.
 5. **Evidence:** the source for the intended language rule, plus separate implementation-path/test evidence where conformance is claimed.
 
-Until these points are settled, keep only the corresponding unresolved detail explicitly **Open** and link to the relevant question in Section 9. Do not downgrade the adopted matching, identity, or continuation requirements recorded in Section 8.1.
+Until these points are settled, keep only the corresponding unresolved detail explicitly **Open** and link to the relevant question in Section 9. Do not downgrade the adopted matching, identity, or continuation requirements recorded in Section 6.2.
 
 ## 7. Publication correspondence
 
