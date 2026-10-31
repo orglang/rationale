@@ -341,7 +341,7 @@ Process invocation and incarnation creation are distinct from the pool mechanism
 
 **Agreed project decision — one-shot forwarding under linearity:** `Fwd` redirects one interaction once and must not duplicate a linear endpoint. The publication's Example 9 illustrates redirecting an existing interaction; it does not require creating a second independent pending interaction.
 
-If neither channel has a pending interaction, `Fwd` initiates one on the corresponding side according to forwarding direction and polarity. The exact mapping between polarity, side, and channel state remains open. The model rules out both channels having a pending interaction simultaneously.
+If neither channel has a pending interaction, `Fwd` may initiate the forwarding-side operation on the corresponding endpoint according to forwarding direction and polarity. This initiation may create a pending forwarding record; it does not, by itself, complete the interaction being forwarded or advance that interaction's residual session type. Completion still requires the corresponding operation on the other side to match. The exact mapping between polarity, side, and channel state remains open. The model rules out both channels having a pending interaction simultaneously.
 
 **Implementation observation:** the inspected executor has paths for positive and negative polarity, but this does not establish that every path is reachable or correct. Neutral polarity takes an unexpected-polarity error path; a negative-polarity branch has a type-mismatch TODO; and the existing e2e `fwd` test has no result assertion. The pending-turn lookup checks `CommChnlPH`; handling a turn pending only on the other channel is unverified. The implementation therefore does not yet establish the complete transition contract.
 
@@ -401,9 +401,9 @@ The proposed correspondences between publication terms `msg` / `srv` and OrgLang
 
 ### Reading the publication's forwarding example
 
-The publication's Example 9 gives a concrete positive-polarity trace. A sender publishes the unit value `()` on `c`; a receiver is waiting on `d`; and a forwarding process connects the two. The receiver first becomes a service waiting on `d`. The forwarding process then produces a forwarding message for the pair `(d, c)`. When that forwarding message meets the service waiting on `d`, the service is redirected to wait on `c`; the sender's pending unit message can then be received, and the receiver continues as `P`.
+The publication's Example 9 gives a concrete positive-polarity trace. A sender publishes the unit value `()` on `c`; a receiver is waiting on `d`; and a forwarding process connects the two. The receiver first registers a service waiting on `d`. The forwarding process then produces a forwarding message for the pair `(d, c)`. Matching that forwarding message with the service waiting on `d` redirects the service to wait on `c`; this redirection is distinct from completing the sender's data communication. The sender's pending unit message is received only when it matches the redirected service on `c`, after which the receiver continues as `P`.
 
-The trace models forwarding as an interaction between a forwarding message and a waiting service. It keeps occurrences of `d` and `c` distinct except where a specific transition redirects an interaction. The trace also shows that the receiver may need another evaluation step to begin listening again after its service has been redirected.
+The trace therefore contains two matching events: the forwarding message matches the waiting service and redirects it; subsequently, the sender's unit message matches that redirected service and completes the data communication. It keeps occurrences of `d` and `c` distinct except where the redirection transition changes which channel the service uses. The receiver may need another evaluation step to begin listening again after its service has been redirected. The example does not imply that registering either pending action, or performing the redirection alone, completes the data communication.
 
 
 
