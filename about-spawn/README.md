@@ -74,17 +74,17 @@ The language-level contracts and the distinction between `ExternalCall` and `Int
 
 ### 4.2 Agreement-suitability criterion
 
-**Agreed project decision:** the current criterion for a suitable agreement is a match with the name of the called process. The agreement is the established arrangement between the client pool and the servicing pool; its terms are expressed by the transaction type. The transaction type is therefore not a separate compatibility mechanism. The unresolved question is whether and how agreement-specific dependent details further constrain suitability. Additional matching criteria may be introduced in the future; they are not specified here. See [Pools and transaction types, Section 2](../about-pools-and-transaction-types/README.md#2-core-concepts-and-terminology) for terminology and Section 4 for the transaction-type model.
+**Agreed project decision:** the current criterion for an existing agreement to be suitable is a match with the name of the called process. This criterion is applied when searching previously established agreements; it does not mean that the process-name match itself creates an agreement. If no suitable established agreement is found, the call may proceed to negotiation with a candidate pool. The transaction type defines the protocol by which the parties interact to reach an agreement, rather than a separate compatibility test applied only after agreement selection. Whether agreement-specific dependent details further constrain suitability remains **Open**. See [Pools and transaction types, Section 2](../about-pools-and-transaction-types/README.md#2-core-concepts-and-terminology) for terminology and Section 4 for the transaction-type model.
 
 ### 4.3 Search and agreement negotiation
 
-**Agreed project decisions:** automatic search examines previously established agreements and selects the first suitable agreement encountered in the existing selection order. The rules defining that order remain open. Suitability is determined by the criterion in Section 4.2.
+**Agreed project decisions:** `ExternalCall` supports both discovery of an already established agreement and negotiation of a new agreement. Automatic search examines previously established agreements and selects the first suitable agreement encountered in the existing selection order. The rules defining that order remain open. Suitability is determined by the criterion in Section 4.2.
 
-If automatic search finds no suitable established agreement, manual intervention always follows. A participant of the calling process's pool may select a candidate pool to begin negotiation of a new agreement; selection alone does not establish an agreement. If negotiation fails, the participant may select a different candidate before the shared timeout expires. A candidate already tried unsuccessfully cannot be selected again during the same call. The negotiation participants and detailed negotiation semantics belong to the transaction-type model and are not specified here.
+If automatic search finds no suitable established agreement, manual intervention always follows. A participant of the calling process's pool may select a candidate pool with which to negotiate a new agreement; selecting a candidate does not itself establish an agreement. The parties interact according to the applicable transaction type, which defines the negotiation protocol. If negotiation fails, the participant may select a different candidate before the shared timeout expires. A candidate already tried unsuccessfully cannot be selected again during the same call. The precise negotiation rules remain in the transaction-type model and are not fully specified here.
 
 ### 4.4 Creation and start of servicing after selection
 
-After the search-and-negotiation procedure in Section 4.3 produces an agreement, `ExternalCall` proceeds as follows:
+After Section 4.3 either finds a suitable previously established agreement or successfully negotiates a new one, `ExternalCall` proceeds as follows:
 
 1. The engine creates a fresh process incarnation together with a fresh provider channel and associates the incarnation with the selected servicing pool.
 2. The engine atomically transfers all channels involved in the call: the fresh provider channel to the caller and the corresponding channel endpoints/bindings to the selected pool and new incarnation. Partial delivery is not an observable state; this delivery is mandatory for successful completion.
@@ -94,7 +94,7 @@ The agreement-search timeout and its pre-commit outcome are specified in Section
 
 ### 4.5 Agreement-search timeout
 
-**Agreed project decisions:** the timeout belongs to the `ExternalCall` search mechanism, not to the transaction type. The calling pool supplies one shared timeout setting for all agreement searches initiated by calls from that pool. It starts when automatic search begins and covers the complete search-and-negotiation procedure in Section 4.3, including manual intervention and candidate negotiations. Selecting another candidate does not restart it.
+**Agreed project decisions:** the timeout belongs to the `ExternalCall` search-and-negotiation mechanism, not to the transaction type. The calling pool supplies one shared timeout setting for all agreement searches and negotiations initiated by calls from that pool. It starts when automatic search begins and covers the complete procedure in Section 4.3, including manual intervention and candidate negotiations. Selecting another candidate does not restart it.
 
 Expiry is an outcome of the overall search-and-negotiation operation, not a type-compatibility judgment; it does not establish that no suitable agreement exists. If the parties have not successfully agreed on terms before expiry, the call terminates without a result: no servicing pool is selected, no incarnation or provider channel has been created, and the caller's supplied client channels remain with their original identities and protocol states. A later agreement cannot be applied to the terminated call; another attempt requires a new call. Failure-reporting details remain unspecified.
 
