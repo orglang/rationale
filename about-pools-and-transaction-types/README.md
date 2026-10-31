@@ -67,7 +67,7 @@ The detailed eligibility question and the evidence needed to resolve it are trac
 
 The pool's public transaction channel has a transaction type of the form `Up` followed by a continuation that ultimately ends in `Down`.
 
-**Inferred working model; public/private state distinction and identity levels are project clarifications:** from the client's perspective, there is one logical channel placeholder whose state changes over the course of the protocol: it is public, becomes private, and later becomes public again. Public and private are not two independently existing logical channels. The physical identity depends on the state: before `Up`, the client uses the pool's original public channel identity; when `acquire` and `accept` match, both participants' continuations use a new private channel identity; when `release` and `detach` match, the client returns to the original public channel identity, not a newly allocated public identity. Thus the logical placeholder is continuous, the private phase has its own physical channel identity, and `Down` restores the original public identity.
+**Project semantic decision on public/private state and identity levels:** from the client's perspective, there is one logical channel placeholder whose state changes over the course of the protocol: it is public, becomes private, and later becomes public again. Public and private are not two independently existing logical channels. The physical identity depends on the state: before `Up`, the client uses the pool's original public channel identity; when `acquire` and `accept` match, both participants' continuations use a new private channel identity; when `release` and `detach` match, the client returns to the original public channel identity, not a newly allocated public identity. Thus the logical placeholder is continuous, the private phase has its own physical channel identity, and `Down` restores the original public identity.
 
 The type-level constructors describe the permitted state transitions. `Up` describes the transition from public to private; `Down` describes the transition from private back to public. These constructors are not runtime interaction operations. At the interaction level, the client performs `acquire` and the provider performs `accept`; the public-to-private transition takes effect when those operations match. Conversely, the client performs `release` and the provider performs `detach`; the private-to-public transition takes effect when those operations match.
 
@@ -83,7 +83,7 @@ This section records the agreed minimal language-level decisions for matching an
 
 ### 6.1 Minimal transaction-type constructors
 
-**Status: Inferred working semantics**, grounded in the project's current mapping between transaction-type constructors and the provider/client operations represented in `orglang/go-engine`. This subsection records the proposed minimum contract; it is not yet a normative operational semantics.
+**Status: Project semantic decisions, with formalization still open.** The matching points, shared channel-identity rules, and participant-specific continuation obligations recorded below are adopted language-level requirements. Their complete typing judgments, operational rules, and implementation conformance are not yet established; this research document is not itself the normative language specification.
 
 A transaction type describes the protocol exposed by a pool through its public transaction channel. A client's interactions must conform to this provider-side protocol, evaluated against the current protocol state. No separately declared client-side transaction type is required by this model.
 
@@ -103,7 +103,7 @@ This decision establishes the intended endpoint relationship, not the complete t
 
 #### Transition obligations to settle
 
-Before treating the table as normative, specify for each paired operation:
+To complete the formal specification and make the table directly executable as a normative rule set, specify for each paired operation:
 
 - **Precondition:** the current protocol state, participant roles, and any agreement/access prerequisites.
 - **Action and matching:** which operation enables or matches the peer operation, and whether matching is atomic or has observable intermediate states.
