@@ -217,3 +217,16 @@ This is a language-level design decision; it does not claim that the current `go
 | How are agreement parameters and timeout values represented? | Who supplies timeout, how it is checked, and whether it is static or dynamic. | Project decision; do not assume the proposed `0 = infinite` convention. |
 | How are transaction identifiers allocated and related to process channel identities? | Identity uniqueness, resource ownership, and safe continuation substitution. | Identity contract and source/test evidence for allocation and substitution. |
 | Which implementation paths establish conformance? | Confidence that intended protocol rules are executable. | Source-level trace and tests with observable assertions for each agreed rule. |
+
+### Minimum conformance test matrix
+
+The following is an acceptance target for the adopted semantics, not a description of tests already present. Each pending case should be tested with both endpoint arrival orders, and each matched case should assert the observable post-state rather than only the absence of an API error.
+
+- **Pending boundary:** after only `accept` or `acquire` (and separately only `detach` or `release`), assert that no protocol transition has occurred, no continuation has become eligible, and no participant can observe a partially changed channel state.
+- **`Up` match:** after both `accept` and `acquire` match, assert one shared fresh private channel identity, the expected residual protocol state, and exactly one eligibility event for each non-null participant continuation. Use different provider/client continuation expressions to ensure they are not accidentally conflated.
+- **`Down` match:** after both `detach` and `release` match, assert restoration of the original public channel identity (not a newly allocated public identity), the expected residual protocol state, and exactly one eligibility event for each participant-specific continuation. Include distinct continuation expressions and positive/negative typing cases for each endpoint.
+- **`One` match:** assert that a lone `close` or `wait` remains pending; after the pair matches, assert completion with one shared channel identity, no provider-side executable continuation, and eligibility of the client's enclosing continuation when present.
+- **Representation path:** round-trip every operation and continuation through AST, adapter, persistence, and executor representations. In particular, `Down` cannot pass the language-level continuation tests until both operation specs and their conversion paths can carry the required `ContExp` values.
+- **Linearity and isolation:** reject duplicate/aliased channel identities and invalid endpoint continuation types; verify that a pending or matched operation does not mutate unrelated channels or another participant's bindings.
+
+The current inspected `go-engine` paths provide useful pending/matching implementation observations, but the existing end-to-end scenarios include missing result assertions, and the `Down` operation representation does not yet expose the adopted language-level continuation expressions. These are implementation gaps to address, not reasons to weaken the acceptance criteria.
