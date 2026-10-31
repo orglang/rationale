@@ -1,9 +1,9 @@
-<!-- Canonical semantics: ../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls -->
-# Process creation and pool selection
+<!-- Canonical semantics: common matching principle and process–pool selection boundary -->
+# Matching, process creation, and pool selection
 
 > **Status: preliminary semantic research.** This document explains the working model at the boundary between process creation and pool servicing. Its rules and rationale remain research findings pending a normative specification.
 
-> **Canonical language contract:** the intended language-level semantics of `ExternalCall` and `InternalCall` are maintained in [Processes and session types, Section 7 — Intended semantics of named-process calls](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). This document focuses on the process–pool boundary, its supporting evidence, and its open questions. The canonical document defines the language-level contracts.
+> **Document scope:** this document owns the general paired-interaction matching principle and the process–pool selection boundary. The constructor-specific language contracts for `ExternalCall` and `InternalCall` remain in [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls); pool transaction-type details remain in [Pools and transaction types](../about-pools-and-transaction-types/README.md).
 
 > **Implementation status and purpose of this specification:** The process and call mechanisms discussed here have had multiple implementation attempts; none is known to be complete. This is why the project is writing a specification: to establish the intended behavior independently of any partial AST, adapter, executor, prototype, or test path. Implementation observations below are evidence about those attempts, not a claim that the language contract is already implemented. Do not infer intended semantics from whichever attempt happens to exist in code.
 
@@ -34,6 +34,14 @@ Use the same claim-status vocabulary as the canonical [Processes and session typ
 - **Open** means the available evidence does not settle the claim or verification remains incomplete.
 
 Use **Evidence** to identify the source or observation supporting a claim; use **Confirmed**, **Inferred**, and **Open** for claim status. Keep implementation coverage separate from claim status. Treat issue comments as provisional discussion. A rule from the cited publication's calculus requires separate evidence before it can be treated as an OrgLang rule.
+
+## Common matching principle
+
+**Language-level principle shared by process channels and pool transaction channels:** each participant performs its own protocol-permitted operation. An operation performed by only one side remains pending; it does not by itself complete the interaction or advance the shared protocol state. The interaction takes effect when the corresponding peer operations match. Matching establishes one shared channel identity and the protocol-state effect for both endpoints. Each participant may then proceed through its own continuation where the operation defines one; the continuation expressions need not be textually identical, and matching does not imply simultaneous execution.
+
+This principle describes *operation matching*, not *pool suitability matching*. Pool suitability is the separate decision about whether an established agreement can service a requested process; the current agreed criterion is a match with the called process name (Section 4.2). A transaction type expresses the agreement's protocol terms; it is not an independent compatibility mechanism.
+
+The general principle does not prescribe the concrete state transition, channel-identity change, or continuation typing for every protocol. Those remain constructor- and context-specific: pool `One`/`Up`/`Down` rules are recorded in [Pools and transaction types](../about-pools-and-transaction-types/README.md), while process-channel constructors and their typing rules are recorded in [Processes and session types, Sections 6–7](../about-processes-and-session-types/README.md#6-session-types-the-protocol-for-a-channel). Nor does the principle settle cancellation, failure, or implementation linearization details.
 
 ## 2. The process–pool boundary
 
