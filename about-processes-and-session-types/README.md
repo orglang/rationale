@@ -362,17 +362,10 @@ The following is a **review matrix, not a transition rule**. “Channel A” and
 
 For every allowed row, the rule and tests should establish that the interaction is redirected at most once, neither linear endpoint is duplicated, and the resulting continuation agrees with the residual protocol states. Tests should assert observable results and relevant channel/pending-state invariants; merely executing the `Fwd` path is insufficient.
 
-### Summary: compare the three operations
 
-`ExternalCall` and `InternalCall` are the two named-process call forms, with different channel effects and continuation behavior. Record each operation's OrgLang meaning, publication interpretation, and implementation behavior separately. `ExternalCall` starts a named-process incarnation with a fresh provider channel and preserves a continuation for the caller; `InternalCall` starts a named-process incarnation, transfers all of the caller's channels to it, and semantically terminates the old incarnation; `Fwd` redirects one interaction between two existing channels, while named-process invocation is described by `ExternalCall` and `InternalCall`.
+### Operation index
 
-| Operation | Primary role | Intended control-flow effect | Intended channel effect | Semantic/evidential status | Implementation status |
-|---|---|---|---|---|
-| `ExternalCall` | Create and invoke a named-process incarnation with a fresh provider channel. | The caller's continuation becomes eligible only after it receives that channel. | Explicit parameter mapping; a fresh provider channel is delivered outward to the caller. | Agreed intended contract; operation-specific checks are described in Section 7, with shared validation timing in Section 4. Implementation mapping remains open. | Unverified; no executor branch found. |
-| `InternalCall` | Create a named-process incarnation and transfer its channels. | The new incarnation starts at the beginning of its definition; the old incarnation semantically terminates. | All channels bound to the old incarnation are rebound to the new incarnation's typed placeholders, preserving channel identities. | Agreed intended contract; runtime representation open. | Unverified; no complete executor path found. |
-| `Fwd` | Redirect one specific existing-channel interaction once. | No named-process incarnation or named-process continuation transfer is implied. | Redirects the relevant interaction; the operation must not duplicate a linear endpoint. | One-shot intent agreed; full transition rule remains open. | Partial; full symmetric behavior not established. |
-
-Use this table as the quick comparison, and the operation-specific subsections above for the intended transitions and preconditions. Part II gives publication context; Part III records implementation evidence. Those evidence sources are not alternative definitions of the intended behavior.
+The intended contracts are specified in the operation-specific subsections above: [`ExternalCall`](#externalcall), [`InternalCall`](#internalcall), and [`Fwd`](#fwd). Part II records publication context; Part III records implementation evidence. Neither evidence section replaces the language-level contracts.
 
 ## Part II. Comparison with the publication
 
