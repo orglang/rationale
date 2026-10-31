@@ -66,7 +66,7 @@ The language-level contracts and the distinction between `ExternalCall` and `Int
 
 ### 4.2 Matching criterion
 
-**Agreed project decision:** the current criterion for a suitable agreement is a match with the name of the called process. The agreement is the established arrangement between the client pool and the servicing pool; its terms are expressed by the transaction type. The transaction type is therefore not a separate compatibility mechanism. The unresolved question is whether and how agreement-specific dependent details further constrain suitability. Additional matching criteria may be introduced in the future; they are not specified here. See [Pools and transaction types, Section 2](../about-pools-and-transaction-types/README.md#2-core-concepts) for terminology and Section 4 for the transaction-type model.
+**Agreed project decision:** the current criterion for a suitable agreement is a match with the name of the called process. The agreement is the established arrangement between the client pool and the servicing pool; its terms are expressed by the transaction type. The transaction type is therefore not a separate compatibility mechanism. The unresolved question is whether and how agreement-specific dependent details further constrain suitability. Additional matching criteria may be introduced in the future; they are not specified here. See [Pools and transaction types, Section 2](../about-pools-and-transaction-types/README.md#2-core-concepts-and-terminology) for terminology and Section 4 for the transaction-type model.
 
 ### 4.3 Search order
 
