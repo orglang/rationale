@@ -175,24 +175,25 @@ The [`TestPool` / `waitClose` example](https://github.com/orglang/go-engine/blob
 
 ### 8.1 Adopted language-level matching rules
 
-**Decision recorded from semantic review:** for `Up`, access becomes active only when the provider-side `accept` and client-side `acquire` have been matched. Issuing either operation alone is not sufficient to establish access. A pending operation is a waiting state, not an active-access state.
+The language-level transition for each constructor occurs only when its provider-side and client-side operations match:
 
-At the matching point, the semantics must establish the continuation channel for both participants and permit their continuations to proceed according to the protocol. The exact linearization/observability boundary, including failure and cancellation between registration and matching, remains to be specified; this decision does not assert that the current implementation has already been verified against every interleaving.
-
-**Decision recorded from semantic review — `Down`:** access ends only when provider-side `detach` and client-side `release` have been matched. Registering either operation alone leaves the protocol's access state unchanged: access remains active until the pair matches. The pending registration does not itself change the publicly observable protocol state, and neither side may treat access as fully ended before the match. Both participant continuations are enabled only after the match; the exact implementation observable boundary and behavior under cancellation or failure before matching remain open.
-
-**Decision recorded from semantic review — `One`:** the transaction is complete only when provider-side `close` and client-side `wait` have been matched. Registering either operation alone does not complete the transaction; a pending operation remains unresolved until its peer operation matches. The exact observable transition boundary, and behavior under cancellation or failure before matching, remain open.
+- **`Up`:** provider `accept` matches client `acquire`; access becomes active and both participants receive the same new private channel identity.
+- **`Down`:** provider `detach` matches client `release`; access ends and both participants regain the original public channel identity.
+- **`One`:** provider `close` matches client `wait`; the transaction interaction completes and matching establishes one shared channel identity. This is separate from the `Up`/`Down` public/private identity cycle.
 
 ### 8.2 Matching boundary and continuation behavior
 
-**Decisions recorded from semantic review:**
+**Common matching rule:** registering only one side of any operation pair creates a pending operation. It does not itself change the publicly observable protocol state: access remains inactive before a matched `Up`, remains active before a matched `Down`, and `One` remains incomplete before a matched `close`/`wait`. The language-level transition occurs when the corresponding operations match.
 
-- For each of the three operation pairs in Section 8.1, registering only one side creates a pending operation; it does not itself change the transaction's publicly observable protocol state. The language-level transition occurs when the two corresponding operations match.
-- After matching, participants may proceed through any continuations provided by their respective operations, independently and subject to the transaction type. For both `Up` and `Down`, this means participant-specific continuations on both sides. For `One`, the client's `wait` may continue in its enclosing expression, while provider-side `close` is terminal; the shared channel identity does not imply a provider-side executable continuation. Matching imposes no additional ordering between continuations that exist and does not guarantee simultaneous execution.
-- Matching establishes one physical channel identity shared by both sides, not two independent identities. For `Up`, this is the new private channel identity; for `Down`, it is the restored original public channel identity, not a newly allocated public identity. The logical channel placeholder remains continuous across these transitions, as described in Section 5. `One` has a separate terminal interaction and shared-identity rule; it is not part of the `Up`/`Down` public/private identity cycle, and its shared identity does not imply that both sides have executable continuation expressions.
-- For `Down A`, both `detach` and `release` must carry participant-specific continuation expressions (`ContExp`), which need not be identical. Neither continuation is executed before the pair matches. After matching, each participant may proceed through its own continuation on the restored original public channel identity; `A` describes the protocol continuation associated with that identity, not a requirement that both participants execute the same expression. Matching imposes no additional ordering between the continuations and does not guarantee simultaneous execution.
+**Continuation rules after matching:**
 
-These are language-level semantic decisions, not a claim that every implementation interleaving has been verified. The exact implementation linearization point, cancellation/failure behavior, and other abnormal interleavings remain out of scope for this pass. Cancellation semantics are explicitly deferred.
+- For `Up A`, both participants may proceed through their respective continuations using the shared new private channel identity. The provider continuation is checked against `A`; the client continuation is checked against its corresponding client-side protocol type (provisionally denoted `dual(A)`).
+- For `Down A`, both `detach` and `release` must carry their own participant-specific continuation expressions (`ContExp`); they need not be textually identical. Neither executes before matching. After matching, each participant may proceed independently through its own continuation using the restored original public channel identity. The provider continuation is checked against `A`, and the client continuation against its corresponding client-side protocol type (provisionally denoted `dual(A)`).
+- For `One`, the client's `wait` may continue in its enclosing expression; provider-side `close` is terminal for this interaction and has no executable continuation of its own.
+
+Matching establishes one physical channel identity shared by both sides, not two independent identities. For `Up` this is the new private identity; for `Down` it is the restored original public identity. The logical placeholder remains continuous across the public/private transitions described in Section 5. `One` has its separate shared-identity rule and is not part of that cycle. Matching imposes no additional ordering between continuations that exist and does not guarantee simultaneous execution.
+
+These are language-level semantic decisions, not a claim that every implementation interleaving has been verified. The exact implementation linearization point, cancellation/failure behavior, and other abnormal interleavings remain open; cancellation semantics are explicitly deferred.
 
 This is a language-level design decision; it does not claim that the current `go-engine` operation specs already expose these continuation fields. The next implementation work, if authorized, should align the AST/operation model, typing, adapters, executor, and tests with this decision. Absence from the paths above does not establish system-wide absence.
 
