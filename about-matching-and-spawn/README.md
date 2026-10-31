@@ -90,9 +90,9 @@ After Section 4.3 either finds a suitable previously established agreement or su
 2. The engine atomically transfers all channels involved in the call: the fresh provider channel to the caller and the corresponding channel endpoints/bindings to the selected pool and new incarnation. Partial delivery is not an observable state; this delivery is mandatory for successful completion.
 3. Once delivery succeeds, the protocol-level call is complete. The caller may resume its continuation and use the fresh provider channel immediately, including sending its first protocol action before the selected pool takes its first action. The selected pool may also begin servicing immediately. Their execution may proceed in either order or interleave, subject to protocol and linearity constraints.
 
-The agreement-search timeout and its pre-commit outcome are specified in Section 4.5.
+The search-and-negotiation timeout and its pre-commit outcome are specified in Section 4.5.
 
-### 4.5 Agreement-search timeout
+### 4.5 Search-and-negotiation timeout
 
 **Agreed project decisions:** the timeout belongs to the `ExternalCall` search-and-negotiation mechanism, not to the transaction type. The calling pool supplies one shared timeout setting for all agreement searches and negotiations initiated by calls from that pool. It starts when automatic search begins and covers the complete procedure in Section 4.3, including manual intervention and candidate negotiations. Selecting another candidate does not restart it.
 
