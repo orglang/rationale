@@ -92,11 +92,25 @@ A transaction type describes the protocol exposed by a pool through its public t
 
 | Constructor | Provider-side operation | Client-side operation | Minimal intended meaning | Further detail |
 |---|---|---|---|---|
-| `One` | `close` | `wait` | Terminal provider interaction and corresponding client wait. The client's enclosing expression may continue after `wait`; provider-side `close` has no executable continuation of its own. | Matching and shared-identity rule: Section 8. `One` does not itself imply process termination. |
-| `Up A` | `accept` | `acquire` | Provider accepts access; client acquires access. | Matching, private identity, and participant continuation rules: Section 8. Formal typing remains open; `dual(A)` is provisional explanatory notation only. |
-| `Down A` | `detach` | `release` | Provider detaches access; client releases access. | Matching, restoration of the original public identity, and mandatory participant-specific `ContExp` on both operations: Section 8. Formal typing and resource disposition remain open. |
+| `One` | `close` | `wait` | Terminal provider interaction and corresponding client wait. The client's enclosing expression may continue after `wait`; provider-side `close` has no executable continuation of its own. | Matching and shared-identity rule: Section 6.2. `One` does not itself imply process termination. |
+| `Up A` | `accept` | `acquire` | Provider accepts access; client acquires access. | Matching, private identity, and participant continuation rules: Section 6.2. Formal typing remains open; `dual(A)` is provisional explanatory notation only. |
+| `Down A` | `detach` | `release` | Provider detaches access; client releases access. | Matching, restoration of the original public identity, and mandatory participant-specific `ContExp` on both operations: Section 6.2. Formal typing and resource disposition remain open. |
 
 The operation names above are implementation identifiers, not proposed surface syntax. The pool-side operation declarations are in [`pool/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/main/pool/termexp/core/core.go); the process-side declarations are in [`proc/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/termexp/core/core.go). These declarations support the provider/client operation mapping, but by themselves do not establish the runtime transition order or full language semantics.
+
+### 6.2 Matched transitions, continuations, and channel identity
+
+The general paired-interaction principle is defined in [Matching, process creation, and pool selection](../about-spawn/README.md#common-matching-principle). This section specifies its pool-specific consequences:
+
+- **`One`:** provider `close` matches client `wait`. Only the matched pair completes the transaction interaction and establishes one channel identity shared by both sides. Client-side `wait` may continue in its enclosing expression; provider-side `close` is terminal and has no executable continuation of its own.
+- **`Up A`:** provider `accept` matches client `acquire`. Access becomes active and both participants receive the same new private physical channel identity.
+- **`Down A`:** provider `detach` matches client `release`. Access ends and both participants regain the original public physical channel identity.
+
+For `Up A`, both `accept` and `acquire` carry their own participant-specific continuation expressions. They need not be textually identical, and neither executes before matching. After matching, each participant may proceed through its own continuation using the shared new private identity. The provider continuation is checked against `A`; the client continuation against its corresponding client-side protocol type (provisionally denoted `dual(A)`).
+
+For `Down A`, both `detach` and `release` must carry their own participant-specific `ContExp` values. They need not be textually identical, and neither executes before matching. After matching, each participant may proceed independently through its own continuation using the restored original public identity. The provider continuation is checked against `A`; the client continuation against its corresponding client-side protocol type (provisionally denoted `dual(A)`).
+
+The logical channel placeholder remains continuous across the public/private transitions: the original public physical identity is replaced by the shared private identity on matched `Up` and restored on matched `Down`. The mechanism that preserves and restores the original identity is an implementation detail. `One` has its separate shared-identity rule and is not part of this public/private cycle. Matching imposes no additional ordering between participant continuations and does not guarantee simultaneous execution.
 
 #### Continuation correspondence: dual endpoint views
 
@@ -106,7 +120,7 @@ This decision establishes the intended endpoint relationship, not the complete t
 
 #### Formalization obligations
 
-Section 8 records the adopted matching and continuation behavior. To complete its formal specification, specify for each paired operation:
+Section 6.2 records the adopted matching and continuation behavior. To complete its formal specification, specify for each paired operation:
 
 - **Precondition:** the current protocol state, participant roles, and any agreement/access prerequisites.
 - **Action and matching:** which operation enables or matches the peer operation, and whether matching is atomic or has observable intermediate states.
@@ -175,30 +189,6 @@ Implementation conformance has not been established by this document. The follow
 These paths suggest that the implementation has a **pending registration** stage followed by a **matching/continuation-binding** stage. In the inspected `detach`/`release` path, the executor creates a channel ID and binds runtime continuation channels, but does not schedule participant-specific `ContExp` expressions (and the operation specs do not expose those fields). Runtime continuation-channel binding is distinct from the language-level continuation expressions required on both operations. This source-level observation does not tell us how that ID maps to the logical channel placeholder or to the original public identity described by the language-level model. The internal mechanism for preserving and restoring that identity is an implementation detail and is not specified here. Do not call the whole interaction atomic without defining the relevant observable boundary: the database mutation and broker scheduling path, and concurrent interleavings, would need to be traced to settle that question.
 
 The [`TestPool` / `waitClose` example](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/test/e2e/pool_test.go) defines the type-level continuation as `Down { ContExp: Link{TypeQN: poolTypeQN} }`, but its runtime `ReleaseSpec` and `DetachSpec` literals supply only `CommChnlPH`. This is consistent with the operation-spec declarations above and exposes the same implementation gap: the example does not encode the two required participant-specific `ContExp` values. The test's final `close`/`wait` sequence and outcome assertion are commented out, so it is partial evidence only; it does not validate the complete lifecycle.
-
-### 8.1 Adopted language-level matching rules
-
-The language-level transition for each constructor occurs only when its provider-side and client-side operations match:
-
-- **`Up`:** provider `accept` matches client `acquire`; access becomes active and both participants receive the same new private channel identity.
-- **`Down`:** provider `detach` matches client `release`; access ends and both participants regain the original public channel identity.
-- **`One`:** provider `close` matches client `wait`; the transaction interaction completes and matching establishes one shared channel identity. This is separate from the `Up`/`Down` public/private identity cycle.
-
-### 8.2 Pool-specific continuation and identity behavior
-
-The general paired-interaction principle is defined in [Matching, process creation, and pool selection](../about-spawn/README.md#common-matching-principle). The rules below record only the pool-specific consequences for `Up`, `Down`, and `One`.
-
-**Continuation rules after matching:**
-
-- For `Up A`, both provider `accept` and client `acquire` carry their own participant-specific continuation expressions. They need not be textually identical, and neither executes before the operations match. After matching, each participant may proceed through its own continuation using the shared new private channel identity. The provider continuation is checked against `A`; the client continuation is checked against its corresponding client-side protocol type (provisionally denoted `dual(A)`).
-- For `Down A`, both `detach` and `release` must carry their own participant-specific continuation expressions (`ContExp`); they need not be textually identical. Neither executes before matching. After matching, each participant may proceed independently through its own continuation using the restored original public channel identity. The provider continuation is checked against `A`, and the client continuation against its corresponding client-side protocol type (provisionally denoted `dual(A)`).
-- For `One`, the client's `wait` may continue in its enclosing expression; provider-side `close` is terminal for this interaction and has no executable continuation of its own.
-
-Matching establishes one physical channel identity shared by both sides, not two independent identities. For `Up` this is the new private identity; for `Down` it is the restored original public identity. The logical placeholder remains continuous across the public/private transitions described in Section 5. `One` has its separate shared-identity rule and is not part of that cycle. Matching imposes no additional ordering between continuations that exist and does not guarantee simultaneous execution.
-
-These pool-specific continuation and identity rules are language-level semantic decisions, not a claim that every implementation interleaving has been verified. The exact implementation linearization point, cancellation/failure behavior, and other abnormal interleavings remain open; cancellation semantics are explicitly deferred.
-
-This is a language-level design decision; it does not claim that the current `go-engine` operation specs already expose these continuation fields. The next implementation work, if authorized, should align the AST/operation model, typing, adapters, executor, and tests with this decision. Absence from the paths above does not establish system-wide absence.
 
 ## 9. Open questions and next tests
 
