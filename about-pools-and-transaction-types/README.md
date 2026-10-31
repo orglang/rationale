@@ -190,7 +190,7 @@ The language-level transition for each constructor occurs only when its provider
 
 **Continuation rules after matching:**
 
-- For `Up A`, both participants may proceed through their respective continuations using the shared new private channel identity. The provider continuation is checked against `A`; the client continuation is checked against its corresponding client-side protocol type (provisionally denoted `dual(A)`).
+- For `Up A`, both provider `accept` and client `acquire` carry their own participant-specific continuation expressions. They need not be textually identical, and neither executes before the operations match. After matching, each participant may proceed through its own continuation using the shared new private channel identity. The provider continuation is checked against `A`; the client continuation is checked against its corresponding client-side protocol type (provisionally denoted `dual(A)`).
 - For `Down A`, both `detach` and `release` must carry their own participant-specific continuation expressions (`ContExp`); they need not be textually identical. Neither executes before matching. After matching, each participant may proceed independently through its own continuation using the restored original public channel identity. The provider continuation is checked against `A`, and the client continuation against its corresponding client-side protocol type (provisionally denoted `dual(A)`).
 - For `One`, the client's `wait` may continue in its enclosing expression; provider-side `close` is terminal for this interaction and has no executable continuation of its own.
 
