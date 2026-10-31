@@ -186,6 +186,8 @@ The language-level transition for each constructor occurs only when its provider
 
 ### 8.2 Matching boundary and continuation behavior
 
+**Common channel-interaction mechanism:** the matching and continuation mechanism described here is intended to apply uniformly to paired interactions over pool channels and process channels. It is not a special property of the pool's public transaction channel. Each side registers its own operation; an unmatched operation remains pending and does not itself perform the protocol transition. When the corresponding operations match, the shared channel identity and protocol-state effect are established, and each participant may proceed through its own continuation where that operation has one. The channel kind and protocol determine the particular state and identity effect; they do not change this common matching principle. `One` is also matched by the same principle, but its continuation shape is asymmetric: client-side `wait` may have an enclosing continuation, while provider-side `close` is terminal and has no executable continuation of its own.
+
 **Common matching rule:** registering only one side of any operation pair creates a pending operation. It does not itself change the publicly observable protocol state: access remains inactive before a matched `Up`, remains active before a matched `Down`, and `One` remains incomplete before a matched `close`/`wait`. The language-level transition occurs when the corresponding operations match.
 
 **Continuation rules after matching:**
