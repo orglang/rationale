@@ -184,11 +184,9 @@ The language-level transition for each constructor occurs only when its provider
 - **`Down`:** provider `detach` matches client `release`; access ends and both participants regain the original public channel identity.
 - **`One`:** provider `close` matches client `wait`; the transaction interaction completes and matching establishes one shared channel identity. This is separate from the `Up`/`Down` public/private identity cycle.
 
-### 8.2 Matching boundary and continuation behavior
+### 8.2 Pool-specific continuation and identity behavior
 
-**Common channel-interaction mechanism:** the matching and continuation mechanism described here is intended to apply uniformly to paired interactions over pool channels and process channels. It is not a special property of the pool's public transaction channel. Each side registers its own operation; an unmatched operation remains pending and does not itself perform the protocol transition. When the corresponding operations match, the shared channel identity and protocol-state effect are established, and each participant may proceed through its own continuation where that operation has one. The channel kind and protocol determine the particular state and identity effect; they do not change this common matching principle. `One` is also matched by the same principle, but its continuation shape is asymmetric: client-side `wait` may have an enclosing continuation, while provider-side `close` is terminal and has no executable continuation of its own.
-
-**Common matching rule:** registering only one side of any operation pair creates a pending operation. It does not itself change the publicly observable protocol state: access remains inactive before a matched `Up`, remains active before a matched `Down`, and `One` remains incomplete before a matched `close`/`wait`. The language-level transition occurs when the corresponding operations match.
+The general paired-interaction principle is defined in [Matching, process creation, and pool selection](../about-spawn/README.md#common-matching-principle). The rules below record only the pool-specific consequences for `Up`, `Down`, and `One`.
 
 **Continuation rules after matching:**
 
@@ -198,7 +196,7 @@ The language-level transition for each constructor occurs only when its provider
 
 Matching establishes one physical channel identity shared by both sides, not two independent identities. For `Up` this is the new private identity; for `Down` it is the restored original public identity. The logical placeholder remains continuous across the public/private transitions described in Section 5. `One` has its separate shared-identity rule and is not part of that cycle. Matching imposes no additional ordering between continuations that exist and does not guarantee simultaneous execution.
 
-These are language-level semantic decisions, not a claim that every implementation interleaving has been verified. The exact implementation linearization point, cancellation/failure behavior, and other abnormal interleavings remain open; cancellation semantics are explicitly deferred.
+These pool-specific continuation and identity rules are language-level semantic decisions, not a claim that every implementation interleaving has been verified. The exact implementation linearization point, cancellation/failure behavior, and other abnormal interleavings remain open; cancellation semantics are explicitly deferred.
 
 This is a language-level design decision; it does not claim that the current `go-engine` operation specs already expose these continuation fields. The next implementation work, if authorized, should align the AST/operation model, typing, adapters, executor, and tests with this decision. Absence from the paths above does not establish system-wide absence.
 
