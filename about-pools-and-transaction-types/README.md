@@ -87,11 +87,11 @@ This section records the agreed minimal language-level decisions for matching an
 
 A transaction type describes the protocol exposed by a pool through its public transaction channel. A client's interactions must conform to this provider-side protocol, evaluated against the current protocol state. No separately declared client-side transaction type is required by this model.
 
-| Constructor | Provider-side operation | Client-side operation | Minimal intended meaning | Boundary and limitation |
+| Constructor | Provider-side operation | Client-side operation | Minimal intended meaning | Further detail |
 |---|---|---|---|---|
-| `One` | `close` | `wait` | The provider performs the terminal `close` interaction; the client waits for that interaction. After a successful `wait`, the client's enclosing expression may continue according to its surrounding expression. | **Decision:** the transaction completes only when the operations match, and matching establishes one new channel identity shared by both sides. This shared identity does not imply that both operations carry executable continuation expressions: in the current model, the client's `wait` may have an enclosing continuation, while provider-side `close` is terminal for this protocol interaction. `One` does not itself imply process termination. Continuation scheduling and failure behavior remain open. |
-| `Up A` | `accept` | `acquire` | The provider accepts the access interaction and the client acquires access. The provider-side continuation is checked against `A`; the client-side continuation is checked against the corresponding client-side protocol type (provisionally denoted `dual(A)` in this document, not an established grammar construct). | **Decision:** access starts only when the operations match; both continuations use one new shared channel identity. The complete typing judgment, implementation linearization, and failure behavior remain open. |
-| `Down A` | `detach` | `release` | The provider detaches or withdraws the current access; the client releases that access. The provider-side continuation is checked against `A`; the client-side continuation is checked against the corresponding client-side protocol type (provisionally denoted `dual(A)` in this document, not an established grammar construct). | **Decision:** access ends only when the operations match, and matching restores the original public channel identity shared by both sides, rather than allocating a new public identity. Both `detach` and `release` are required to carry participant-specific continuation expressions (`ContExp`). These need not be identical but must satisfy their respective endpoint typing obligations. The complete typing judgment remains open. Resource disposition and process termination are not implied. |
+| `One` | `close` | `wait` | Terminal provider interaction and corresponding client wait. The client's enclosing expression may continue after `wait`; provider-side `close` has no executable continuation of its own. | Matching and shared-identity rule: Section 8. `One` does not itself imply process termination. |
+| `Up A` | `accept` | `acquire` | Provider accepts access; client acquires access. | Matching, private identity, and participant continuation rules: Section 8. Formal typing remains open; `dual(A)` is provisional explanatory notation only. |
+| `Down A` | `detach` | `release` | Provider detaches access; client releases access. | Matching, restoration of the original public identity, and mandatory participant-specific `ContExp` on both operations: Section 8. Formal typing and resource disposition remain open. |
 
 The operation names above are implementation identifiers, not proposed surface syntax. The pool-side operation declarations are in [`pool/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/main/pool/termexp/core/core.go); the process-side declarations are in [`proc/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/termexp/core/core.go). These declarations support the provider/client operation mapping, but by themselves do not establish the runtime transition order or full language semantics.
 
@@ -101,9 +101,9 @@ The operation names above are implementation identifiers, not proposed surface s
 
 This decision establishes the intended endpoint relationship, not the complete typing judgment. The formal representation of the client-side type, the typing rules, and how the continuation channel identity is substituted into each participant's continuation remain to be specified and tested.
 
-#### Transition obligations to settle
+#### Formalization obligations
 
-To complete the formal specification and make the table directly executable as a normative rule set, specify for each paired operation:
+Section 8 records the adopted matching and continuation behavior. To complete its formal specification, specify for each paired operation:
 
 - **Precondition:** the current protocol state, participant roles, and any agreement/access prerequisites.
 - **Action and matching:** which operation enables or matches the peer operation, and whether matching is atomic or has observable intermediate states.
@@ -113,7 +113,7 @@ To complete the formal specification and make the table directly executable as a
 
 #### Initial conformance examples
 
-These are acceptance criteria for future tests, not claims that tests already exist or pass:
+These examples translate the decisions in Section 8 into acceptance criteria for future tests; they are not claims that tests already exist or pass:
 
 1. **`One`:** a client waiting for the provider's `close` may proceed to its own continuation only after the close/wait pair matches; matching establishes one channel identity shared by both sides. The close interaction does not itself terminate the enclosing client process.
 2. **`Up`:** a client cannot treat access as acquired unless the provider-side protocol permits and matches the acquisition; both participants continue according to the continuation associated with `Up`.
