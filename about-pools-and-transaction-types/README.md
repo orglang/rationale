@@ -1,4 +1,4 @@
-<!-- Canonical semantics: pool and transaction-type model; process/pool selection remains in ../about-spawn/README.md -->
+<!-- Canonical semantics: pool and transaction-type model; process/pool selection remains in ../about-matching-and-spawn/README.md -->
 
 # Pools and transaction types
 
@@ -7,7 +7,7 @@
 **Scope and document boundaries**
 
 - This document owns the technical model of pools and transaction types, including the pool's public transaction channel and its protocol.
-- [Process creation and pool selection](../about-spawn/README.md) owns pool eligibility, search order, process-incarnation creation, pool binding, and the start of servicing.
+- [Matching and spawn](../about-matching-and-spawn/README.md) owns pool eligibility, search order, process-incarnation creation, pool binding, and the start of servicing.
 - [What is a transaction?](../about-transaction/README.md) provides the accessible introduction.
 - [Processes and session types](../about-processes-and-session-types/README.md) owns process expressions and the intended semantics of `ExternalCall` and `InternalCall`.
 
@@ -42,7 +42,7 @@ For consistent usage in this document, distinguish the **transaction** (the pool
 
 The following boundaries are currently supported by the document set:
 
-- Pool eligibility, search order, incarnation-to-pool association, and the start of servicing belong to [Process creation and pool selection, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing).
+- Pool eligibility, search order, incarnation-to-pool association, and the start of servicing belong to [Matching and spawn, Section 4](../about-matching-and-spawn/README.md#4-pool-selection-and-servicing).
 - The process's provider channel is distinct from the pool's public transaction channel.
 - The protocol associated with the public transaction channel is described in Section 5 below.
 
@@ -60,9 +60,9 @@ The companion [transaction introduction](../about-transaction/README.md) present
 | Are constraints on pool state part of type checking, runtime validation, or both? | **Open** | Determines which constraints expressed by the transaction-type agreement are checked statically and which require runtime validation. | A typing/validation rule and implementation-path evidence, with negative examples. |
 | What is the relationship between an agreement and the dependent part of a transaction type? | **Open** | Determines whether the agreement is a value represented by the dependent part, the dependent type itself, or another result of negotiation. | Clarify the formal representation. The current conjecture is that the dependent part is a multiset of named processes; this remains a hypothesis, not a settled definition. |
 
-The detailed eligibility question and the evidence needed to resolve it are tracked in the table above; the search procedure itself remains canonical in [Process creation and pool selection, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing).
+The detailed eligibility question and the evidence needed to resolve it are tracked in the table above; the search procedure itself remains canonical in [Matching and spawn, Section 4](../about-matching-and-spawn/README.md#4-pool-selection-and-servicing).
 
-**Working project direction (partly open):** a transaction type defines the protocol by which pools interact to reach an agreement; it is not merely a protocol used after an agreement has already been selected. An agreement is the concrete result of that interaction. `ExternalCall` must support both finding a previously established suitable agreement and negotiating a new one. If no suitable established agreement is found, manual intervention follows and a participant of the calling pool may select a candidate pool with which to negotiate. A pool may participate in multiple previously established agreements. If multiple suitable established agreements are found, a selection order exists, but its rules remain open. The dependent part of a transaction type is conjectured to be a multiset of named processes and may encode the agreement-specific result. The precise relationship among the agreement, that dependent part, and any resulting dependent transaction type remains **Open**; do not assume that the agreement is identical to the dependent type or to the multiset. **Agreed project decision:** the agreement-search timeout belongs to the search mechanism, not to the transaction type. Expiry therefore indicates that this search has terminated under its time limit; it does not by itself establish that the candidate types are incompatible or that no suitable agreement exists. The timeout's operational boundary is specified in [Process creation and pool selection, Section 4.5](../about-spawn/README.md#45-agreement-search-timeout). The calling pool supplies one shared timeout setting for all agreement searches initiated by calls from that pool. Its configuration interface, representation, and valid range remain open.
+**Working project direction (partly open):** a transaction type defines the protocol by which pools interact to reach an agreement; it is not merely a protocol used after an agreement has already been selected. An agreement is the concrete result of that interaction. `ExternalCall` must support both finding a previously established suitable agreement and negotiating a new one. If no suitable established agreement is found, manual intervention follows and a participant of the calling pool may select a candidate pool with which to negotiate. A pool may participate in multiple previously established agreements. If multiple suitable established agreements are found, a selection order exists, but its rules remain open. The dependent part of a transaction type is conjectured to be a multiset of named processes and may encode the agreement-specific result. The precise relationship among the agreement, that dependent part, and any resulting dependent transaction type remains **Open**; do not assume that the agreement is identical to the dependent type or to the multiset. **Agreed project decision:** the agreement-search timeout belongs to the search mechanism, not to the transaction type. Expiry therefore indicates that this search has terminated under its time limit; it does not by itself establish that the candidate types are incompatible or that no suitable agreement exists. The timeout's operational boundary is specified in [Matching and spawn, Section 4.5](../about-matching-and-spawn/README.md#45-agreement-search-timeout). The calling pool supplies one shared timeout setting for all agreement searches initiated by calls from that pool. Its configuration interface, representation, and valid range remain open.
 
 ## 5. The pool's public transaction channel
 
@@ -72,7 +72,7 @@ The pool's public transaction channel is described by a transaction type whose p
 
 The public/private protocol transition does not by itself imply resource destruction, recycling, pool-state changes, or process termination. The precise resource disposition and the operational representation of the channel's changing access state remain open.
 
-This pool-level protocol is conceptually distinct from a process's provider channel and from channels mapped to a new incarnation's client-role parameters in `ExternalCall`. Process creation, pool selection, and the start of servicing are described in [Process creation and pool selection](../about-spawn/README.md).
+This pool-level protocol is conceptually distinct from a process's provider channel and from channels mapped to a new incarnation's client-role parameters in `ExternalCall`. Process creation, pool selection, and the start of servicing are described in [Matching and spawn](../about-matching-and-spawn/README.md).
 
 ## 6. Intended semantics and formal rules
 
@@ -94,7 +94,7 @@ The operation names above are implementation identifiers, not proposed surface s
 
 ### 6.2 Matched transitions, continuations, and channel identity
 
-The general paired-interaction principle is defined in [Matching, process creation, and pool selection](../about-spawn/README.md#common-matching-principle). This section specifies its pool-specific consequences:
+The general paired-interaction principle is defined in [Matching, process creation, and pool selection](../about-matching-and-spawn/README.md#common-matching-principle). This section specifies its pool-specific consequences:
 
 - **`One`:** provider `close` matches client `wait`. Only the matched pair completes the transaction interaction and establishes one channel identity shared by both sides. Client-side `wait` may continue in its enclosing expression; provider-side `close` is terminal and has no executable continuation of its own.
 - **`Up A`:** provider `accept` matches client `acquire`. Access becomes active and both participants receive the same new private physical channel identity.
@@ -195,7 +195,7 @@ The [`TestPool` / `waitClose` example](https://github.com/orglang/go-engine/blob
 | What is the lifecycle of the private physical channel resource after `Down`? | Whether the resource is destroyed, recycled, or retained after the matched `detach`/`release` transition restores the original public channel identity. | Specify resource disposal/reuse separately from the already-decided logical identity, public-state transition, and participant-specific continuation requirements. |
 | How do cancellation, failure, and concurrency affect pending or matching `Up`/`Down` interactions? | Whether a pending participant can withdraw, how peer absence or failure is handled, and which interleavings are permitted around a matched transition. | Specify cancellation and failure semantics without weakening the adopted rule that the public protocol transition occurs only when the corresponding operations match; add interleaving and peer-absence tests. |
 | Can individual processes expose public transaction channels, or is this pool-only? | Public API and which entity owns the public protocol endpoint. | Project decision grounded in language examples or source rules; inspect implementation only as conformance evidence. |
-| Which agreement-specific details, if any, supplement the agreed process-name match when determining suitability? | The process-name match is the current agreed criterion; whether dependent type details further constrain suitability remains open. | Define the role of dependent type details and add positive and negative examples, consistently with [Process creation and pool selection, Section 4](../about-spawn/README.md#4-pool-selection-and-servicing). |
+| Which agreement-specific details, if any, supplement the agreed process-name match when determining suitability? | The process-name match is the current agreed criterion; whether dependent type details further constrain suitability remains open. | Define the role of dependent type details and add positive and negative examples, consistently with [Matching and spawn, Section 4](../about-matching-and-spawn/README.md#4-pool-selection-and-servicing). |
 | How are agreement parameters and timeout values represented? | Who supplies timeout, how it is checked, and whether it is static or dynamic. | Project decision; do not assume the proposed `0 = infinite` convention. |
 | How are transaction identifiers allocated and related to process channel identities? | Identity uniqueness, resource ownership, and safe continuation substitution. | Identity contract and source/test evidence for allocation and substitution. |
 | Which implementation paths establish conformance? | Confidence that intended protocol rules are executable. | Source-level trace and tests with observable assertions for each agreed rule. |
