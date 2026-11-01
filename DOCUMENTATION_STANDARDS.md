@@ -18,6 +18,9 @@ These criteria govern research and technical documentation. [`AGENTS.md`](AGENTS
 - Use readable tables for comparisons, especially on narrow screens. Define abbreviations and symbols before use; clarify whether a name is a language term, document notation, or implementation identifier.
 - Keep headings, terminology, status labels, and cross-references consistent. State behavior, the identity of the entity or resource involved, the boundaries of its scope, and ownership directly; use contrasts only when they clarify a real distinction.
 - Replace vague appeals to authority or generic requests for evidence with the specific source, test, or decision needed. Preserve qualifications that affect meaning.
+- Describe the current model and rationale, not the history of how wording or a document evolved. Include history only when it explains a current decision, compatibility constraint, or unresolved question.
+- Use negative formulations when they prevent a plausible misunderstanding or define a meaningful boundary. Avoid repeated statements of what does not happen when one precise positive statement or a single scoped caveat is enough.
+- Keep each substantive rule in one canonical location. Other documents should provide only the context needed locally and link to that explanation; where brief repetition is necessary, keep it subordinate and consistent with the canonical source.
 
 ## References and final review
 
