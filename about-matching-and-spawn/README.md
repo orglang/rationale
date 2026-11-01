@@ -5,7 +5,7 @@
 
 > **Document scope:** this document owns the general paired-interaction matching principle and the process–pool selection boundary. The constructor-specific language contracts for `ExternalCall` and `InternalCall` remain in [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls); pool transaction-type details remain in [Pools and transaction types](../about-pools-and-transaction-types/README.md).
 
-> **Implementation status:** The process and call mechanisms discussed here have had multiple implementation attempts. The implementation observations below describe those attempts; the intended language behavior is specified independently.
+> **Implementation status:** The intended call and servicing behavior is specified independently of the incomplete implementation paths recorded in [Processes and session types, Part III](../about-processes-and-session-types/README.md#part-iii-implementation-evidence-and-open-questions).
 
 
 ## 1. Purpose and mental model
@@ -17,9 +17,7 @@ When a process invokes `ExternalCall`, the language-level operation requests ser
 - **Process-incarnation creation** means creating a fresh instance of a process.
 - **Pool selection and servicing** determine which pool is associated with the incarnation and which pool services its provider channel.
 
-`SpawnSpec` is an unfinished implementation attempt for process spawning; it is not an established source-language operation.
-
-**Implementation evidence:** the repository contains several similarly named representations that must be kept distinct. The process-expression `SpawnSpec` has no execution branch in the inspected process executor; an older `SpawnSpecOld` branch remains commented out. Separately, the pool API's `Spawn` method creates a new process-execution record, but the inspected implementation does not instantiate or attach a process body there. These observations support the status “incomplete implementation attempt”; they do not define the intended replacement semantics.
+`SpawnSpec` is an unfinished process-expression implementation attempt, not an established source-language operation. The distinct process-AST, pool-API, and prototype representations—and the inspected execution gaps—are documented in [Processes and session types, Section 13](../about-processes-and-session-types/README.md#13-what-the-execution-path-establishes).
 
 Under the current language-level working model, creating a fresh incarnation is part of servicing either `ExternalCall` or `InternalCall`; pool selection is specific to `ExternalCall`. See the implementation evidence in [Processes and session types, Section 13](../about-processes-and-session-types/README.md#13-what-the-execution-path-establishes) and the [pool executor implementation](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/compexec/core/core.go) and [process executor implementation](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/compexec/core/core.go).
 
@@ -125,7 +123,7 @@ The supplied calculus gives the following cut/spawn rule:
 
 Here `P` is the body of the process being spawned and `Q` is the original process's continuation. The rule allocates a fresh channel `a`, substitutes it for `x` in both expressions, and runs the two resulting processes so they can communicate over that shared channel. It therefore combines fresh-channel allocation and process spawning in this particular calculus.
 
-This rule establishes the publication's cut/spawn semantics. Its correspondence to OrgLang, and the lifecycle and scheduling guarantees remain **Open**. The process `SpawnSpec` is an unfinished implementation attempt, not the source of an OrgLang language rule. In the transaction-type model, lowercase `spawn` is a protocol value/constructor whose application is permitted only when the named process has positive allocation weight `Q(q) > 0` on that transaction channel; it leaves `Q` unchanged. It must not be conflated with `ExternalCall`, which is the higher-level process-call operation that performs channel discovery or negotiation, creates a fresh incarnation, and delivers its provider channel. Nor is it the same as the unfinished process `SpawnSpec` or the pool API method `Spawn`. The precise correspondence, if any, between the publication's cut/spawn rule and OrgLang's transaction-level `spawn` remains **Open**.
+This rule establishes only the publication's cut/spawn semantics; its correspondence to OrgLang, including lifecycle and scheduling guarantees, remains **Open**. OrgLang's lowercase transaction-type `spawn` is a distinct protocol constructor guarded by positive committed allocation weight `Q(q)` and leaves `Q` unchanged; see [Pools and transaction types](../about-pools-and-transaction-types/README.md). The higher-level `ExternalCall` contract, including discovery, negotiation, incarnation creation, and provider-channel delivery, is defined in [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). The unfinished AST `SpawnSpec` and pool API `Spawn` are implementation representations, not substitutes for either language contract. Any correspondence between the publication's cut rule and transaction-level `spawn` remains **Open**.
 
 ## 6. Open questions and deferred topics
 
