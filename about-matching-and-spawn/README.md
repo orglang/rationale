@@ -125,7 +125,7 @@ The supplied calculus gives the following cut/spawn rule:
 
 Here `P` is the body of the process being spawned and `Q` is the original process's continuation. The rule allocates a fresh channel `a`, substitutes it for `x` in both expressions, and runs the two resulting processes so they can communicate over that shared channel. It therefore combines fresh-channel allocation and process spawning in this particular calculus.
 
-This rule establishes the publication's cut/spawn semantics. Its correspondence to OrgLang, and the lifecycle and scheduling guarantees remain **Open**. The process `SpawnSpec` is an unfinished implementation attempt, not the source of an OrgLang language rule.
+This rule establishes the publication's cut/spawn semantics. Its correspondence to OrgLang, and the lifecycle and scheduling guarantees remain **Open**. The process `SpawnSpec` is an unfinished implementation attempt, not the source of an OrgLang language rule. In the transaction-type model, lowercase `spawn` is a protocol value/constructor whose application is permitted only when the named process has positive allocation weight `Q_c(q) > 0` on that transaction channel; it leaves `Q_c` unchanged. It must not be conflated with `ExternalCall`, which is the higher-level process-call operation that performs channel discovery or negotiation, creates a fresh incarnation, and delivers its provider channel. Nor is it the same as the unfinished process `SpawnSpec` or the pool API method `Spawn`. The precise correspondence, if any, between the publication's cut/spawn rule and OrgLang's transaction-level `spawn` remains **Open**.
 
 ## 6. Open questions and deferred topics
 
