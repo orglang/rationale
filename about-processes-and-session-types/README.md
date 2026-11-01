@@ -215,12 +215,7 @@ The remaining uncertainty concerns two areas:
 - **Intended but underspecified:** the broad behavior is stated here, but its precise rule, conditions, or edge cases still need to be written down and checked.
 - **Design question:** the available evidence does not settle which behavior or mechanism OrgLang should choose. Resolving it requires an explicit design decision.
 
-Both named-process call forms resolve a named callee process and associate its declared channel parameters with supplied channels. They differ in what happens to the provider channel:
-
-- **`ExternalCall`** reuses supplied client channels and creates a fresh provider channel for the new incarnation.
-- **`InternalCall`** reuses an existing provider channel and the specified client channels, transferring them to the new incarnation.
-
-**Shared failed-precondition atomicity rule:** For either call form, if a precondition fails before that operation commits, the operation does not expose a partial transition: the pre-state remains intact, with no partially transferred channel bindings and no new live incarnation exposed. This common rule does not define how a failure is reported or recovered from. The operations retain their distinct lifecycle contracts: `ExternalCall` has a bounded agreement-search phase before incarnation creation; `InternalCall` has a single successful atomic transition, with no cancellation phase. Runtime failures during or after a transition are not covered by this rule.
+The operation-specific sections below provide the complete contracts for `ExternalCall` and `InternalCall`, including their distinct provider-channel behavior, commit points, and pre-commit failure guarantees. The table and shared invariants above are the concise cross-operation summary; avoid restating them here.
 
 ### `ExternalCall`
 
