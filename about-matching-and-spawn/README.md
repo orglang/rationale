@@ -1,11 +1,11 @@
 <!-- Canonical semantics: common matching principle and process–pool selection boundary -->
 # Matching and spawn
 
-> **Status: preliminary semantic research.** This document explains the working model at the boundary between process creation and pool servicing. Its rules and rationale remain research findings pending a normative specification.
+> **Status: preliminary semantic research.** This document describes the process-creation and pool-servicing boundary.
 
 > **Document scope:** this document owns the general paired-interaction matching principle and the process–pool selection boundary. The constructor-specific language contracts for `ExternalCall` and `InternalCall` remain in [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls); pool transaction-type details remain in [Pools and transaction types](../about-pools-and-transaction-types/README.md).
 
-> **Implementation status and purpose of this specification:** The process and call mechanisms discussed here have had multiple implementation attempts; none is known to be complete. This is why the project is writing a specification: to establish the intended behavior independently of any partial AST, adapter, executor, prototype, or test path. Implementation observations below are evidence about those attempts, not a claim that the language contract is already implemented. Do not infer intended semantics from whichever attempt happens to exist in code.
+> **Implementation status:** The process and call mechanisms discussed here have had multiple implementation attempts. The implementation observations below describe those attempts; the intended language behavior is specified independently.
 
 
 ## 1. Purpose and mental model
@@ -17,13 +17,13 @@ When a process invokes `ExternalCall`, the language-level operation requests ser
 - **Process-incarnation creation** means creating a fresh instance of a process.
 - **Pool selection and servicing** determine which pool is associated with the incarnation and which pool services its provider channel.
 
-**Project clarification:** `SpawnSpec` is an unfinished implementation attempt for process spawning, not evidence of a separate, established source-language operation. It should not be used to define OrgLang semantics.
+`SpawnSpec` is an unfinished implementation attempt for process spawning; it is not an established source-language operation.
 
 **Implementation evidence:** the repository contains several similarly named representations that must be kept distinct. The process-expression `SpawnSpec` has no execution branch in the inspected process executor; an older `SpawnSpecOld` branch remains commented out. Separately, the pool API's `Spawn` method creates a new process-execution record, but the inspected implementation does not instantiate or attach a process body there. These observations support the status “incomplete implementation attempt”; they do not define the intended replacement semantics.
 
 Under the current language-level working model, creating a fresh incarnation is part of servicing either `ExternalCall` or `InternalCall`; pool selection is specific to `ExternalCall`. See the implementation evidence in [Processes and session types, Section 13](../about-processes-and-session-types/README.md#13-what-the-execution-path-establishes) and the [pool executor implementation](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/compexec/core/core.go) and [process executor implementation](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/compexec/core/core.go).
 
-The purpose of this document is to clarify the process–pool boundary before examining implementation structures or call paths. `Call` is the umbrella term for the two named-process call forms, `ExternalCall` and `InternalCall`.
+`Call` is the umbrella term for the two named-process call forms, `ExternalCall` and `InternalCall`.
 
 ### How to read status labels
 
@@ -39,11 +39,11 @@ Use **Evidence** to identify the source or observation supporting a claim; use *
 
 **Language-level principle shared by process channels and pool transaction channels:** each participant performs its own protocol-permitted operation. An operation performed by only one side remains pending; it does not by itself complete the interaction or advance the shared protocol state. The interaction takes effect when the corresponding peer operations match. Matching establishes one shared channel identity and the protocol-state effect for both endpoints. Each participant may then proceed through its own continuation where the operation defines one; the continuation expressions need not be textually identical, and matching does not imply simultaneous execution.
 
-For a pool-to-pool transaction, the two pools likewise use **one shared transaction channel**, not a pair of linked channels. Each pool has its own endpoint of that channel: the provider pool has the **provider endpoint**, and the consumer pool has the **consumer endpoint**. These are participant-relative roles of the same channel, not separate channel identities. The channel's allocation state belongs to that shared channel. This endpoint and matching principle follows the same pattern as for process channels, whose corresponding roles are called provider and client; pool interactions use provider and consumer terminology to name the participants.
+For a pool-to-pool transaction, the two pools likewise use **one shared transaction channel**, not a pair of linked channels. Each pool has its own endpoint of that channel: the provider pool has the **provider endpoint**, and the consumer pool has the **consumer endpoint**. These roles identify the two endpoints of the shared channel. The channel's allocation state belongs to that shared channel. This endpoint and matching principle follows the same pattern as for process channels, whose corresponding roles are called provider and client; pool interactions use provider and consumer terminology to name the participants.
 
-This principle describes *operation matching*, not *pool suitability matching*. Pool suitability is the separate decision about whether an established channel agreement can service a requested process. As specified in Section 4.2, suitability requires a match with the called process name and positive allocation weight for that process in the agreement state on the provider channel, `Q_c(q) > 0`. The map `Q_c` is the complete agreement state in the current model; the transaction type is the protocol governing its negotiation and modification, not an independent compatibility mechanism.
+Operation matching and pool suitability are separate decisions. Pool suitability determines whether an established channel agreement can service a requested process. As specified in Section 4.2, suitability requires a match with the called process name and positive allocation weight for that process in the agreement state on the provider channel, `Q_c(q) > 0`. The map `Q_c` is the complete agreement state in the current model; the transaction type is the protocol governing its negotiation and modification, not an independent compatibility mechanism.
 
-The general principle does not prescribe the concrete state transition, channel-identity change, or continuation typing for every protocol. Those remain constructor- and context-specific: pool `One`/`Up`/`Down` rules are recorded in [Pools and transaction types](../about-pools-and-transaction-types/README.md), while process-channel constructors and their typing rules are recorded in [Processes and session types, Sections 6–7](../about-processes-and-session-types/README.md#6-session-types-the-protocol-for-a-channel). Nor does the principle settle cancellation, failure, or implementation linearization details.
+Concrete state transitions, channel-identity changes, and continuation typing are constructor- and context-specific: pool `One`/`Up`/`Down` rules are recorded in [Pools and transaction types](../about-pools-and-transaction-types/README.md), while process-channel constructors and their typing rules are recorded in [Processes and session types, Sections 6–7](../about-processes-and-session-types/README.md#6-session-types-the-protocol-for-a-channel). Cancellation, failure, and implementation linearization remain open.
 
 ## 2. The process–pool boundary
 
@@ -76,7 +76,7 @@ The language-level contracts and the distinction between `ExternalCall` and `Int
 
 ### 4.2 Agreement-suitability criterion
 
-**Agreed project decision:** an existing agreement is suitable for a call of process `q` when it matches the called process name and its provider channel `c` has positive allocation weight for that process in the agreement state, `Q_c(q) > 0`. The map `Q_c` is the complete agreement state for channel `c` in the current model. This criterion is applied when searching previously established agreements; the process-name match does not itself create an agreement. If no suitable established agreement is found, the call may proceed to negotiation with a candidate pool. The transaction type defines the protocol by which the parties establish or modify the agreement. See [Pools and transaction types, Section 2](../about-pools-and-transaction-types/README.md#2-core-concepts-and-terminology) for terminology and Section 4 for the transaction-type model.
+**Agreed project decision:** an existing agreement is suitable for a call of process `q` when it matches the called process name and its provider channel `c` has positive allocation weight for that process in the agreement state, `Q_c(q) > 0`. `Q_c` is the complete agreement state for channel `c`. This criterion is applied when searching previously established agreements; the process-name match does not itself create an agreement. If no suitable established agreement is found, the call may proceed to negotiation with a candidate pool. The transaction type defines the protocol by which the parties establish or modify the agreement. See [Pools and transaction types, Section 2](../about-pools-and-transaction-types/README.md#2-core-concepts-and-terminology) for terminology and Section 4 for the transaction-type model.
 
 ### 4.3 Search and agreement negotiation
 
@@ -100,7 +100,7 @@ The search-and-negotiation timeout and its pre-commit outcome are specified in S
 
 Expiry is an outcome of the overall search-and-negotiation operation, not a type-compatibility judgment; it does not establish that no suitable agreement exists. If automatic search has found no suitable previously established agreement and negotiation has not successfully established a new one before expiry, the call terminates without a result: no servicing pool is selected, no incarnation or provider channel has been created, and the caller's supplied client channels remain with their original identities and protocol states. A later agreement cannot be applied to the terminated call; another attempt requires a new call. Failure-reporting details remain unspecified.
 
-Once either a suitable previously established agreement has been found or negotiation has successfully established a new agreement, the timeout no longer governs subsequent engine work. The call proceeds to the incarnation-creation and atomic channel-delivery sequence in Section 4.4. The successful call has no separate result value beyond delivery of the fresh provider channel.
+Once either a suitable previously established agreement has been found or negotiation has successfully established a new agreement, the timeout no longer governs subsequent engine work. The call proceeds to the incarnation-creation and atomic channel-delivery sequence in Section 4.4. The successful call returns the fresh provider channel.
 
 This is the intended process–pool contract, not a claim about implementation conformance.
 
