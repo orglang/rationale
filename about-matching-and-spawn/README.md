@@ -5,7 +5,7 @@
 
 > **Document scope:** this document owns the general paired-interaction matching principle and the process–pool selection boundary. The constructor-specific language contracts for `ExternalCall` and `InternalCall` remain in [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls); pool transaction-type details remain in [Pools and transaction types](../about-pools-and-transaction-types/README.md).
 
-> **Implementation status:** The intended call and servicing behavior is specified independently of the incomplete implementation paths recorded in [Processes and session types, Part III](../about-processes-and-session-types/README.md#part-iii-implementation-evidence).
+> **Implementation status:** The intended call and servicing behavior is specified independently of the incomplete implementation paths recorded in [Processes and session types, Part III](../about-processes-and-session-types/README.md#part-iii-implementation-evidence-and-open-questions).
 
 
 ## 1. Purpose and mental model
