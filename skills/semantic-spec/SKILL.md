@@ -6,80 +6,35 @@ disable-model-invocation: true
 
 # Specification workflow
 
-Use this workflow only when the user explicitly asks for the semantic-spec workflow. The repository router points here for that case.
+Use this workflow only when the user explicitly asks for it. Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for general documentation-quality criteria; this skill owns the semantic workflow.
 
-Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for recurring documentation-quality criteria; this skill owns the semantic-spec workflow, not a second set of documentation standards.
+## Workflow
 
-## Steps
-
-1. **Read context.** Inspect the target and relevant sources; identify existing decisions, conflicts, and each concept's canonical location.
-2. **Find consequential questions.** Prioritize uncertainty that could change behavior, constraints, ownership, ordering, errors, or compatibility. Usually ask one focused question at a time; combine independent questions when useful.
-3. **Resolve uncertainty.** Ask rather than guess when interpretations materially differ or assumptions could change the design. If the user defers, record the topic as open with its current scope and continue independent work. Do not ask follow-up questions that further subdivide a deferred topic unless the user reopens it or new evidence makes resolution necessary. If an answer conflicts with an earlier decision or source, explain the conflict and ask how to resolve it.
-4. **Update the specification.** Record decisions and open questions where the concept belongs. Correct affected examples, summaries, and tables; do not append transcripts or duplicate definitions. Apply [Semantic deduplication](#semantic-deduplication) when changing or adding a rule.
-5. **Check consequences.** Select only checks relevant to the behavior being specified:
-   - For state-changing behavior, consider the starting state, trigger, relevant conditions, result, and failure behavior. Use an explicit state-transition model only when it helps clarify meaningful behavior.
-   - Consider retries, delays, and concurrency when they could change outcomes or create conflicts or duplicate effects.
-   - When multiple rules, events, sources, or updates can apply, clarify priority or order if it affects the outcome.
-   - Distinguish actions that transfer responsibility, create an entity, change an existing entity, or only change a reference when that distinction matters.
-   - Do not infer identical behavior from similar names alone.
-   - Check for contradictions, missing dependencies, and consequential edge cases.
-6. **Continue or wrap up.** Repeat as needed. Summarize decisions captured, consequential open questions and their impact, and remaining validation.
+1. **Understand the current model.** Read the target, relevant sources, and existing decisions. Identify conflicts, uncertainties, and the canonical location of each affected concept. Do not infer semantics from names or implementation structure alone.
+2. **Resolve consequential uncertainty.** Focus on questions that could change behavior, constraints, ownership, ordering, errors, or compatibility. Ask rather than guess when materially different interpretations remain; usually ask one focused question at a time. Apply agreed rules by analogy when their scope permits. If the user defers a question, record it as open and continue independent work.
+3. **Update the canonical contract.** Put each decision or open question where the concept belongs. Change its canonical explanation first, then align affected summaries, examples, tables, and links. Do not append conversation transcripts or silently resolve open questions.
+4. **Check consequences.** For the behavior affected, consider relevant conditions, actors, state changes, outcomes, and failure behavior. Check ordering, retries, concurrency, dependencies, and edge cases only where they could change the result. Distinguish intended semantics from published claims and implementation evidence.
+5. **Review and report.** Review the full relevant diff. Check for semantic duplication, contradictions, stale examples, broken links, and unrelated edits. Run proportionate available checks. Report decisions, open questions and their impact, changes actually made, and validation actually performed.
 
 ## Semantic deduplication
 
-Treat duplication as a relationship between claims, not merely matching text. The same rule may be repeated with different wording, or represented in prose, a table, an example, and a transition description.
+Treat duplication as repeated claims, not just repeated wording. A rule may recur as prose, a table row, an example, or a transition description.
 
-Before editing a concept or rule:
+- Before editing, search relevant documents for the concept, its aliases, paraphrases, and other representations. Identify the canonical contract and distinguish it from necessary local context, derived consequences, evidence, and independent rules.
+- Keep the rule in one canonical location. Elsewhere use a link, or the minimum local explanation needed to understand that section.
+- Keep qualifications beside the rule they limit; do not repeat the same caveat at every mention.
+- Do not remove repetitions mechanically: retain text that changes scope, actor, condition, consequence, or evidential status.
+- After editing, search again for paraphrases and equivalent claims. Remove redundant restatements and correct stale summaries or contradictions, including pre-existing duplicates in affected sections.
 
-1. Search the relevant documentation for its terms, aliases, paraphrases, and other representations (including tables, examples, transition descriptions, and summaries).
-2. Classify the occurrences: identify the canonical contract, necessary local context, derived consequences, evidence/history, and genuinely independent rules. Do not assume that similar wording always means the same rule.
-3. Determine which document and section own the rule based on its scope and level of abstraction. If ownership is unclear or contested, resolve that before spreading the wording across documents.
+If ownership of a rule is unclear or contested, resolve that before propagating it across documents.
 
-When editing:
+## Working discipline
 
-- Change the canonical contract first.
-- At other occurrences, prefer a link to the canonical explanation. Retain only the minimum local statement needed to make a table, example, or section understandable on its own.
-- Do not repeat the same qualification or caveat at every place that mentions the concept. Keep a qualification beside the rule it limits, and link to it where needed.
-- Do not remove repetitions mechanically: retain context that changes the scope, actor, condition, consequence, or evidential status.
-
-After editing:
-
-1. Search again, including for paraphrases and equivalent claims rather than exact strings alone.
-2. Compare the remaining occurrences for meaning, scope, conditions, actors, outcomes, and qualifications. Remove redundant restatements and correct stale summaries or contradictions.
-3. Review the surrounding sections and affected documents, not just the edited paragraph, to catch duplicates that predate the change as well as ones introduced by it.
-
-## Stage gates
-
-- **Before editing:** choose a proportionate validation plan.
-- **Before reporting completion:** run relevant available checks. State when a check cannot be run, and report only checks confirmed by results.
-
-## Interaction rules
-
-- Prioritize behavioral decisions over wording; reopen agreed decisions only when meaningful new evidence warrants it.
-- In progress updates, distinguish **decisions accepted**, **edits pending**, **changes committed**, and **validation performed**. Claim a commit or passing check only when confirmed by tool results; link reported commits.
-
-## Efficiency and decision discipline
-
-- **Derive before asking:** apply agreed rules by analogy where their scope permits; ask only when materially different interpretations remain.
-- **Separate semantics from evidence:** missing code or tests do not make an agreed semantic contract undecided. Mark unverified implementation behavior separately.
-- **Research in batches:** read required instructions and canonical sources first. Inspect implementation to answer concrete evidence questions; search around explicit hypotheses and repeat only when new evidence warrants it.
-- **Report at decision boundaries:** summarize changes, verification, and remaining questions at meaningful milestones without repeating unchanged findings.
-
-## Commit discipline
-
-- Keep accepted decisions and required edits in the working tree while pursuing independent specification work; do not commit after every answer.
-- Commit when a coherent semantic block is complete, the user requests it, or substantial uncommitted work is at risk. A milestone alone is insufficient.
-- Before committing, review the full accumulated diff for that block, confirm each edit follows accepted decisions or corrects an inconsistency without changing agreed semantics, and remove unrelated edits.
-- Apply [Semantic deduplication](#semantic-deduplication) to changed concepts and their affected occurrences. Check that no open question was silently resolved.
-- Prefer one coherent commit per semantic block. Do not rewrite existing history solely to reduce commit count.
+- Keep semantic decisions separate from evidence: missing code or tests do not make an agreed contract undecided; mark unverified implementation behavior separately.
+- Keep accepted decisions and related edits together while pursuing independent work. Do not commit after every answer.
+- Before committing, inspect the full accumulated diff for the coherent change, confirm it follows accepted decisions, and remove unrelated edits. Prefer one coherent commit per semantic block; do not rewrite history merely to reduce commit count.
+- Do not claim a commit or passing check until tool results confirm it.
 
 ## Ready for review
 
-The specification is ready when:
-- Goal and scope are clear.
-- Important behavior can be checked against examples, tests, or acceptance criteria.
-- Conflicts are resolved or recorded; consequential open questions and their impact remain visible.
-- Definitions and links are consistent, with one canonical location per concept.
-- Remaining evidence gathering and implementation validation are distinguished from semantic decisions.
-
-If a criterion is unmet, state what remains and why; do not claim completion.
+The specification is ready when its goal and scope are clear, important behavior is checkable, conflicts and consequential open questions are visible, definitions and links are consistent, and remaining evidence or implementation validation is distinguished from semantic decisions. If not, state what remains and why.
