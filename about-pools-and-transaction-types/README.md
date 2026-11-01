@@ -19,26 +19,26 @@ Use the claim-status vocabulary from [Processes and session types, Section 1](..
 
 ## 2. Core concepts and terminology
 
-The following are **working definitions inferred from the current explanatory model**, not normative language definitions. The model is described in [What is a transaction?](../about-transaction/README.md); its correspondence to a complete OrgLang specification remains to be established.
+The following working definitions are inferred from the current model described in [What is a transaction?](../about-transaction/README.md).
 
 | Term | Working meaning | Status and limitation |
 |---|---|---|
 | Pool | A participant that can communicate with other pools and may service a process incarnation under an agreement. | **Inferred** from the explanatory model and the current process–pool model. Pool lifecycle, internal state, and whether every incarnation must always be bound to one pool remain **Open**. |
 | Pool term | An executable expression describing a pool's communication or state transition. | **Inferred** from the companion model's distinction between terms, values, and continuations. Its runtime representation in OrgLang is **Open**. |
 | Transaction channel | One shared pool-to-pool channel through which a consumer pool interacts with a provider pool to establish or modify an agreement. Each pool has its own endpoint of that same channel. | **Inferred** from the current model discussion. The common endpoint and matching principle is described in [Matching and spawn](../about-matching-and-spawn/README.md#common-matching-principle); lifecycle and failure rules remain **Open**. |
-| Agreement | The allocation state `Q_c` of the shared transaction channel `c`, established by a consumer pool and a provider pool through interaction governed by a transaction type. Each provider/consumer pair may have distinct agreements on distinct channels. | **Agreed working model:** for the current model, `Q_c` is the complete agreement, not merely one component of it. Its formal representation and lifecycle remain to be specified. |
-| Transaction identifier | An identifier used to refer to a transaction or its channel in the pool model. | **Inferred**. Its concrete representation, allocation/uniqueness guarantees, and exact referent are **Open**. Do not assume it is identical to a process channel identity or to the agreement itself. |
+| Agreement | The allocation state `Q_c` of the shared transaction channel `c`, established by a consumer pool and a provider pool through interaction governed by a transaction type. Each provider/consumer pair may have distinct agreements on distinct channels. | **Agreed working model:** `Q_c` is the complete agreement state for channel `c`. Its formal representation and lifecycle remain to be specified. |
+| Transaction identifier | An identifier used to refer to a transaction or its channel in the pool model. | **Inferred**. Its concrete representation, allocation/uniqueness guarantees, and exact referent are **Open**; it identifies a pool transaction or its channel. |
 | Transaction type | The protocol by which pools interact to establish and modify the channel-local agreement state `Q_c`; it governs which negotiation messages and transitions are permitted. Its dependent state index records the current allocation map. | **Inferred** from the companion model's transaction-type grammar and current project direction. Exact OrgLang syntax, checking rules, and runtime enforcement remain **Open**. |
-| Provider/consumer endpoint roles | The provider owns the provider endpoint and the consumer owns the consumer endpoint of one shared transaction channel. These are the two participant-relative endpoints of that same channel, not two channels. | **Agreed project decision** for endpoint ownership; lifecycle and failure rules remain **Open**. |
+| Provider/consumer endpoint roles | The provider and consumer own their respective endpoints of one shared transaction channel. | **Agreed project decision** for endpoint ownership; lifecycle and failure rules remain **Open**. |
 | Process provider channel | The channel on which a process incarnation provides its named-process service. | Defined in [Processes and session types, Section 2](../about-processes-and-session-types/README.md#2-core-concepts). It is distinct from the pool's public transaction channel. |
 
-A transaction identifier and a process channel identity must not be conflated merely because both are called identifiers or channels. The current model uses identifiers for different resources depending on interpretation; a precise mapping requires evidence from the language contract or a verified execution path.
+A transaction identifier and a process channel identity refer to distinct resources. Their precise mapping remains **Open** pending evidence from the language contract or a verified execution path.
 
-For consistent usage in this document, distinguish the **transaction** (the pool-to-pool interaction), the **transaction type** (the protocol governing that interaction), and the **agreement** (the concrete arrangement established or modified through that interaction, which may also have been established earlier). The transaction type is not merely a post-selection protocol or an independent compatibility test: it governs the interaction through which an agreement is reached. A **transaction identifier** refers to a transaction in the pool model; it is not an agreement identifier unless a separate rule establishes that mapping.
+A **transaction** is the pool-to-pool interaction; its **transaction type** is the governing protocol; the **agreement** is the channel state established or modified through that interaction. A **transaction identifier** refers to the transaction or its channel. Its relation to agreement identity remains **Open**.
 
 ## 2.1 Negotiation protocol and established agreement
 
-The current model distinguishes three things that must not be collapsed into one object:
+The current model has three related concepts:
 
 1. **Transaction type:** the protocol that governs how pools interact while establishing or modifying an agreement. It describes permitted messages, choices, constraints, and continuations.
 2. **Negotiation interaction:** the pool-to-pool exchange governed by that protocol. Its precise channel representation remains unspecified.
@@ -55,7 +55,7 @@ The grammar in the [transaction introduction](../about-transaction/README.md) gi
 - The spawn constructor requires positive allocation weight for the named process on that channel: `Q_c(q) > 0`; its continuation retains the stated `Q`.
 - The type grammar also places a continuation `A` after these state constraints and transitions.
 
-`Q_c` is the allocation map associated with transaction channel `c`. Its interpretation and transition rules are defined canonically in [What is a transaction?](../about-transaction/README.md#типы-ограничения-уточнения). The map is channel-local, not a global pool state; in a provider/consumer interaction, it describes the provider's allocation offered through that channel.
+`Q_c` is the allocation map associated with transaction channel `c`. Its interpretation and transition rules are defined canonically in [What is a transaction?](../about-transaction/README.md#типы-ограничения-уточнения). The map is maintained per channel and describes the provider's allocation offered through that channel.
 
 **Agreed working model:** `Q_c` is the complete agreement state for transaction channel `c`. The dependent part of the transaction type indexes this state; there are no additional agreement terms in the current model. The formal representation of the negotiation result and the lifecycle of the established state remain to be specified.
 
@@ -69,7 +69,7 @@ The grammar in the [transaction introduction](../about-transaction/README.md) gi
 | Establishment | Successful negotiation yields a new agreement that can be used by the call and potentially discovered by later calls. | The atomic commit point, durable representation, identity/versioning, scope, lifetime, revocation, and whether both pools record it simultaneously. |
 | Service activation | Only after a suitable existing agreement is found or a new one is successfully established does the engine create the incarnation and deliver the provider channel. | Resource reservation/consumption semantics and failure handling between agreement establishment and channel delivery. |
 
-The table deliberately separates **agreement establishment** from **service activation**. The former concludes the pool-level negotiation; the latter is the subsequent engine operation that creates and connects a process incarnation. A specification should identify the agreement's commit point before defining retries, timeout boundaries, or recovery from a failure during activation.
+**Agreement establishment** concludes pool-level negotiation. **Service activation** is the subsequent engine operation that creates and connects a process incarnation. A specification should identify the agreement's commit point before defining retries, timeout boundaries, or recovery from a failure during activation.
 
 ### Questions required to complete the agreement model
 
@@ -78,7 +78,7 @@ The table deliberately separates **agreement establishment** from **service acti
 - What operation or judgment distinguishes a negotiation that is still in progress from one whose agreement has been accepted by both parties?
 - What makes an established agreement reusable, and how are updates, revocation, or replacement observed by concurrent `ExternalCall` searches?
 
-Until these questions are answered, do not use “transaction type”, “negotiation transaction”, “agreement”, and “`Q`” interchangeably.
+
 
 ## 3. Pool model
 
@@ -97,7 +97,7 @@ The companion [transaction introduction](../about-transaction/README.md) present
 
 ### Per-channel allocation state
 
-The transaction-type grammar is state-indexed: `Coop` and `Isol` transition the allocation map associated with the shared transaction channel, while `spawn` requires a positive allocation weight for the requested process. The canonical definition of the map, its initialization, the meaning of allocation weights, and all transition side conditions are maintained in [What is a transaction?](../about-transaction/README.md#типы-ограничения-уточнения); they are not duplicated here.
+The transaction-type grammar is state-indexed: `Coop` and `Isol` transition the allocation map associated with the shared transaction channel, while `spawn` requires a positive allocation weight for the requested process. The canonical definition of the map, its initialization, allocation weights, and transition side conditions are in [What is a transaction?](../about-transaction/README.md#типы-ограничения-уточнения).
 
 The map `Q_c` is the complete agreement state and belongs to the provider's channel resource, not to the consumer pool globally. A pool may participate in multiple agreements concerning the same process name on different channels. No cross-channel summation rule is currently imposed.
 
