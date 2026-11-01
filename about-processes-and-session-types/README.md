@@ -208,7 +208,7 @@ A call is not merely a jump to a named body. It resolves a process definition, c
 5. **No partial visible transition:** observers see the pre-state or the specified committed post-state, not partially changed channel ownership.
 6. **Implementation independence:** these are intended language-level rules, not a claim that any existing implementation attempt completes them.
 
-**Out of scope for this contract:** error reporting or propagation, recovery or retries after commit, and crash consistency. The only pre-commit guarantee specified here is that the operation does not expose a partial state.
+**Out of scope:** error reporting or propagation, recovery or retries after commit, and crash consistency.
 
 The remaining uncertainty concerns two areas:
 
@@ -273,7 +273,7 @@ The inspected executor has no `ExternalCall` branch. The exact AST/runtime mappi
 
 **Agreed channel-transfer and lifecycle decision:** On a successful transition, create a fresh incarnation `Q` at the start of the target definition, bind its provider placeholder to `X` and its client placeholders to `Ys` in declaration order, and remove those bindings from `P`. Because `X` and `Ys` account for the complete channel environment of `P`, the old incarnation semantically terminates without a language-level continuation. The precise atomicity, freshness, failure, and preservation invariants are consolidated below. This is the intended OrgLang behavior for this research document; conformance with the publication and current implementation is tracked separately.
 
-**Irrevocable start and pool association:** Unlike `ExternalCall`, `InternalCall` has no pre-commit cancellation phase. Its successful atomic transition is the commit point: once the complete post-state is observable, the call has irreversibly begun, `P` has terminated, and the transferred channels belong to `Q`. `Q` is serviced by the same pool as `P`; `InternalCall` does not perform pool selection. The `ExternalCall` timeout/cancellation contract does not apply to `InternalCall`; there is no cancellation outcome that restores the transferred channel environment to `P`. A failure of a precondition before commit leaves the pre-state intact, as described below, but is not a committed call followed by cancellation. Behavior after a runtime failure during or after the transition remains outside this decision unless separately specified.
+**Commit and pool association:** The atomic transition is `InternalCall`'s commit point: once its complete post-state is observable, `P` has terminated and the transferred channels belong to `Q`. `Q` uses the same pool as `P`; no pool selection occurs. Unlike `ExternalCall`, `InternalCall` has no timeout-driven cancellation phase or post-commit restoration of `P`'s environment. A failed precondition leaves the pre-state intact; runtime failure during or after commit remains outside this decision.
 
 **Mini-example (schematic, not OrgLang syntax):** suppose process `Old` has provider placeholder `x` bound to channel `c`, and client placeholder `y` bound to channel `d`. `Old` performs `InternalCall` to process `New`, passing `c` as `X` and `d` in `Ys`. The transition unbinds both placeholders in `Old` and binds `New`'s corresponding placeholders to `c` and `d`; the channel identities are preserved.
 
