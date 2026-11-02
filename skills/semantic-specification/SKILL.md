@@ -1,12 +1,12 @@
 ---
-name: semantic-spec
+name: semantic-specification
 description: Iterative, user-led workflow for specifying system behavior and technical semantics.
 disable-model-invocation: true
 ---
 
 # Specification workflow
 
-Use this workflow only when the user explicitly asks for it. The repository-root `AGENTS.md` routes the task here; after that routing, read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for general documentation-quality criteria. This skill owns the user-led semantic workflow and does not send the reader back through repository routing.
+Use this workflow only when the user explicitly asks for it. The repository-root [`AGENTS.md`](../../AGENTS.md) routes the task here; after that routing, read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for general documentation-quality criteria. This skill owns the user-led semantic workflow and does not send the reader back through repository routing.
 
 ## Workflow
 

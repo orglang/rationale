@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Change management
 
-Use this workflow when a task proposes or makes a substantive change to a specification, its guarantees, or the instructions governing specification work. The repository-root `AGENTS.md` routes to this skill. This workflow supplements [`semantic-spec`](../semantic-spec/SKILL.md) and does not authorize an agent to make semantic decisions on the user's behalf.
+Use this workflow when a task proposes or makes a substantive change to a specification, its guarantees, or the instructions governing specification work. The repository-root `AGENTS.md` routes to this skill. This workflow supplements [`semantic-specification`](../semantic-specification/SKILL.md) and does not authorize an agent to make semantic decisions on the user's behalf.
 
 ## Classify the change
 
@@ -25,7 +25,7 @@ Do not label a change semantic merely because it touches normative prose. Conver
 1. Identify the canonical contract and the reason for the proposed change.
 2. Determine whether the change follows an existing accepted decision or requires a new decision.
 3. For semantic or compatibility-affecting changes, identify meaningful alternatives and their consequences where relevant.
-4. Ask the user only when materially different interpretations remain and the answer could affect behavior, guarantees, compatibility, or another consequential outcome. Follow the ambiguity-resolution rules in [`semantic-spec`](../semantic-spec/SKILL.md).
+4. Ask the user only when materially different interpretations remain and the answer could affect behavior, guarantees, compatibility, or another consequential outcome. Follow the ambiguity-resolution rules in [`semantic-specification`](../semantic-specification/SKILL.md).
 5. Keep deferred decisions open. Do not turn an unresolved question into an implicit contract.
 6. Update the canonical contract only after the relevant decision is established.
 
