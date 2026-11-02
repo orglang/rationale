@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Semantic verification
 
-Use this workflow to check whether a specification is internally coherent and whether its examples, scenarios, tests, and implementation evidence support the claims being made. The repository-root `AGENTS.md` routes to this skill. This workflow supplements [`semantic-spec`](../semantic-spec/SKILL.md) and [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md); it does not define behavior or make implementation observations authoritative semantics.
+Use this workflow to check whether a specification is internally coherent and whether its examples, scenarios, tests, and implementation evidence support the claims being made. The repository-root `AGENTS.md` routes to this skill. This workflow supplements [`semantic-specification`](../semantic-specification/SKILL.md) and [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md); it does not define behavior or make implementation observations authoritative semantics.
 
 ## Select checks by impact
 

@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "**/*.md"
+      - "**/*.py"
       - ".markdownlint-cli2.jsonc"
       - ".github/workflows/markdownlint.yml"
 
