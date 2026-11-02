@@ -45,7 +45,7 @@ Process-channel constructors and their typing rules are recorded in [Processes a
 
 ## 2. Participants and channels
 
-A **participant** is a process incarnation or pool taking part in a channel interaction. Each participant has exactly one provider channel and may have any number of client channels. This cardinality rule applies to process channels and pool transaction channels. Provider and client describe the participant's role on a channel: the same channel is the provider channel for one participant and a client channel for the other.
+A **participant** is a process incarnation or pool taking part in a channel interaction. Each participant has exactly one provider channel and may have any number of client channels. This cardinality rule applies to all channels in the model. Provider and client describe the participant's role on a channel: the same channel is the provider channel for one participant and a client channel for the other.
 
 The following concepts distinguish participant and endpoint roles:
 
