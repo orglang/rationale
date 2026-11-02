@@ -6,14 +6,14 @@ disable-model-invocation: true
 
 # Specification workflow
 
-Use this workflow only when the user explicitly asks for it. Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for general documentation-quality criteria; this skill owns the semantic workflow.
+Use this workflow only when the user explicitly asks for it. Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for general documentation-quality criteria; this skill owns the user-led semantic workflow.
 
 ## Workflow
 
 1. **Understand the current model.** Read the target, relevant sources, and existing decisions. Identify conflicts, uncertainties, and the canonical location of each affected concept. Do not infer semantics from names or implementation structure alone.
-2. **Resolve consequential uncertainty.** Focus on questions that could change behavior, constraints, ownership, ordering, errors, or compatibility. Ask rather than guess when materially different interpretations remain; usually ask one focused question at a time. Apply agreed rules by analogy when their scope permits. If the user defers a question, record it as open and continue independent work.
+2. **Resolve consequential ambiguity.** First derive consequences from the agreed model and apply agreed rules by analogy where their scope permits. Ask only when materially different interpretations remain and cannot be resolved from the agreed decisions or available evidence. Do not ask separately about consequences that follow directly from the model. If the user defers a question, keep it open and continue independent work.
 3. **Update the canonical contract.** Put each decision or open question where the concept belongs. Change its canonical explanation first, then align affected summaries, examples, tables, and links. Do not append conversation transcripts or silently resolve open questions.
-4. **Check consequences.** For the behavior affected, consider relevant conditions, actors, state changes, outcomes, and failure behavior. Check ordering, retries, concurrency, dependencies, and edge cases only where they could change the result. Distinguish intended semantics from published claims and implementation evidence.
+4. **Check relevant consequences.** Trace consequences far enough to catch contradictions or behavior that could change the meaning of the contract. Examine edge cases or operational details only when they could materially affect that behavior; this is not a checklist to expand every topic. Distinguish intended semantics from published claims and implementation evidence.
 5. **Review and report.** Review the full relevant diff. Check for semantic duplication, contradictions, stale examples, broken links, and unrelated edits. Run proportionate available checks. Report decisions, open questions and their impact, changes actually made, and validation actually performed.
 
 ## Semantic deduplication
@@ -37,4 +37,4 @@ If ownership of a rule is unclear or contested, resolve that before propagating 
 
 ## Ready for review
 
-The specification is ready when its goal and scope are clear, important behavior is checkable, conflicts and consequential open questions are visible, definitions and links are consistent, and remaining evidence or implementation validation is distinguished from semantic decisions. If not, state what remains and why.
+The specification is ready when its goal and scope are clear, important behavior is checkable, conflicts and consequential open questions are visible, definitions and links are consistent, and remaining evidence or implementation validation is distinguished from semantic decisions.
