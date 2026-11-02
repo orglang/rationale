@@ -10,6 +10,10 @@ When the user explicitly asks to use the semantic-spec workflow for system behav
 
 The reading order is this router, the applicable general standards, and then the task-specific workflow. References from those lower-level documents back to this file identify ownership and routing; they do not require restarting the reading order.
 
+For classification and impact analysis of substantive changes, see [`skills/change-management/SKILL.md`](skills/change-management/SKILL.md).
+
+For checks of specification coherence, behavior scenarios, and semantic regressions, see [`skills/semantic-verification/SKILL.md`](skills/semantic-verification/SKILL.md).
+
 ## Changes and review
 
 Keep edits targeted. Before finishing or committing, review the full diff against the branch base and remove accidental or unrelated changes.
