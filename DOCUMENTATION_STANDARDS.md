@@ -1,6 +1,6 @@
 # Documentation review standards
 
-These criteria govern research and technical documentation. [`AGENTS.md`](AGENTS.md) routes repository-wide work; [`skills/semantic-spec/SKILL.md`](skills/semantic-spec/SKILL.md) owns the user-led semantic-spec workflow. This file owns recurring documentation-quality criteria.
+These criteria govern research and technical documentation. [`AGENTS.md`](AGENTS.md) is the repository-wide task router; [`skills/semantic-spec/SKILL.md`](skills/semantic-spec/SKILL.md) is the specialized user-led workflow for semantic specifications. This file owns recurring documentation-quality criteria. These links describe responsibility and are not additional workflow steps.
 
 ## Accuracy and evidence
 
