@@ -32,7 +32,7 @@ The following working definitions are inferred from the current model described 
 | Transaction identifier | An identifier used to refer to a pool transaction or its channel in the pool model. | **Inferred**. Its concrete representation and allocation/uniqueness guarantees are **Open**; the agreement state itself is identified by the transaction channel `c`. |
 | Transaction type | The protocol by which pools interact to establish and modify the agreement state; it governs permitted messages and transitions. | **Agreed project direction:** the public channel type does not use refinements; the private channel type may use refinement session types. Exact OrgLang syntax, checking rules, and runtime enforcement remain **Open**. |
 | Provider/client endpoint roles | The provider and client own their respective endpoints of one shared transaction channel. | **Agreed project decision** for endpoint ownership; lifecycle and failure rules remain **Open**. |
-| Process provider channel | The channel on which a process incarnation provides its named-process service. | Defined in [Incarnations and channels, Section 2](../about-incarnations-and-channels/README.md#2-participants-and-channels). It is distinct from the pool's public transaction channel. |
+| Process provider channel | The channel on which a process incarnation provides its named-process service. | Defined in [Incarnations and channels, Section 3](../about-incarnations-and-channels/README.md#3-participants-and-channels). It is distinct from the pool's public transaction channel. |
 
 A transaction identifier and a process channel identity refer to distinct resources. Their precise mapping remains **Open** pending evidence from the language contract or a verified execution path.
 
