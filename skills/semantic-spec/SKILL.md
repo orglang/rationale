@@ -34,7 +34,6 @@ If ownership of a rule is unclear or contested, resolve that before propagating 
 - Keep semantic decisions separate from evidence: missing code or tests do not make an agreed contract undecided; mark unverified implementation behavior separately.
 - Keep accepted decisions and related edits together while pursuing independent work. Do not commit after every answer.
 - Before committing, inspect the full accumulated diff for the coherent change, confirm it follows accepted decisions, and remove unrelated edits. Prefer one coherent commit per semantic block; do not rewrite history merely to reduce commit count.
-- When the GitHub Git Data API is available for a multi-file semantic block, create the changed blobs and tree, then one commit and one branch update. Avoid sequential per-file Contents API updates that create a separate commit for each file.
 - Do not claim a commit or passing check until tool results confirm it.
 
 ## Ready for review
