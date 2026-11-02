@@ -67,7 +67,7 @@ Record mismatches explicitly; treat similarly named concepts as equivalent only 
 
 ## 2. Core concepts
 
-OrgLang processes communicate through **channels**. The shared participant and channel model—including provider/client roles, endpoints, and channel cardinality—is defined canonically in [Incarnations and channels, Section 2](../about-incarnations-and-channels/README.md#2-participants-and-channels). The two named-process call forms are **`ExternalCall`** and **`InternalCall`**. Both create a fresh process incarnation, but transfer channels in different directions relative to that incarnation.
+OrgLang processes communicate through **channels**. The shared participant and channel model—including provider/client roles, endpoints, and channel cardinality—is defined canonically in [Incarnations and channels, Section 3](../about-incarnations-and-channels/README.md#3-participants-and-channels). The two named-process call forms are **`ExternalCall`** and **`InternalCall`**. Both create a fresh process incarnation, but transfer channels in different directions relative to that incarnation.
 
 **Process** is the general umbrella term in this document; its precise referent follows context. A **named process** is the process identified by a name. A **process declaration** describes its interface, while a **process definition** supplies its behavior. Each start creates a concrete running copy called a **process incarnation**. Every process incarnation receives an identity that is never reused: once an identity has been allocated, no later incarnation may receive it, even after the original incarnation terminates. This is a model-wide identity policy, not an `InternalCall`-specific condition. A **channel placeholder** is a syntactic name in an expression or process interface that stands for a channel. An environment or substitution associates the name with the relevant channel resource or endpoint. The implementation may represent these layers with different Go types; their mapping requires verification.
 
@@ -79,7 +79,7 @@ A **session type** describes the allowed protocol from the provider endpoint's p
 
 | Term | Meaning in this document |
 |---|---|
-| Channel and endpoint roles | Defined in [Incarnations and channels, Section 2](../about-incarnations-and-channels/README.md#2-participants-and-channels). |
+| Channel and endpoint roles | Defined in [Incarnations and channels, Section 3](../about-incarnations-and-channels/README.md#3-participants-and-channels). |
 | Process | General umbrella term; use context to identify whether it refers to a named process or a running incarnation. |
 | Named process | A process referred to by name. |
 | Process declaration | The process interface, including its provider-role and client-role channel placeholders. |
@@ -356,7 +356,7 @@ Named-process calls are distinct from the cut/spawn rule `x ← P ; Q`, which ha
 
 ### The publication's cut/spawn rule
 
-The publication separately describes cut/spawn as allocating a fresh channel shared by a spawned process and the original process's continuation. The detailed rule is documented in [Incarnations and channels, Section 5.2](../about-incarnations-and-channels/README.md#52-publications-cutspawn-rule); OrgLang's `Spawn` semantics remain a separate question.
+The publication separately describes cut/spawn as allocating a fresh channel shared by a spawned process and the original process's continuation. The detailed rule is documented in [Incarnations and channels, Section 6.2](../about-incarnations-and-channels/README.md#62-publications-cutspawn-rule); OrgLang's `Spawn` semantics remain a separate question.
 
 The publication also gives the following forwarding rules. The mode parameter `m` is omitted in this forwarding discussion.
 
@@ -458,7 +458,7 @@ In the implementation, `proc/compexec/core/core.go` loads the current execution 
 
 ### How to read the correspondence table
 
-The table records which session-type constructor the inspected checker expects for each process operator. “Provider-side” and “client-side” identify the channel roles defined in [Incarnations and channels, Section 2](../about-incarnations-and-channels/README.md#2-participants-and-channels). A match in this table is evidence about the checker; the full language rule requires separate semantic evidence.
+The table records which session-type constructor the inspected checker expects for each process operator. “Provider-side” and “client-side” identify the channel roles defined in [Incarnations and channels, Section 3](../about-incarnations-and-channels/README.md#3-participants-and-channels). A match in this table is evidence about the checker; the full language rule requires separate semantic evidence.
 | Process operator | Provider-side expectation | Client-side expectation | Implementation evidence |
 |---|---|---|---|
 | `Send` | `Tensor` | `Lolli` | Confirmed as an observation about the inspected checker |
