@@ -95,7 +95,7 @@ The companion [transaction introduction](../about-transaction/README.md) present
 
 | Question | Current status | Why it matters | Evidence needed |
 |---|---|---|---|
-| Which constructors belong to the OrgLang transaction-type language, and what is their exact syntax? | **Open** | Determines what specifications and programs may express. | An adopted language grammar or an explicit project decision; compare with the companion model and implementation parser/type definitions. |
+| How should the adopted transaction-type constructor set be formalized in the surface grammar and typing rules? | **Open** | Determines how the already adopted constructors are expressed and checked. | A formal grammar and typing rules consistent with the constructor set recorded in the companion model; do not reopen the constructor inventory. |
 | What are the remaining exact transition rules for `One`, `Up`, and `Down`, including type-state progression, ownership, and observable boundaries? | **Partly decided; partly Open** | Matching is the transition point; the remaining state progression and observability details govern conformance. | Preserve the adopted decisions in Section 6.2; specify remaining obligations, then test permitted and prohibited transitions. |
 | How are pool-state constraints formalized in the type system? | **Agreed working model:** constraints expressed by transaction types are checked statically, using the current `Q` and accounting for preceding `Coop` and `Isol` transitions. | The exact typing judgment and formal rules remain to be specified. |
 
