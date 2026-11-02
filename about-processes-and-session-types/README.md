@@ -131,7 +131,7 @@ The arrows mean “then” and serve as explanatory notation for the sequence of
 **Connection to the implementation vocabulary:** at the process-expression level, the request and response correspond conceptually to complementary `Send`/`Recv` actions, followed by the protocol's finishing actions. Section 10 records the observed checker correspondence for `Send`, `Recv`, and `One`. The concrete OrgLang session-type expression is omitted because the exact typing rules and context updates remain to be established. Channel transfer (`Tensor`/`Lolli`) and labelled choice (`Plus`/`With`) are separate protocol forms discussed in Section 6.
 ## 4. Process declarations and definitions
 
-Recall the recipe analogy from Section 2: a named process is like a recipe, and each run is an incarnation of that process. A **process declaration** describes the recipe's interface—the channels it expects, including one provider channel and any channels it uses as a client. A **process definition** supplies the implementation—the expression or process body that carries out the work. The distinction matters because the existence of a declaration alone leaves storage and loading of a usable body unverified. Go-specific names for these concepts are introduced in Part III.
+Recall the recipe analogy from Section 2: a named process is like a recipe, and each run is an incarnation of that process. A **process declaration** describes the recipe's channel interface. A **process definition** supplies the implementation—the expression or process body that carries out the work. The distinction matters because the existence of a declaration alone leaves storage and loading of a usable body unverified. Go-specific names for these concepts are introduced in Part III.
 
 ### Definition, validation, and execution admission
 
@@ -458,7 +458,7 @@ In the implementation, `proc/compexec/core/core.go` loads the current execution 
 
 ### How to read the correspondence table
 
-The table records which session-type constructor the inspected checker expects for each process operator. “Provider-side” and “client-side” identify the two channel roles described in Section 2. A process as a whole still has one provider channel. A match in this table is evidence about the checker; the full language rule requires separate semantic evidence.
+The table records which session-type constructor the inspected checker expects for each process operator. “Provider-side” and “client-side” identify the channel roles defined in [Incarnations and channels, Section 2](../about-incarnations-and-channels/README.md#2-participants-and-channels). A match in this table is evidence about the checker; the full language rule requires separate semantic evidence.
 | Process operator | Provider-side expectation | Client-side expectation | Implementation evidence |
 |---|---|---|---|
 | `Send` | `Tensor` | `Lolli` | Confirmed as an observation about the inspected checker |
