@@ -36,7 +36,7 @@ The following working definitions are inferred from the current model described 
 
 A transaction identifier and a process channel identity refer to distinct resources. Their precise mapping remains **Open** pending evidence from the language contract or a verified execution path.
 
-A **transaction** is the pool-to-pool interaction; its **transaction type** is the governing protocol; the **agreement** is the dependent state `Q` of the logical transaction channel. A **transaction identifier** refers to the transaction or its channel. The logical channel identity is stable across the public/private representation switch; the two physical channel identities remain distinct.
+A **transaction** is the pool-to-pool interaction; its **transaction type** is the governing protocol; the **agreement** is the committed allocation state (the value of `Q`) of the logical transaction channel. A **transaction identifier** refers to the transaction or its channel. The logical channel identity is stable across the public/private representation switch; the two physical channel identities remain distinct.
 
 ## 2.1 Negotiation protocol and established agreement
 
