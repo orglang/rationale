@@ -23,7 +23,7 @@ The following working definitions are inferred from the current model described 
 
 | Term | Working meaning | Status and limitation |
 |---|---|---|
-| Pool | A participant that can communicate with other pools and may service a process incarnation under an agreement. | **Inferred** from the explanatory model and the current process–pool model. Pool lifecycle, internal state, and whether every incarnation must always be bound to one pool remain **Open**. |
+| Pool | A participant that can communicate with other pools and may service a process incarnation under an agreement. | **Inferred** from the explanatory model and the current process–pool model. Each process incarnation is bound to a specific servicing pool; pool lifecycle and internal state remain **Open**. |
 | Pool term | An executable expression describing a pool's communication or state transition. | **Inferred** from the companion model's distinction between terms, values, and continuations. Its runtime representation in OrgLang is **Open**. |
 | Logical transaction channel | The pool-to-pool communication relationship between a fixed provider/client pair. It has one logical identity and one transaction type, and is represented by distinct public and private physical channels. | **Agreed project decision:** public and private channels are physically distinct representations of the same logical transaction channel; they share its transaction type and logical identity. Their physical identities are distinct. The matching and representation-switching principle is defined in [Incarnations and channels](../about-incarnations-and-channels/README.md#2-common-matching-principle). |
 | Public transaction channel | The physical channel representation used while private access is inactive; it exposes the provider and client endpoints for the logical transaction channel. | **Agreed project decision:** physically distinct from the private channel, while representing the same logical transaction channel and carrying the same transaction type. |
@@ -95,7 +95,7 @@ The companion [transaction introduction](../about-transaction/README.md) present
 |---|---|---|---|
 | Which constructors belong to the OrgLang transaction-type language, and what is their exact syntax? | **Open** | Determines what specifications and programs may express. | An adopted language grammar or an explicit project decision; compare with the companion model and implementation parser/type definitions. |
 | What are the remaining exact transition rules for `One`, `Up`, and `Down`, including type-state progression, ownership, and observable boundaries? | **Partly decided; partly Open** | Matching is the transition point; the remaining state progression and observability details govern conformance. | Preserve the adopted decisions in Section 6.2; specify remaining obligations, then test permitted and prohibited transitions. |
-| Are constraints on pool state part of type checking, runtime validation, or both? | **Open** | Determines which constraints expressed by the transaction-type agreement are checked statically and which require runtime validation. | A typing/validation rule and implementation-path evidence, with negative examples. |
+| How are pool-state constraints formalized in the type system? | **Agreed working model:** constraints expressed by transaction types are checked statically, using the current `Q` and accounting for preceding `Coop` and `Isol` transitions. | The exact typing judgment and formal rules remain to be specified. |
 
 
 ### Per-channel allocation state
