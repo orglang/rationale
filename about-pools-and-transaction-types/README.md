@@ -85,6 +85,8 @@ The grammar in the [transaction introduction](../about-transaction/README.md) gi
 
 ## 3. Pool model
 
+**Scope decision:** transaction channels exist only at the pool level. Process incarnations have process channels, which are distinct from pool transaction channels.
+
 **Inferred working model:** a pool is represented by a pool term/state and exposes a public transaction channel through which other pools interact according to a transaction type. The provider/client endpoints and matching principle are defined in [Incarnations and channels](../about-incarnations-and-channels/README.md#2-common-matching-principle); the channel-local allocation map is defined in [What is a transaction?](../about-transaction/README.md#типы-ограничения-уточнения). The process's provider channel is a distinct resource. Pool lifecycle and behavior when a pool cannot service a request remain **Open**.
 
 ## 4. Transaction types
@@ -227,7 +229,6 @@ The [`TestPool` / `waitClose` example](https://github.com/orglang/go-engine/blob
 | What is the physical lifetime of a private channel after `Down` commits it? | `Down` does not imply destruction; the latest committed private channel remains the search target until a later `Down` commits a newer one. Whether older private channels are retained, and for how long, remains **Open**. | Specify resource retention and reclamation separately from the agreed commit and search-target behavior. |
 | How are the logical identity, public/private physical identities, and shared transaction type represented? | The logical identity is shared; the public and private physical channel identities are distinct; both physical representations use the same transaction type. The concrete identity mapping and physical representation of `Q`/`Q'` remain open. | Specify the identity/substitution representation and verify that `Up`/`Down` switch only the active physical binding while preserving logical identity and transaction type. |
 | How do cancellation, failure, and concurrency affect pending or matching `Up`/`Down` interactions? | Whether a pending participant can withdraw, how peer absence or failure is handled, and which interleavings are permitted around a matched transition. | Specify cancellation and failure semantics without weakening the adopted rule that the public protocol transition occurs only when the corresponding operations match; add interleaving and peer-absence tests. |
-| Can individual processes expose public transaction channels, or is this pool-only? | Public API and which entity owns the public protocol endpoint. | Project decision grounded in language examples or source rules; inspect implementation only as conformance evidence. |
 
 | How are agreement parameters and timeout values represented? | Who supplies timeout, how it is checked, and whether it is static or dynamic. | Project decision; do not assume the proposed `0 = infinite` convention. |
 | How are transaction identifiers allocated and related to process channel identities? | Identity uniqueness, resource ownership, and safe continuation substitution. | Identity contract and source/test evidence for allocation and substitution. |
