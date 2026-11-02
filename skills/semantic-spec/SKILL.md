@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Specification workflow
 
-Use this workflow only when the user explicitly asks for it. First read the repository-root `AGENTS.md` and follow its task routing. Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for general documentation-quality criteria; this skill owns the user-led semantic workflow.
+Use this workflow only when the user explicitly asks for it. The repository-root `AGENTS.md` routes the task here; after that routing, read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for general documentation-quality criteria. This skill owns the user-led semantic workflow and does not send the reader back through repository routing.
 
 ## Workflow
 
