@@ -6,15 +6,16 @@ disable-model-invocation: true
 
 # Specification workflow
 
-Use this workflow only when the user explicitly asks for it. Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for general documentation-quality criteria; this skill owns the user-led semantic workflow.
+Use this workflow only when the user explicitly asks for it. First read the repository-root `AGENTS.md` and follow its task routing. Read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for general documentation-quality criteria; this skill owns the user-led semantic workflow.
 
 ## Workflow
 
 1. **Understand the current model.** Read the target, relevant sources, and existing decisions. Identify conflicts, uncertainties, and the canonical location of each affected concept. Do not infer semantics from names or implementation structure alone.
-2. **Resolve consequential ambiguity.** First derive consequences from the agreed model and apply agreed rules by analogy where their scope permits. Ask only when materially different interpretations remain and cannot be resolved from the agreed decisions or available evidence. Do not ask separately about consequences that follow directly from the model. If the user defers a question, keep it open and continue independent work.
-3. **Update the canonical contract.** Put each decision or open question where the concept belongs. Change its canonical explanation first, then align affected summaries, examples, tables, and links. Do not append conversation transcripts or silently resolve open questions.
-4. **Check relevant consequences.** Trace consequences far enough to catch contradictions or behavior that could change the meaning of the contract. Examine edge cases or operational details only when they could materially affect that behavior; this is not a checklist to expand every topic. Distinguish intended semantics from published claims and implementation evidence.
-5. **Review and report.** Review the full relevant diff. Check for semantic duplication, contradictions, stale examples, broken links, and unrelated edits. Run proportionate available checks. Report decisions, open questions and their impact, changes actually made, and validation actually performed.
+2. **Resolve consequential ambiguity.** First derive consequences from the agreed model and apply agreed rules by analogy where their scope permits. Ask only when materially different interpretations remain and cannot be resolved from the agreed decisions or available evidence, and the answer could change behavior, guarantees, compatibility, or another consequential part of the model. Otherwise, record the uncertainty at the appropriate level and continue independent work. If the user defers a question, keep it open and continue independent work.
+3. **Keep the right level of abstraction.** Work at the level of detail needed to make the contract coherent and checkable. Do not turn every unspecified detail, edge case, or possible implementation choice into a question or a new rule. Derive what follows from the current model; leave details that do not affect its meaning open or out of scope. Stop refining a point when further detail would not change the contract, its consequences, or how it can be checked.
+4. **Update the canonical contract.** Put each decision or open question where the concept belongs. Change its canonical explanation first, then align affected summaries, examples, tables, and links. Do not append conversation transcripts or silently resolve open questions.
+5. **Check relevant consequences.** Trace consequences far enough to catch contradictions or behavior that could change the meaning of the contract. Examine edge cases or operational details only when they could materially affect that behavior; this is not a checklist to expand every topic. Distinguish intended semantics from published claims and implementation evidence.
+6. **Review and report.** Review the full relevant diff. Check for semantic duplication, contradictions, stale examples, broken links, and unrelated edits. Run proportionate available checks. Report decisions, open questions and their impact, changes actually made, and validation actually performed.
 
 ## Semantic deduplication
 
@@ -33,6 +34,7 @@ If ownership of a rule is unclear or contested, resolve that before propagating 
 - Keep semantic decisions separate from evidence: missing code or tests do not make an agreed contract undecided; mark unverified implementation behavior separately.
 - Keep accepted decisions and related edits together while pursuing independent work. Do not commit after every answer.
 - Before committing, inspect the full accumulated diff for the coherent change, confirm it follows accepted decisions, and remove unrelated edits. Prefer one coherent commit per semantic block; do not rewrite history merely to reduce commit count.
+- When the GitHub Git Data API is available for a multi-file semantic block, create the changed blobs and tree, then one commit and one branch update. Avoid sequential per-file Contents API updates that create a separate commit for each file.
 - Do not claim a commit or passing check until tool results confirm it.
 
 ## Ready for review
