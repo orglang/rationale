@@ -98,11 +98,11 @@ The search-and-negotiation timeout and its pre-commit outcome are specified in S
 
 ### 5.5 Search-and-negotiation timeout
 
-**Agreed project decisions:** the timeout belongs to the `ExternalCall` search-and-negotiation mechanism, not to the transaction type. The calling pool supplies one shared timeout setting for all agreement searches and negotiations initiated by calls from that pool. It starts when automatic search begins and covers the complete procedure in Section 4.3, including candidate negotiations. Selecting another candidate does not restart it.
+**Agreed project decisions:** the timeout belongs to the `ExternalCall` search-and-negotiation mechanism, not to the transaction type. The calling pool supplies one shared timeout setting for all agreement searches and negotiations initiated by calls from that pool. It starts when automatic search begins and covers the complete procedure in Section 5.3, including candidate negotiations. Selecting another candidate does not restart it.
 
 Expiry is an outcome of the overall search-and-negotiation operation, not a type-compatibility judgment; it does not establish that no suitable agreement exists. If automatic search has found no suitable committed private channel and negotiation has not reached a matched `Down` that commits a suitable state before expiry, the call terminates without a result: no servicing pool is selected, no incarnation or provider channel has been created, and the caller's supplied client channels remain with their original identities and protocol states. If expiry occurs during an active private-channel negotiation, it triggers `Rollback`: the uncommitted private-channel state, including changes to `Q`, is discarded and the active binding returns to the public channel. The previously committed private channel remains the search target and its `Q` remains current. A later channel state cannot be applied to the terminated call; another attempt requires a new call. Failure-reporting details remain unspecified.
 
-Once either a suitable committed transaction channel has been found or negotiation has reached matched `Down` and committed a suitable agreement state, the timeout no longer governs subsequent engine work. The call proceeds to the incarnation-creation and atomic channel-delivery sequence in Section 4.4. The successful call returns the fresh provider channel.
+Once either a suitable committed transaction channel has been found or negotiation has reached matched `Down` and committed a suitable agreement state, the timeout no longer governs subsequent engine work. The call proceeds to the incarnation-creation and atomic channel-delivery sequence in Section 5.4. The successful call returns the fresh provider channel.
 
 This is the intended process–pool contract, not a claim about implementation conformance.
 
@@ -135,10 +135,10 @@ The current contract provides no progress guarantee for pending calls: it specif
 
 | Open question | Behavior/decision affected | Evidence or decision needed |
 |---|---|---|
-| Must every incarnation be bound to a servicing pool, and can the binding change? | Which pool is responsible for service and whether responsibility can migrate. | Explicit lifecycle/ownership decision; then verify the corresponding runtime transition. |
+| Can an incarnation's servicing-pool binding change after it is established? | Whether servicing responsibility can migrate. | An explicit lifecycle/ownership decision; then verify the corresponding runtime transition. |
 | What is the intended, complete process-creation path in the implementation after the unfinished `SpawnSpec` attempt? | How fresh process incarnations are actually created and connected to their provider/client channels; whether the current `ExternalCall`/`InternalCall` working model has a complete executable path. | Trace the current AST, checker, adapter, executor, and runtime path; identify focused tests with observable assertions. Do not treat the unfinished `SpawnSpec` as a language contract. |
 | How is negotiation with a manually selected candidate pool defined by the transaction-type model? | Which parties participate, how terms are negotiated, and what constitutes agreement at the type level. | Transaction-type semantics and examples of successful and unsuccessful negotiation. |
-| When are resources provisioned or reserved? | Whether selection reserves capacity and whether provisioning occurs before or after the call's commit point. | Pool/transaction model plus an explicit ordering rule relative to the commit point. |
+| When are resources provisioned or reserved? | Whether selection reserves capacity and whether provisioning occurs before or after the call's commit point. | Deferred as an implementation detail; revisit only if it affects the semantic contract. |
 
 Pool negotiation, transaction initiation, and resource reservation remain outside the current specification except where needed to define pool association and servicing. Implementation structures, call paths, and AST/API mappings should be inspected to answer these specific questions, not treated as semantic definitions in their own right.
 
