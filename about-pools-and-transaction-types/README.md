@@ -46,7 +46,7 @@ The current model has three related concepts:
 2. **Negotiation interaction:** the pool-to-pool exchange governed by that protocol over the shared transaction channel. Its detailed operational representation remains unspecified.
 3. **Agreement:** the complete allocation map `Q` for the shared transaction channel `c`, accepted by the participating pools. Once established, this state can be found and reused by a later `ExternalCall`; finding it is distinct from negotiating or modifying it.
 
-For the discovery and negotiation sequence, including the point at which incarnation creation may begin, see [Incarnations and channels, Sections 5.3–5.4](../about-incarnations-and-channels/README.md#43-search-and-agreement-negotiation).
+For the discovery and negotiation sequence, including the point at which incarnation creation may begin, see [Incarnations and channels, Sections 5.3–5.4](../about-incarnations-and-channels/README.md#53-search-and-agreement-negotiation).
 
 ### What the formal transaction-type model establishes
 
@@ -104,7 +104,7 @@ The transaction-type grammar is state-indexed: `Coop` and `Isol` transition the 
 
 The map `Q` is the current agreement state associated with each logical transaction channel, not with the client pool globally. Each logical transaction channel has its own current `Q`, determined by its latest committed private channel; `Up` gives the new private channel the current `Q` of that same logical channel. A matched `Down` commits the new value and replaces the preceding committed private channel as the current one. A pool may participate in logical transaction channels with different counterpart pools. No cross-channel summation rule is currently imposed.
 
-For a fixed provider/client pair, the working model permits only one established agreement, regardless of which process name is called. Consequently, that pair does not require a choice among several agreements or channels. Discovery may still select among suitable agreements offered by different provider/client pairs; the discovery and negotiation procedure is specified in [Incarnations and channels, Sections 5.3–5.5](../about-incarnations-and-channels/README.md#43-search-and-agreement-negotiation).
+For a fixed provider/client pair, the working model permits only one established agreement, regardless of which process name is called. Consequently, that pair does not require a choice among several agreements or channels. Discovery may still select among suitable agreements offered by different provider/client pairs; the discovery and negotiation procedure is specified in [Incarnations and channels, Sections 5.3–5.5](../about-incarnations-and-channels/README.md#53-search-and-agreement-negotiation).
 
 ## 5. The pool's public transaction channel
 
