@@ -1,4 +1,4 @@
-<!-- Canonical semantics: pool and transaction-type model; process/pool selection remains in ../about-matching-and-spawn/README.md -->
+<!-- Canonical semantics: pool and transaction-type model; shared participant/channel and process/pool selection rules are in ../about-incarnations-and-channels/README.md -->
 
 # Pools and transaction types
 
@@ -7,7 +7,7 @@
 **Scope and document boundaries**
 
 - This document owns the technical model of pools and transaction types, including the pool's public transaction channel and its protocol.
-- [Matching and spawn](../about-matching-and-spawn/README.md) owns pool eligibility, search order, process-incarnation creation, pool binding, and the start of servicing.
+- [Incarnations and channels](../about-incarnations-and-channels/README.md) owns the shared participant/channel model, pool eligibility, search order, process-incarnation creation, pool binding, and the start of servicing.
 - [What is a transaction?](../about-transaction/README.md) provides the accessible introduction.
 - [Processes and session types](../about-processes-and-session-types/README.md) owns process expressions and the intended semantics of `ExternalCall` and `InternalCall`.
 
@@ -25,14 +25,14 @@ The following working definitions are inferred from the current model described 
 |---|---|---|
 | Pool | A participant that can communicate with other pools and may service a process incarnation under an agreement. | **Inferred** from the explanatory model and the current process–pool model. Pool lifecycle, internal state, and whether every incarnation must always be bound to one pool remain **Open**. |
 | Pool term | An executable expression describing a pool's communication or state transition. | **Inferred** from the companion model's distinction between terms, values, and continuations. Its runtime representation in OrgLang is **Open**. |
-| Logical transaction channel | The pool-to-pool communication relationship between a fixed provider/consumer pair. It has one logical identity and one transaction type, and is represented by distinct public and private physical channels. | **Agreed project decision:** public and private channels are physically distinct representations of the same logical transaction channel; they share its transaction type and logical identity. Their physical identities are distinct. The matching and representation-switching principle is defined in [Matching and spawn](../about-matching-and-spawn/README.md#common-matching-principle). |
+| Logical transaction channel | The pool-to-pool communication relationship between a fixed provider/consumer pair. It has one logical identity and one transaction type, and is represented by distinct public and private physical channels. | **Agreed project decision:** public and private channels are physically distinct representations of the same logical transaction channel; they share its transaction type and logical identity. Their physical identities are distinct. The matching and representation-switching principle is defined in [Incarnations and channels](../about-incarnations-and-channels/README.md#common-matching-principle). |
 | Public transaction channel | The physical channel representation used while private access is inactive; it exposes the provider and consumer endpoints for the logical transaction channel. | **Agreed project decision:** physically distinct from the private channel, while representing the same logical transaction channel and carrying the same transaction type. |
 | Private channel | A physical channel representation created by a matched `Up` for the logical transaction channel; the access cycle ends with either matched `Down` or `Rollback`. | **Agreed project decision:** each matched `Up` creates a new private physical channel. It represents the same logical transaction channel, with the same logical identity and transaction type, but has its own physical identity. |
 | Agreement | The current allocation map `Q` associated with a logical transaction channel for a provider/consumer pair. | **Agreed working model:** agreement identity is the logical transaction channel identity, not either physical representation's identity. The current `Q` is determined by that logical channel's latest committed private channel. `Q'` denotes the in-progress value of the same map during an uncommitted private-channel access, not a separate map or stored field. |
 | Transaction identifier | An identifier used to refer to a pool transaction or its channel in the pool model. | **Inferred**. Its concrete representation and allocation/uniqueness guarantees are **Open**; the agreement state itself is identified by the transaction channel `c`. |
 | Transaction type | The protocol by which pools interact to establish and modify the agreement state; it governs permitted messages and transitions. | **Agreed project direction:** the public channel type does not use refinements; the private channel type may use refinement session types. Exact OrgLang syntax, checking rules, and runtime enforcement remain **Open**. |
 | Provider/consumer endpoint roles | The provider and consumer own their respective endpoints of one shared transaction channel. | **Agreed project decision** for endpoint ownership; lifecycle and failure rules remain **Open**. |
-| Process provider channel | The channel on which a process incarnation provides its named-process service. | Defined in [Processes and session types, Section 2](../about-processes-and-session-types/README.md#2-core-concepts). It is distinct from the pool's public transaction channel. |
+| Process provider channel | The channel on which a process incarnation provides its named-process service. | Defined in [Incarnations and channels, Section 2](../about-incarnations-and-channels/README.md#2-participants-and-channels). It is distinct from the pool's public transaction channel. |
 
 A transaction identifier and a process channel identity refer to distinct resources. Their precise mapping remains **Open** pending evidence from the language contract or a verified execution path.
 
@@ -46,7 +46,7 @@ The current model has three related concepts:
 2. **Negotiation interaction:** the pool-to-pool exchange governed by that protocol over the shared transaction channel. Its detailed operational representation remains unspecified.
 3. **Agreement:** the complete allocation map `Q` for the shared transaction channel `c`, accepted by the participating pools. Once established, this state can be found and reused by a later `ExternalCall`; finding it is distinct from negotiating or modifying it.
 
-For the discovery and negotiation sequence, including the point at which incarnation creation may begin, see [Matching and spawn, Sections 4.3–4.4](../about-matching-and-spawn/README.md#43-search-and-agreement-negotiation).
+For the discovery and negotiation sequence, including the point at which incarnation creation may begin, see [Incarnations and channels, Sections 4.3–4.4](../about-incarnations-and-channels/README.md#43-search-and-agreement-negotiation).
 
 ### What the formal transaction-type model establishes
 
@@ -85,7 +85,7 @@ The grammar in the [transaction introduction](../about-transaction/README.md) gi
 
 ## 3. Pool model
 
-**Inferred working model:** a pool is represented by a pool term/state and exposes a public transaction channel through which other pools interact according to a transaction type. The provider/consumer endpoints and matching principle are defined in [Matching and spawn](../about-matching-and-spawn/README.md#common-matching-principle); the channel-local allocation map is defined in [What is a transaction?](../about-transaction/README.md#типы-ограничения-уточнения). The process's provider channel is a distinct resource. Pool lifecycle and behavior when a pool cannot service a request remain **Open**.
+**Inferred working model:** a pool is represented by a pool term/state and exposes a public transaction channel through which other pools interact according to a transaction type. The provider/consumer endpoints and matching principle are defined in [Incarnations and channels](../about-incarnations-and-channels/README.md#common-matching-principle); the channel-local allocation map is defined in [What is a transaction?](../about-transaction/README.md#типы-ограничения-уточнения). The process's provider channel is a distinct resource. Pool lifecycle and behavior when a pool cannot service a request remain **Open**.
 
 ## 4. Transaction types
 
@@ -104,17 +104,17 @@ The transaction-type grammar is state-indexed: `Coop` and `Isol` transition the 
 
 The map `Q` is the current agreement state associated with each logical transaction channel, not with the consumer pool globally. Each logical transaction channel has its own current `Q`, determined by its latest committed private channel; `Up` gives the new private channel the current `Q` of that same logical channel. A matched `Down` commits the new value and replaces the preceding committed private channel as the current one. A pool may participate in logical transaction channels with different counterpart pools. No cross-channel summation rule is currently imposed.
 
-For a fixed provider/consumer pair, the working model permits only one established agreement, regardless of which process name is called. Consequently, that pair does not require a choice among several agreements or channels. Discovery may still select among suitable agreements offered by different provider/consumer pairs; the discovery and negotiation procedure is specified in [Matching and spawn, Sections 4.3–4.5](../about-matching-and-spawn/README.md#43-search-and-agreement-negotiation).
+For a fixed provider/consumer pair, the working model permits only one established agreement, regardless of which process name is called. Consequently, that pair does not require a choice among several agreements or channels. Discovery may still select among suitable agreements offered by different provider/consumer pairs; the discovery and negotiation procedure is specified in [Incarnations and channels, Sections 4.3–4.5](../about-incarnations-and-channels/README.md#43-search-and-agreement-negotiation).
 
 ## 5. The pool's public transaction channel
 
 **Inferred:** the pool's public transaction channel is part of the current explanatory pool model. Whether individual processes should have public channels remains **Open**.
 
-The public transaction channel and private channels are physically distinct representations of one logical transaction channel. They have distinct physical identities, share one logical identity, and use the same transaction type. The provider and consumer pools each have their respective endpoint in these representations. Each matched `Up` creates a new private physical channel and makes it the active representation; matched `Down` commits that private channel's current allocation-map value and restores the public channel as the active representation, while `Rollback` restores the public channel and discards the uncommitted private-channel state. The latest committed private channel is the current committed channel for the logical transaction channel and supplies the `Q` used by search. Restoring the active binding to the public channel does not make the public channel the search target. The public channel type itself has no refinements. The exact matching points, participant continuations, and channel-identity rules are specified canonically in [Matching and spawn](../about-matching-and-spawn/README.md#common-matching-principle) and [Section 6.2](#62-matched-transitions-continuations-and-channel-identity); this section does not restate those rules.
+The public transaction channel and private channels are physically distinct representations of one logical transaction channel. They have distinct physical identities, share one logical identity, and use the same transaction type. The provider and consumer pools each have their respective endpoint in these representations. Each matched `Up` creates a new private physical channel and makes it the active representation; matched `Down` commits that private channel's current allocation-map value and restores the public channel as the active representation, while `Rollback` restores the public channel and discards the uncommitted private-channel state. The latest committed private channel is the current committed channel for the logical transaction channel and supplies the `Q` used by search. Restoring the active binding to the public channel does not make the public channel the search target. The public channel type itself has no refinements. The exact matching points, participant continuations, and channel-identity rules are specified canonically in [Incarnations and channels](../about-incarnations-and-channels/README.md#common-matching-principle) and [Section 6.2](#62-matched-transitions-continuations-and-channel-identity); this section does not restate those rules.
 
 The lifecycle of `Q`, including initialization, updates during private-channel access, and commit at matched `Down`, is defined in [Section 2.1](#21-negotiation-protocol-and-established-agreement). The logical/physical identity switch and participant-continuation rules are defined in [Section 6.2](#62-matched-transitions-continuations-and-channel-identity).
 
-This pool-level protocol is distinct from a process's provider channel and from channels mapped to a new incarnation's consumer-role parameters in `ExternalCall`. Process creation, pool selection, and the start of servicing are described in [Matching and spawn](../about-matching-and-spawn/README.md).
+This pool-level protocol is distinct from a process's provider channel and from channels mapped to a new incarnation's consumer-role parameters in `ExternalCall`. Process creation, pool selection, and the start of servicing are described in [Incarnations and channels](../about-incarnations-and-channels/README.md).
 
 ## 6. Intended semantics and formal rules
 
@@ -136,7 +136,7 @@ The operation names above are implementation identifiers, not proposed surface s
 
 ### 6.2 Matched transitions, continuations, and channel identity
 
-The general paired-interaction principle is defined in [Matching, process creation, and pool selection](../about-matching-and-spawn/README.md#common-matching-principle). This section specifies its pool-specific consequences:
+The general paired-interaction principle is defined in [Incarnations and channels](../about-incarnations-and-channels/README.md#common-matching-principle). This section specifies its pool-specific consequences:
 
 - **`One`:** provider `close` matches consumer `wait`. Only the matched pair completes the transaction interaction and establishes one channel identity shared by both sides. Consumer-side `wait` may continue in its enclosing expression; provider-side `close` is terminal and has no executable continuation of its own.
 - **`Up A`:** provider `accept` matches consumer `acquire`. Access becomes active and both participants' logical channel bindings resolve to a newly created private physical channel. This channel has its own identity, distinct from the public channel and from any earlier private channel, while representing the same logical transaction channel and carrying the same transaction type. Allocation-state initialization and negotiation are defined in [Section 2.1](#21-negotiation-protocol-and-established-agreement).
