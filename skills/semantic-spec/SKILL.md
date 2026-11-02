@@ -17,6 +17,12 @@ Use this workflow only when the user explicitly asks for it. The repository-root
 5. **Check relevant consequences.** Trace consequences far enough to catch contradictions or behavior that could change the meaning of the contract. Examine edge cases or operational details only when they could materially affect that behavior; this is not a checklist to expand every topic. Distinguish intended semantics from published claims and implementation evidence.
 6. **Review and report.** Review the full relevant diff. Check for semantic duplication, contradictions, stale examples, broken links, and unrelated edits. Run proportionate available checks. Report decisions, open questions and their impact, changes actually made, and validation actually performed.
 
+## Related workflows
+
+For substantive changes, use [`change-management`](../change-management/SKILL.md) to classify the change and assess its impact.
+
+Use [`semantic-verification`](../semantic-verification/SKILL.md) to select proportionate checks for affected behavior and possible semantic regressions.
+
 ## Semantic deduplication
 
 Treat duplication as repeated claims, not just repeated wording. A rule may recur as prose, a table row, an example, or a transition description.
@@ -34,7 +40,7 @@ If ownership of a rule is unclear or contested, resolve that before propagating 
 - Keep semantic decisions separate from evidence: missing code or tests do not make an agreed contract undecided; mark unverified implementation behavior separately.
 - Keep accepted decisions and related edits together while pursuing independent work. Do not commit after every answer.
 - Before committing, inspect the full accumulated diff for the coherent change, confirm it follows accepted decisions, and remove unrelated edits. Prefer one coherent commit per semantic block; do not rewrite history merely to reduce commit count.
-- Do not claim a commit or passing check until tool results confirm it.
+- Do not claim a commit or passing check until tool results confirm.
 
 ## Ready for review
 
