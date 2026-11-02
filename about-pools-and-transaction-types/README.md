@@ -44,7 +44,7 @@ The current model has three related concepts:
 
 1. **Transaction type:** the protocol that governs how pools interact while establishing or modifying an agreement. It describes permitted messages, choices, constraints, and continuations.
 2. **Negotiation interaction:** the pool-to-pool exchange governed by that protocol over the shared transaction channel. Its detailed operational representation remains unspecified.
-3. **Agreement:** the complete process allocation function `Q` for the shared transaction channel `c`, accepted by the participating pools. Once established, this state can be found and reused by a later `ExternalCall`; finding it is distinct from negotiating or modifying it.
+3. **Agreement:** the committed allocation state (the value of the process allocation function `Q`) for the shared transaction channel `c`, accepted by the participating pools. Once established, this state can be found and reused by a later `ExternalCall`; finding it is distinct from negotiating or modifying it.
 
 For the discovery and negotiation sequence, including the point at which incarnation creation may begin, see [Incarnations and channels, Sections 5.3–5.4](../about-incarnations-and-channels/README.md#53-search-and-agreement-negotiation).
 
