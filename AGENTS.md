@@ -8,6 +8,8 @@ Before writing or reviewing technical documentation or agent instructions, read 
 
 When the user explicitly asks to use the semantic-spec workflow for system behavior, domain rules, protocols, requirements, or technical semantics, follow [`skills/semantic-spec/SKILL.md`](skills/semantic-spec/SKILL.md). Do not activate that workflow for routine proofreading or documentation-only edits.
 
+The reading order is this router, the applicable general standards, and then the task-specific workflow. References from those lower-level documents back to this file identify ownership and routing; they do not require restarting the reading order.
+
 ## Changes and review
 
 Keep edits targeted. Before finishing or committing, review the full diff against the branch base and remove accidental or unrelated changes.
