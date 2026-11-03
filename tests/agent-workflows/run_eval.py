@@ -6,6 +6,9 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import queue
+import threading
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -70,12 +73,74 @@ def events_and_message(raw):
     return events, '\n'.join(dict.fromkeys(messages)).strip()
 
 
-def opencode(prompt, cwd, model=None, agent=None, auto=False, timeout=3600):
+def opencode(prompt, cwd, model=None, agent=None, auto=False, timeout=3600, label="OpenCode"):
     args = ['opencode', 'run', '--format', 'json', '--dir', str(cwd)]
     if model: args += ['--model', model]
     if agent: args += ['--agent', agent]
     if auto: args.append('--auto')
-    result = command(args + [prompt], cwd, timeout, check=False)
+
+    print(f"    {label}: starting (timeout {timeout}s)", flush=True)
+    started = time.monotonic()
+    process = subprocess.Popen(args + [prompt], cwd=cwd, text=True, bufsize=1,
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, errors = [], []
+    messages = queue.Queue()
+
+    def read_stream(stream, name):
+        try:
+            for line in iter(stream.readline, ''):
+                messages.put((name, line))
+        finally:
+            messages.put((name, None))
+
+    threads = [
+        threading.Thread(target=read_stream, args=(process.stdout, "stdout"), daemon=True),
+        threading.Thread(target=read_stream, args=(process.stderr, "stderr"), daemon=True),
+    ]
+    for thread in threads:
+        thread.start()
+
+    finished_streams = set()
+    while len(finished_streams) < 2:
+        elapsed = time.monotonic() - started
+        if elapsed > timeout:
+            process.kill()
+            process.wait()
+            raise subprocess.TimeoutExpired(args, timeout, output=''.join(output), stderr=''.join(errors))
+        try:
+            name, line = messages.get(timeout=15)
+        except queue.Empty:
+            print(f"    {label}: still running ({int(elapsed)}s elapsed)", flush=True)
+            continue
+        if line is None:
+            finished_streams.add(name)
+            continue
+        if name == "stdout":
+            output.append(line)
+            try:
+                event = json.loads(line)
+                event_type = event.get("type", "event")
+                part_type = (event.get("part") or {}).get("type", "")
+                if event_type in ("step_start", "step_finish", "tool_use", "tool_result") or part_type == "tool":
+                    detail = (event.get("part") or {}).get("tool") or event.get("tool") or part_type
+                    print(f"    {label}: {event_type} {detail}".rstrip(), flush=True)
+            except (json.JSONDecodeError, AttributeError):
+                pass
+        else:
+            errors.append(line)
+            if line.strip():
+                print(f"    {label} [stderr]: {line.rstrip()[:240]}", flush=True)
+
+    returncode = process.wait()
+    for thread in threads:
+        thread.join()
+    class Result:
+        pass
+    result = Result()
+    result.returncode = returncode
+    result.stdout = ''.join(output)
+    result.stderr = ''.join(errors)
+    print(f"    {label}: finished in {int(time.monotonic() - started)}s (exit {returncode})", flush=True)
     events, message = events_and_message(result.stdout)
     return result, events, message
 
@@ -83,6 +148,7 @@ def run_scenario(root, scenario, model, agent, timeout):
     parent = Path(tempfile.mkdtemp(prefix=f"opencode-eval-{scenario['id']}-"))
     tree = parent / "repo"
     try:
+        print(f"    Preparing isolated worktree for scenario {scenario['id']}...", flush=True)
         command(["git", "worktree", "add", "--detach", str(tree), "HEAD"], root, 120)
         prompt = (
             "You are evaluated against this repository's actual instructions. Read and follow "
@@ -94,7 +160,7 @@ def run_scenario(root, scenario, model, agent, timeout):
             "decisions, files changed, and checks performed.\n\n"
             f"## Scenario {scenario['id']}: {scenario['title']}\n\n{scenario['prompt']}"
         )
-        result, events, message = opencode(prompt, tree, model, agent=agent, auto=True, timeout=timeout)
+        result, events, message = opencode(prompt, tree, model, agent=agent, auto=True, timeout=timeout, label="Agent")
         status = command(["git", "status", "--short"], tree, check=False).stdout
         diff = command(["git", "diff", "--no-ext-diff", "--binary", "HEAD"], tree, check=False).stdout
         untracked = command(["git", "ls-files", "--others", "--exclude-standard"], tree, check=False).stdout
@@ -128,7 +194,7 @@ def grade(scenario, criteria, execution, rubric, root, model, agent, timeout, tr
         "behavior.\n\nRUBRIC:\n" + rubric + "\n\nEVIDENCE:\n" +
         json.dumps(evidence, ensure_ascii=False)
     )
-    result, events, message = opencode(prompt, root, model, agent=agent, auto=False, timeout=timeout)
+    result, events, message = opencode(prompt, root, model, agent=agent, auto=False, timeout=timeout, label="Grader")
     trace_path.write_text(result.stdout, encoding="utf-8")
     start, end = message.find("{"), message.rfind("}")
     if result.returncode or start < 0 or end <= start:
@@ -187,12 +253,13 @@ def main():
                               "Agent edits are captured as patches and never applied to the caller's checkout."]}
     failed = False
     for i, scenario in enumerate(scenarios, 1):
-        print(f"[{i}/{len(scenarios)}] {scenario['title']}...", flush=True)
+        print(f"\n[{i}/{len(scenarios)}] {scenario['title']}", flush=True)
         execution = None
         try:
             execution = run_scenario(root, scenario, args.model, args.agent, args.timeout)
             (output / f"scenario-{scenario['id']}-agent.jsonl").write_text(
                 execution["stdout"], encoding="utf-8")
+            print("    Collecting agent changes and preparing grading evidence...", flush=True)
             result_grade, grader_trace = grade(
                 scenario, criteria, execution, rubric_text, root, args.grader_model,
                 args.grader_agent, args.timeout, output / f"scenario-{scenario['id']}-grader.jsonl")
