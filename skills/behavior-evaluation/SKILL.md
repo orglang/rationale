@@ -56,21 +56,24 @@ After validating the individual fixtures, assess the suite as a whole rather tha
 
 Use this assessment to improve the balance and complementarity of the suite. Do not make a fixture invalid merely because its capability is less important or overlaps another scenario; those are suite-level design considerations.
 
-## Prepare the blind test package
+## Prepare and deliver blind prompts
 
-Build the Russian tested-agent prompt using `prompt-template.md`, inserting **only** the selected scenario's `Задание` section. Give the user one copy-ready package containing:
+Build the Russian tested-agent prompt using `prompt-template.md`, inserting **only** the selected scenario's `Задание` section.
 
-- repository, full commit SHA, and immutable links to required instructions and relevant task context;
-- a reminder to keep model and relevant settings consistent within the series;
-- the complete constructed Russian prompt and clear read-only limits.
+- Do not emit a blind prompt proactively. Wait until the user explicitly asks to prepare/show/provide the next test prompt.
+- On each explicit request, deliver **exactly one scenario prompt**: the next not-yet-issued scenario in the planned sequence, unless the user names a different scenario.
+- Put the **entire copy-ready package in one fenced code block** so the user can copy it in one action. The block must contain the repository and full pinned commit SHA, immutable links to required instructions and relevant task context, consistency/read-only reminders, and the complete Russian tested-agent prompt with the selected task inserted.
+- Do not split the prompt across multiple blocks or put essential prompt text outside the block. A short explanation may precede or follow it, but the code block itself must be self-contained.
+- Do not bundle several scenarios into one response. After issuing a prompt, wait for the tested response and evaluation, or for another explicit user request, before issuing the next prompt.
+- Do not expose other scenarios, expected behavior, failure signals, rubric, scores, or coordinator notes. If links may not be accessible to the tested agent, include clear instructions inside the block naming the files that must be attached or pasted; never assume access.
 
-Do not expose other scenarios, expected behavior, failure signals, rubric, scores, or coordinator notes. Keep the package compact. If links may not be accessible to the tested agent, say which files must be attached or pasted; never assume access.
+If required source material or the selected fixture cannot be fetched at the pinned SHA, do not issue a partial or improvised prompt. Explain what is unavailable and ask the user to provide it or resolve access.
 
 ## Run
 
-Ask the user to open a fresh ChatGPT conversation for each scenario, use the same model and relevant settings within the series, paste the package without adding hints, and return the tested agent's **entire response** here.
+Ask the user to open a fresh ChatGPT conversation for each scenario, use the same model and relevant settings within the series, paste the complete block without adding hints, and return the tested agent's **entire response** here.
 
-The agent must include any proposed unified diff in its response; no separate attachment is needed. Treat claims of repository edits without a diff or verifiable evidence as unsupported. The tested agent must not commit, push, merge, or make external edits.
+Any proposed diff is included inline in the tested agent's response only when the task calls for a concrete change or a diff is needed to represent it unambiguously. Do not require a diff for analysis, decision, or recommendation-only tasks. Treat claims of repository edits without verifiable evidence as unsupported. The tested agent must not commit, push, merge, or make external edits.
 
 ## Evaluate
 
