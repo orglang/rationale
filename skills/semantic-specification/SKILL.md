@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Specification workflow
 
-Use this workflow only when the user explicitly asks for it. The repository-root [`AGENTS.md`](../../AGENTS.md) routes the task here; after that routing, read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for general documentation-quality criteria. This skill owns the user-led semantic workflow and does not send the reader back through repository routing.
+Use this workflow only when the user explicitly asks for it. This skill owns the user-led semantic workflow.
 
 ## Workflow
 
@@ -25,7 +25,7 @@ Use [`semantic-verification`](../semantic-verification/SKILL.md) to select propo
 
 ## Semantic deduplication
 
-This section owns the operational procedure for semantic deduplication. [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) owns the general canonical-source principle; [`change-management`](../change-management/SKILL.md) identifies the potentially affected scope; [`semantic-verification`](../semantic-verification/SKILL.md) checks the resulting specification for remaining inconsistencies.
+This section owns the operational procedure for semantic deduplication. Other workflows may identify affected scope or check the resulting specification, but they do not repeat this procedure.
 
 Treat duplication as repeated claims, not just repeated wording. A rule may recur as prose, a table row, an example, or a transition description.
 
