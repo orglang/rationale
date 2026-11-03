@@ -170,7 +170,8 @@ def main():
     root = args.repo_root.resolve()
     scenarios = parse_scenarios(root / "tests/agent-workflows/scenarios.md")
     rubric_path = root / "tests/agent-workflows/rubric.md"
-    criteria = parse_criteria(rubric_path)\n    rubric_text = rubric_path.read_text(encoding="utf-8")
+    criteria = parse_criteria(rubric_path)
+    rubric_text = rubric_path.read_text(encoding="utf-8")
     if args.scenario:
         wanted = set(args.scenario)
         scenarios = [s for s in scenarios if s["id"] in wanted]
