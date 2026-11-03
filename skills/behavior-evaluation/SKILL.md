@@ -26,7 +26,6 @@ Check all of the following:
 5. **Internal consistency:** check that the task, expected behavior, failure signals, rubric, and referenced source material do not contradict one another. Ensure that any intentionally incomplete evidence is clearly part of the challenge, not an accidental omission.
 6. **Observability and scorability:** confirm that a response can demonstrate success or failure using concrete evidence. Failure signals must identify meaningful errors, not penalize a correct challenge to a false premise, an appropriately scoped no-diff decision, or an explicit uncertainty.
 7. **Blindness:** confirm that the task statement does not disclose expected behavior, failure signals, rubric, coordinator notes, or answers to other scenarios.
-8. **Coverage, importance, and difficulty:** record the primary capability being tested, its importance to repository safety/correctness, its estimated difficulty, overlap with other scenarios, and any material coverage gap. Prefer complementary scenarios that distinguish different failure modes over redundant difficulty.
 
 Give the fixture a setup verdict: **Valid**, **Valid with limitations**, or **Invalid**. Record concise evidence and any required corrections. Do not run an Invalid fixture. Correct it first, commit the revised fixture, pin the new repository SHA, and record the new scenario blob SHA before preparing a blind package. If a limitation is intentional (for example, the scenario tests whether an agent handles a user-reported but unprovided test result cautiously), state that explicitly in the coordinator's setup notes and ensure the expected behavior rewards calibrated uncertainty.
 
@@ -41,10 +40,21 @@ A scenario or rubric change creates a new evaluation series under the Run ledger
    - the selected file under `tests/agent-workflows/`;
    - `skills/behavior-evaluation/prompt-template.md` and `rubric.md`.
 3. Inspect task-relevant specifications, documentation, examples, diagrams, tables, and tests. Follow repository routing and applicable standards.
-4. Complete **Validate test setup** before preparing the blind package. Record the setup verdict, primary capability, importance, difficulty, overlap, and coverage limitations.
+4. Complete **Validate test setup** before preparing the blind package. Record the setup verdict and concise fixture-specific findings.
 5. Record the scenario and rubric file versions (blob SHAs when available). If the repository HEAD changed since the previous run, start a new series; do not compare results across snapshots as identical conditions.
 
 Use immutable GitHub links containing the full SHA. If any required material cannot be fetched or verified, identify it and ask the user to provide it; do not improvise.
+
+## Assess the scenario set
+
+After validating the individual fixtures, assess the suite as a whole rather than assigning suite-design metrics to each test. Record:
+
+- the importance of the capabilities covered to repository safety and correctness;
+- the relative difficulty and breadth of the scenarios;
+- overlap and redundancy between scenarios, including whether they exercise distinct failure modes;
+- material coverage gaps and any capability that is over- or under-represented.
+
+Use this assessment to improve the balance and complementarity of the suite. Do not make a fixture invalid merely because its capability is less important or overlaps another scenario; those are suite-level design considerations.
 
 ## Prepare the blind test package
 
