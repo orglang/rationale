@@ -1,16 +1,45 @@
 # Agent workflow evaluations
 
-This directory contains seven controlled scenarios and a shared scoring rubric for the specification workflows.
+This directory contains seven controlled behavioral scenarios and a shared scoring rubric for the specification workflows.
 
 ## What is automated
 
-The repository CI validates Markdown formatting and local links.
+The repository CI validates Markdown formatting and local links. A separate, manually dispatched GitHub Actions workflow can run all seven scenarios against an OpenAI model and grade the responses with a second, different model.
 
-## What is not automated
+## Run locally
 
-The seven scenarios are **behavioral evaluations**, not ordinary unit tests. They require an agent to read the instruction set and produce an answer and, where applicable, a proposed diff. The repository currently has no configured model/API runner, fixed model version, or trusted automated judge. CI therefore does not claim to execute these scenarios or certify agent behavior.
+The runner uses only the Python standard library:
 
-Run them manually using the procedure in [`scenarios.md`](scenarios.md), score with [`rubric.md`](rubric.md), and retain the run record. A future runner should pin the model and harness, capture outputs/diffs, and use the rubric; it should not replace semantic review with keyword matching.
+~~~sh
+export OPENAI_API_KEY="..."
+export OPENAI_EVAL_MODEL="model-id-for-agent"
+export OPENAI_EVAL_GRADER_MODEL="different-model-id-for-grader"
+
+python tests/agent-workflows/run_eval.py
+~~~
+
+Run one scenario with --scenario 7. Reports are written to eval-results/report.json and eval-results/report.md.
+
+The runner sends the tracked Markdown documentation in the checked-out repository, the selected scenario, and the rubric to the OpenAI Responses API. It makes one agent call and one independent grading call per scenario. The model IDs are explicit so runs can record and compare the exact configuration selected by the operator. The grader model ID must differ from the agent model ID.
+
+## Configure GitHub Actions
+
+1. In repository **Settings → Environments**, create an environment named behavioral-evals.
+2. Add OPENAI_API_KEY as an environment secret. Do not add it as a general repository secret.
+3. Configure at least one required reviewer for this environment before storing the key. The workflow checks out and runs code from the selected ref, so the approval gate is the trust boundary for evaluating branches that are not yet trusted.
+4. Open **Actions → Agent workflow evaluations → Run workflow**.
+5. Supply distinct agent and grader model IDs and the branch, tag, or commit SHA to evaluate.
+6. Download the agent-workflow-evaluation artifact to inspect the JSON and Markdown reports.
+
+The workflow is manual by design: it does not expose the API key to arbitrary pull-request code through a pull_request trigger. Do not approve a run until the selected ref and its workflow/runner changes have been reviewed.
+
+## Evaluation limits
+
+The runner is a first, text-only harness. It gives the tested model the repository's Markdown snapshot and asks for a response or proposed diff. It does not expose GitHub, shell, filesystem-write, or other tools to the model; proposed diffs are not applied and tests are not run.
+
+A separate model grades each response against the five criteria in rubric.md, using the scenario's expected behavior and failure signals. The score is advisory: all runs require human review, especially borderline results and any critical failure. A model grader can miss subtle semantic errors or be influenced by the same ambiguity as the tested model. Do not treat a passing score as proof of correctness.
+
+Each report records the repository SHA, model IDs, outputs, criterion-level evidence, usage metadata, and limitations. Compare runs only when the snapshot, model IDs, and harness are controlled. The runner fails closed when an API call or grading step fails. This harness uses the Responses API directly and does not depend on the legacy OpenAI Evals platform.
 
 ## Keeping scenarios current
 
@@ -28,6 +57,6 @@ Do not weaken an expected result merely to make a failing run pass. First determ
 
 ### Scenario status
 
-A scenario without a status annotation is **active**. Add `**Maintenance status:** review-needed` directly below its heading when a relevant change has occurred but its expected behavior has not yet been revalidated. Use `**Maintenance status:** stale` when its premise or expected behavior no longer matches the current sources; do not count it as active coverage until corrected. Use `**Maintenance status:** retired` when the scenario is intentionally no longer useful, and state the reason and replacement (if any). Remove the annotation once a review confirms the scenario is active again.
+A scenario without a status annotation is **active**. Add **Maintenance status: review-needed** directly below its heading when a relevant change has occurred but its expected behavior has not yet been revalidated. Use **Maintenance status: stale** when its premise or expected behavior no longer matches the current sources; do not count it as active coverage until corrected. Use **Maintenance status: retired** when the scenario is intentionally no longer useful, and state the reason and replacement (if any). Remove the annotation once a review confirms the scenario is active again.
 
 When changing or retiring a scenario, include in the PR description which canonical change prompted the review and why the fixture was updated. Keep the run record's repository SHA and fixture version so results from different snapshots are not conflated.
