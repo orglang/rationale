@@ -111,7 +111,7 @@ def run_scenario(root, scenario, model, timeout):
         shutil.rmtree(parent, ignore_errors=True)
 
 
-def grade(scenario, criteria, execution, rubric, root, model, timeout):
+def grade(scenario, criteria, execution, rubric, root, model, timeout, trace_path):
     evidence = {
         "scenario": scenario, "agent_final_response": execution["message"],
         "agent_exit_code": execution["exit_code"], "git_status": execution["git_status"],
@@ -128,6 +128,7 @@ def grade(scenario, criteria, execution, rubric, root, model, timeout):
         json.dumps(evidence, ensure_ascii=False)
     )
     result, events, message = codex(prompt, root, model, read_only=True, timeout=timeout)
+    trace_path.write_text(result.stdout, encoding="utf-8")
     start, end = message.find("{"), message.rfind("}")
     if result.returncode or start < 0 or end <= start:
         raise RuntimeError(f"Grader failed: {result.stderr}\n{message}")
@@ -183,12 +184,14 @@ def main():
     failed = False
     for i, scenario in enumerate(scenarios, 1):
         print(f"[{i}/{len(scenarios)}] {scenario['title']}...", flush=True)
+        execution = None
         try:
             execution = run_scenario(root, scenario, args.model, args.timeout)
-            result_grade, grader_trace = grade(scenario, criteria, execution, rubric_text, root,
-                                                args.grader_model, args.timeout)
-            (output / f"scenario-{scenario['id']}-agent.jsonl").write_text(execution["stdout"], encoding="utf-8")
-            (output / f"scenario-{scenario['id']}-grader.jsonl").write_text(grader_trace, encoding="utf-8")
+            (output / f"scenario-{scenario['id']}-agent.jsonl").write_text(
+                execution["stdout"], encoding="utf-8")
+            result_grade, grader_trace = grade(
+                scenario, criteria, execution, rubric_text, root, args.grader_model,
+                args.timeout, output / f"scenario-{scenario['id']}-grader.jsonl")
             item = {"scenario_id": scenario["id"], "title": scenario["title"],
                     "agent_output": execution["message"], "agent_exit_code": execution["exit_code"],
                     "git_status": execution["git_status"], "diff": execution["diff"],
@@ -199,6 +202,10 @@ def main():
             failed = True
             item = {"scenario_id": scenario["id"], "title": scenario["title"],
                     "error": str(error), "grade": {"status": "error", "human_review_required": True}}
+            if execution is not None:
+                item.update(agent_output=execution["message"], agent_exit_code=execution["exit_code"],
+                            git_status=execution["git_status"], diff=execution["diff"],
+                            untracked_files=execution["untracked"])
             print(f"  ERROR — {error}", file=sys.stderr, flush=True)
         report["results"].append(item)
     report["finished_at"] = datetime.now(timezone.utc).isoformat()
