@@ -194,7 +194,11 @@ def grade(scenario, criteria, execution, rubric, root, model, agent, timeout, tr
         "behavior.\n\nRUBRIC:\n" + rubric + "\n\nEVIDENCE:\n" +
         json.dumps(evidence, ensure_ascii=False)
     )
-    result, events, message = opencode(prompt, root, model, agent=agent, auto=False, timeout=timeout, label="Grader")
+    # Grading is evidence-only; an empty workspace prevents repository exploration.
+    with tempfile.TemporaryDirectory(prefix="opencode-grader-") as grader_dir:
+        result, events, message = opencode(
+            prompt, Path(grader_dir), model, agent=agent, auto=False,
+            timeout=timeout, label="Grader")
     trace_path.write_text(result.stdout, encoding="utf-8")
     start, end = message.find("{"), message.rfind("}")
     if result.returncode or start < 0 or end <= start:
@@ -220,8 +224,13 @@ def main():
     p.add_argument("--grader-model", help="Optional grader model override (provider/model)")
     p.add_argument("--agent", help="Optional OpenCode agent for scenario execution")
     p.add_argument("--grader-agent", default="plan", help="Read-only grader agent (default: plan)")
-    p.add_argument("--timeout", type=int, default=3600)
+    p.add_argument("--timeout", type=int, default=3600,
+                   help="Timeout in seconds for each scenario agent invocation (default: 3600)")
+    p.add_argument("--grader-timeout", type=int, default=600,
+                   help="Timeout in seconds for each grader invocation (default: 600)")
     args = p.parse_args()
+    if args.timeout < 1 or args.grader_timeout < 1:
+        p.error("--timeout and --grader-timeout must be positive")
     root = args.repo_root.resolve()
     if not (root / ".git").exists() and not (root / ".git").is_file():
         p.error("--repo-root must be a Git checkout")
@@ -246,6 +255,8 @@ def main():
               "mode": "local OpenCode CLI; isolated detached Git worktree per scenario",
               "agent_model_override": args.model, "grader_model_override": args.grader_model,
               "agent": args.agent, "grader_agent": args.grader_agent,
+              "agent_timeout_seconds": args.timeout,
+              "grader_timeout_seconds": args.grader_timeout,
               "scenario_count": len(scenarios), "results": [],
               "limitations": ["OpenCode grading is advisory; human review is required.",
                               "Unless --grader-model is set, agent and grader may use the same configured model.",
@@ -262,7 +273,7 @@ def main():
             print("    Collecting agent changes and preparing grading evidence...", flush=True)
             result_grade, grader_trace = grade(
                 scenario, criteria, execution, rubric_text, root, args.grader_model,
-                args.grader_agent, args.timeout, output / f"scenario-{scenario['id']}-grader.jsonl")
+                args.grader_agent, args.grader_timeout, output / f"scenario-{scenario['id']}-grader.jsonl")
             item = {"scenario_id": scenario["id"], "title": scenario["title"],
                     "agent_output": execution["message"], "agent_exit_code": execution["exit_code"],
                     "git_status": execution["git_status"], "diff": execution["diff"],
@@ -277,7 +288,10 @@ def main():
                 item.update(agent_output=execution["message"], agent_exit_code=execution["exit_code"],
                             git_status=execution["git_status"], diff=execution["diff"],
                             untracked_files=execution["untracked"])
-            print(f"  ERROR — {error}", file=sys.stderr, flush=True)
+            if isinstance(error, subprocess.TimeoutExpired):
+                print("  TIMEOUT — OpenCode invocation exceeded its configured limit; continuing to next scenario.", file=sys.stderr, flush=True)
+            else:
+                print(f"  ERROR — {error}", file=sys.stderr, flush=True)
         report["results"].append(item)
     report["finished_at"] = datetime.now(timezone.utc).isoformat()
     report["summary"] = {s: sum(x.get("grade", {}).get("status") == s for x in report["results"])
