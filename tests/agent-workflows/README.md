@@ -27,7 +27,7 @@ python tests/agent-workflows/run_eval.py
 
 Run one scenario with --scenario 7. Reports are written to eval-results/report.json and eval-results/report.md.
 
-The runner sends the tracked Markdown documentation in the checked-out repository and the selected scenario to the agent model through the OpenAI Responses API. DeepEval then scores each of the five rubric criteria independently with G-Eval. The grader model ID must differ from the agent model ID. A full seven-scenario run makes one agent request and five judge evaluations per scenario; judge calls and cost are therefore higher than the previous single-call grader.
+The runner loads `scenarios.jsonl` directly as a DeepEval `EvaluationDataset` of single-turn Goldens. Each JSONL record stores the task in `input`, the target behavior in `expected_output`, and the scenario ID, title, and failure signals in `additional_metadata`. It sends the tracked Markdown documentation in the checked-out repository and the selected scenario to the agent model through the OpenAI Responses API. DeepEval then scores each of the five rubric criteria independently with G-Eval. The grader model ID must differ from the agent model ID. A full seven-scenario run makes one agent request and five judge evaluations per scenario; judge calls and cost are therefore higher than the previous single-call grader.
 
 ## Configure GitHub Actions
 
@@ -47,6 +47,10 @@ The runner is a first, text-only harness. It gives the tested model the reposito
 DeepEval G-Eval is used for subjective, criterion-specific assessment, not as a deterministic proof. The runner maps normalized G-Eval scores to the rubric's 0/1/2 scale and applies the existing pass/borderline/fail thresholds, including critical-failure gates. G-Eval is nondeterministic; scores can vary between runs. The complete response, per-criterion evidence, model IDs, repository SHA, and framework version must be reviewed together. A passing score is advisory and does not replace human review.
 
 The runner fails closed when an API call or grading step fails. It does not depend on a Confident AI account; DeepEval runs locally with the configured LLM provider key. Telemetry is disabled in the provided workflow.
+
+## Scenario data format
+
+`scenarios.jsonl` is the source of truth: one JSON object per line, with `input`, `expected_output`, and `additional_metadata` containing a stable unique integer `id`, a `title`, and a non-empty list of `failure_signals`. The runner uses DeepEval's native `EvaluationDataset.add_goldens_from_jsonl_file()` loader and validates required metadata after loading. Keep the general scoring dimensions and score descriptions in `rubric.md`; they are shared across scenarios and remain Markdown for human review.
 
 ## Keeping scenarios current
 
