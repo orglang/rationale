@@ -8,7 +8,7 @@ The repository CI validates Markdown formatting, local links, and Python syntax.
 
 ## Run locally
 
-Install the pinned evaluation dependencies:
+Install the evaluation dependencies:
 
 ~~~sh
 python -m pip install -r tests/agent-workflows/requirements-eval.txt
@@ -66,8 +66,13 @@ For each affected scenario, check that:
 
 Do not weaken an expected result merely to make a failing run pass. First determine whether the run exposed an agent failure, a changed contract, or a defective fixture; record the evidence and update the scenario only when the canonical sources justify it.
 
-### Scenario status
+### Scenario maintenance status
 
-A scenario without a status annotation is **active**. Add **Maintenance status: review-needed** directly below its heading when a relevant change has occurred but its expected behavior has not yet been revalidated. Use **Maintenance status: stale** when its premise or expected behavior no longer matches the current sources; do not count it as active coverage until corrected. Use **Maintenance status: retired** when the scenario is intentionally no longer useful, and state the reason and replacement (if any). Remove the annotation once a review confirms the scenario is active again.
+Store maintenance status in each scenario's `additional_metadata` object in `scenarios.jsonl`:
+
+- Omit `maintenance_status` (or set it to `active`) when the scenario is current.
+- Set `maintenance_status` to `review-needed` when a relevant change has occurred but its expected behavior has not yet been revalidated.
+- Set it to `stale` when the premise or expected behavior no longer matches the current sources; do not count it as active coverage until corrected.
+- Set it to `retired` when the scenario is intentionally no longer useful, and include a `maintenance_reason` explaining why and naming a replacement if one exists.
 
 When changing or retiring a scenario, include in the PR description which canonical change prompted the review and why the fixture was updated. Keep the run record's repository SHA and fixture version so results from different snapshots are not conflated.
