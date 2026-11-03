@@ -1,14 +1,23 @@
-# Local Codex behavioral evaluations
+# Local OpenCode behavioral evaluations
 
-This directory contains seven scenarios in `scenarios.jsonl` and the shared scoring rubric in `rubric.md`. The harness runs the **local Codex CLI** against the actual repository instructions; it does not call the Responses API directly and does not require an API key in environment variables.
+This directory contains seven scenarios in `scenarios.jsonl` and the shared scoring rubric in `rubric.md`. The harness runs the **local OpenCode CLI** against the actual repository instructions. It does not call a model API directly and does not require a separate API key in the runner environment; provider credentials and model selection are managed by your OpenCode installation.
 
 ## Prerequisites
 
 - Git and Python 3.10+
-- Codex CLI installed and authenticated on the local machine
+- OpenCode CLI installed
+- At least one provider configured and authenticated in OpenCode
 - A working Git checkout of this repository
 
-Check the CLI with `codex --version`. Authenticate using the Codex sign-in flow supported by your installation. The runner uses `codex exec --json --full-auto` for the agent and a separate read-only `codex exec` for rubric grading.
+Check the CLI and configured models:
+
+~~~sh
+opencode --version
+opencode auth list
+opencode models
+~~~
+
+OpenCode documents `opencode run --format json` as its non-interactive, machine-readable command. The scenario agent runs with `--auto` so approved local tools can be used without interactive prompts. The grader uses the `plan` agent by default to keep grading read-only.
 
 ## Run
 
@@ -25,32 +34,33 @@ python tests/agent-workflows/run_eval.py --scenario 7
 python tests/agent-workflows/run_eval.py --scenario 2 --scenario 5
 ~~~
 
-Optionally select models exposed by your Codex CLI configuration:
+Optionally select models in OpenCode's `provider/model` format and agent names:
 
 ~~~sh
-python tests/agent-workflows/run_eval.py --model <agent-model> --grader-model <grader-model>
+python tests/agent-workflows/run_eval.py --model <provider/model> --grader-model <provider/model>
+python tests/agent-workflows/run_eval.py --agent build --grader-agent plan
 ~~~
 
-The default timeout is one hour per Codex invocation; override it with `--timeout SECONDS`.
+The default timeout is one hour per OpenCode invocation; override it with `--timeout SECONDS`.
 
 ## Execution model and isolation
 
-For each scenario, the runner creates a detached Git worktree at the current `HEAD`. Codex receives the task and can inspect the real instruction files, use its available local tools, edit files, and run checks. It is explicitly instructed not to commit or push. The runner captures the CLI JSONL event trace, final response, Git status, patch, and untracked-file contents.
+For each scenario, the runner creates a detached Git worktree at the current `HEAD`. OpenCode receives the task and can inspect the real instruction files, use its configured local tools, edit files, and run checks. It is explicitly instructed not to commit or push. The runner captures the CLI JSONL event trace, final response, Git status, patch, and untracked-file contents.
 
 Each scenario starts from a clean copy of the same commit, so one scenario cannot contaminate another. Changes are never applied to the user's active checkout. The worktree is removed after its patch and evidence have been collected. Uncommitted changes in the active checkout are not included; commit or otherwise preserve the snapshot you want to evaluate before running.
 
-The grader runs as a separate Codex invocation with read-only sandbox permissions and receives the rubric plus execution evidence. Unless `--grader-model` selects another model, Codex may use the same configured model for agent and grader. Model-based scoring is advisory, not an independent proof; review critical findings and the saved evidence manually.
+The grader runs as a separate OpenCode invocation using the `plan` agent by default. You can select another grader agent with `--grader-agent`, but ensure its permissions are read-only. Unless `--grader-model` selects another model, the agent and grader may use the same configured model. Model-based scoring is advisory, not an independent proof; review critical findings and saved evidence manually.
 
 ## Reports
 
 By default, reports are written to `eval-results/`:
 
 - `report.md` and `report.json`: summary and per-scenario scores;
-- `scenario-N-agent.jsonl`: complete Codex agent event stream;
+- `scenario-N-agent.jsonl`: complete OpenCode agent event stream;
 - `scenario-N-grader.jsonl`: grader event stream;
 - the JSON report also includes final responses, Git status, and captured patches.
 
-The runner returns a non-zero exit code if any scenario fails, is borderline, errors, or the Codex agent exits unsuccessfully. A passing score does not replace human review.
+The runner returns a non-zero exit code if any scenario fails, is borderline, errors, or the agent exits unsuccessfully. A passing score does not replace human review.
 
 ## Scenario data format
 
