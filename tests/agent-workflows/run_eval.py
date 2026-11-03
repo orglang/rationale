@@ -150,7 +150,7 @@ def main():
     p.add_argument("--repo-root", type=Path, default=Path.cwd())
     p.add_argument("--output-dir", type=Path, default=Path("eval-results"))
     p.add_argument("--scenario", type=int, action="append")
-    p.add_argument("--model", help="Optional Codex model override")
+    p.add_argument("--model", help="Optional OpenCode model override (provider/model)")
     p.add_argument("--grader-model", help="Optional grader model override (provider/model)")
     p.add_argument("--agent", help="Optional OpenCode agent for scenario execution")
     p.add_argument("--grader-agent", default="plan", help="Read-only grader agent (default: plan)")
@@ -162,7 +162,7 @@ def main():
     try:
         command(["opencode", "--version"], root, 30)
     except (FileNotFoundError, RuntimeError) as error:
-        p.error(f"Install and authenticate Codex CLI first: {error}")
+        p.error(f"Install OpenCode CLI and configure a provider first: {error}")
     scenarios = load_scenarios(root / SCENARIOS)
     criteria = parse_rubric(root / RUBRIC)
     if args.scenario:
@@ -177,11 +177,11 @@ def main():
     rubric_text = (root / RUBRIC).read_text(encoding="utf-8")
     report = {"schema_version": 3, "started_at": datetime.now(timezone.utc).isoformat(),
               "repository": "orglang/rationale", "commit": sha, "branch": branch,
-              "mode": "local Codex CLI; isolated detached Git worktree per scenario",
+              "mode": "local OpenCode CLI; isolated detached Git worktree per scenario",
               "agent_model_override": args.model, "grader_model_override": args.grader_model,
               "agent": args.agent, "grader_agent": args.grader_agent,
               "scenario_count": len(scenarios), "results": [],
-              "limitations": ["Codex grading is advisory; human review is required.",
+              "limitations": ["OpenCode grading is advisory; human review is required.",
                               "Unless --grader-model is set, agent and grader may use the same configured model.",
                               "Runs start from HEAD; uncommitted changes in the caller's checkout are excluded.",
                               "Agent edits are captured as patches and never applied to the caller's checkout."]}
@@ -217,8 +217,8 @@ def main():
                          for s in ("pass", "borderline", "fail", "error")}
     report["summary"]["human_review_required"] = True
     (output / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    lines = ["# Local Codex behavioral evaluation", "", f"- Commit: {sha}", f"- Branch: {branch}",
-             "- Mode: local Codex CLI; isolated Git worktrees", "", "| Scenario | Score | Result |",
+    lines = ["# Local OpenCode behavioral evaluation", "", f"- Commit: {sha}", f"- Branch: {branch}",
+             "- Mode: local OpenCode CLI; isolated Git worktrees", "", "| Scenario | Score | Result |",
              "|---|---:|---|"]
     for item in report["results"]:
         g = item["grade"]
