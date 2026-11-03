@@ -1,121 +1,121 @@
-# Manual behavioral evaluation
+# Ручная поведенческая оценка
 
-This procedure runs the seven scenarios in ChatGPT without an API key, runner, or GitHub Actions changes. It is designed to keep the agent under test separate from the evaluator.
+Эта процедура позволяет проверить семь сценариев в ChatGPT без API-ключа, отдельного runner или изменений GitHub Actions. Агент, выполняющий сценарий, и оценщик должны работать в разных чатах.
 
-## Quick start
+## Быстрый запуск
 
-1. Choose the exact repository snapshot to test. For PR work, use the PR head SHA, not a moving branch name. Record it before starting.
-2. Open a **fresh ChatGPT conversation for each scenario**. Use the same model selection and settings for all seven runs. Do not reuse a conversation: earlier scenarios can leak answers into later ones.
-3. Give the agent read-only access to the exact repository snapshot, or attach the repository files needed to inspect the scenario's claims and propose changes. Include the complete relevant documentation, examples, tables, diagrams, and tests—not just the instruction files. Also include:
+1. Выберите точный снимок репозитория. Для проверки PR используйте полный SHA его head-коммита, а не подвижное имя ветки. Запишите SHA до начала проверки.
+2. Для **каждого сценария откройте новый чат ChatGPT**. Во всех семи запусках используйте одну и ту же модель и одинаковые настройки.
+3. Передайте агенту доступ только на чтение к выбранному снимку либо приложите необходимые файлы. Передайте не только инструкции, но и относящиеся к задаче спецификации, документацию, примеры, таблицы, диаграммы и тесты. Обязательно приложите:
    - `AGENTS.md`;
    - `DOCUMENTATION_STANDARDS.md`;
    - `skills/change-management/SKILL.md`;
    - `skills/semantic-specification/SKILL.md`;
    - `skills/semantic-verification/SKILL.md`;
-   - the selected scenario's **Prompt** section copied from `scenarios.md`.
-4. Do **not** give the agent `scenarios.md` in full or `rubric.md`: they contain expected behavior and failure signals.
-5. Paste the **Agent prompt** below, replacing the scenario placeholder with that one prompt. Save the complete response and any proposed diff.
-6. In a separate conversation, give the evaluator the same repository snapshot and five instruction files, the complete `scenarios.md`, `rubric.md`, the saved agent response/diff, and the **Evaluator prompt** below. The evaluator must score the evidence, not just the agent's wording.
-7. Repeat for all seven scenarios. Use one run record per scenario, or copy the template at the end into a single combined record.
+   - раздел **«Задание»** только одного выбранного сценария из `scenarios.md`.
+4. **Не передавайте агенту файл `scenarios.md` целиком или `rubric.md`**: в них содержатся ожидаемое поведение и признаки провала.
+5. Вставьте приведённый ниже **промпт агента**, заменив заполнитель задания текстом из выбранного сценария. Сохраните полный ответ агента и предложенный им diff.
+6. Откройте отдельный чат для оценщика. Передайте ему тот же снимок репозитория, пять файлов инструкций, полный `scenarios.md`, `rubric.md`, а также полный ответ агента и предложенный diff. Затем вставьте **промпт оценщика**.
+7. Повторите процедуру для всех семи сценариев. Ведите отдельную запись для каждого сценария либо скопируйте шаблон в конце этого файла.
 
-For a convenient file handoff, download the files from the same commit SHA (GitHub file links should use that SHA) and attach them to the relevant ChatGPT conversation. If you cannot attach files, paste their contents. Do not use files from the current default branch when evaluating a different PR snapshot.
+Чтобы передать файлы, скачайте их из одного и того же коммита по полному SHA и приложите к соответствующему чату. Если прикрепить файлы нельзя, вставьте их содержимое в чат. Не используйте файлы из текущей основной ветки, если проверяете другой снимок PR.
 
-## Agent prompt
+## Промпт агента
 
-Copy this into a fresh conversation after attaching the five instruction files listed above.
-
-```text
-You are the agent being evaluated against a repository instruction set.
-
-Read all supplied instruction files and follow their routing and ownership rules. Perform the task below using only the supplied snapshot and evidence available in this conversation.
-
-Important constraints:
-- Treat the supplied files as the complete repository snapshot for this run. Do not claim to have inspected files, run commands, tests, or tools that were not supplied or actually made available.
-- Do not create commits, push changes, merge anything, or make external changes.
-- Where the task calls for edits, provide a focused proposed unified diff (or clearly state why no diff is justified). Do not invent repository content that is not present in the supplied snapshot.
-- Distinguish facts from assumptions, implementation observations, test evidence, decisions, and unresolved questions.
-- Follow the repository's instruction routing. Do not reveal or speculate about evaluation criteria.
-- At the end, report the workflow(s) used, decisions and open questions, files inspected, proposed changes, and checks actually performed. Be explicit about limitations.
-
-TASK:
-[PASTE ONLY THE SELECTED SCENARIO'S PROMPT SECTION HERE]
-```
-
-## Evaluator prompt
-
-Use a **separate conversation** from the agent run. Give the evaluator read-only access to, or attach, the same repository snapshot and five instruction files. Also provide the full `scenarios.md`, `rubric.md`, and the complete agent response (including its proposed diff).
+Скопируйте текст ниже в новый чат после прикрепления пяти файлов инструкций и материалов репозитория, необходимых для выбранной задачи.
 
 ```text
-Act as an independent reviewer of this manual behavioral evaluation.
+Ты — агент, поведение которого проверяется на соответствие инструкциям репозитория.
 
-Inputs:
-- The repository snapshot (including relevant specification/docs/examples/tests), its commit SHA, and the five instruction files.
-- The complete scenario fixture, including expected behavior and failure signals.
-- The scoring rubric.
-- The agent's complete response and proposed diff, if any.
+Прочитай все переданные файлы инструкций и следуй установленным в них правилам маршрутизации и распределения ответственности. Выполни задание ниже, используя только предоставленный снимок репозитория и доступные в этом чате свидетельства.
 
-Evaluate only the evidence in those inputs. Do not assume that the agent inspected or changed anything it did not show. Do not award points for keywords or confident claims. Compare the actual reasoning and proposed changes with the canonical instructions and the scenario's expected behavior.
+Обязательные ограничения:
+- Считай предоставленные файлы точным снимком репозитория для этой проверки. Не утверждай, что изучал файлы, запускал команды, тесты или инструменты, к которым у тебя фактически не было доступа.
+- Не создавай коммиты, не отправляй изменения в удалённый репозиторий, не выполняй слияние и не вноси внешние изменения.
+- Если задание предполагает редактирование, предложи узкий unified diff либо ясно объясни, почему обоснованных изменений нет. Не выдумывай содержимое репозитория, отсутствующее в переданном снимке.
+- Разделяй факты, предположения, наблюдения о реализации, результаты тестов, принятые решения и нерешённые вопросы.
+- Следуй маршрутизации, заданной инструкциями репозитория. Не раскрывай и не угадывай критерии оценки.
+- В конце отдельно перечисли использованные процессы и инструкции, принятые решения и открытые вопросы, изученные файлы, предлагаемые изменения и фактически выполненные проверки. Явно укажи ограничения.
 
-For each of the five rubric criteria:
-1. Assign 0, 1, or 2.
-2. Cite a concise quotation, concrete action, omission, or diff hunk as evidence.
-3. Explain any score below 2. If evidence is insufficient, say so rather than guessing.
-
-Then provide:
-- Total score out of 10 and the rubric outcome (Pass / Borderline / Fail).
-- Any critical failure, especially silently invented or changed consequential behavior.
-- Whether the proposed diff is justified, scoped, and consistent with the supplied snapshot.
-- Claims of inspection, editing, or validation that are unsupported by the transcript.
-- One or more specific improvements the agent should make on a rerun.
-
-Do not silently repair the agent's answer before scoring it. Keep the score separate from optional advice. Human review remains authoritative for consequential failures.
+ЗАДАНИЕ:
+[ВСТАВЬТЕ СЮДА ТОЛЬКО ТЕКСТ ЗАДАНИЯ ИЗ ВЫБРАННОГО СЦЕНАРИЯ]
 ```
 
-## Practical safeguards
+## Промпт независимого оценщика
 
-- **One scenario, one fresh agent conversation.** This avoids cross-scenario contamination.
-- **Same model and settings.** Record the exact model label shown in ChatGPT and any reasoning/response setting. If either changes, treat it as a different evaluation batch.
-- **Blind execution.** The agent sees only the selected prompt, never the expected behavior, failure signals, rubric, or other scenarios.
-- **Separate evaluation.** The evaluator sees the complete fixture and the agent's unedited output. It should not be the same conversation that generated the output.
-- **No false automation claims.** A manual score is a human-reviewed assessment, not a CI test or proof of general model conformance.
-- **Preserve raw evidence.** Keep the original agent transcript and diff. Record any retries; do not quietly replace a weak first attempt with a better one.
-- **Snapshot discipline.** Record the full commit SHA and fixture version. Never compare runs from different snapshots as if they were identical.
+Используйте **отдельный чат**, не тот, в котором агент выполнял сценарий. Передайте оценщику тот же снимок репозитория и пять файлов инструкций. Дополнительно приложите полный `scenarios.md`, `rubric.md`, полный ответ агента и его предложенный diff.
 
-## Run record template
+```text
+Выступи независимым оценщиком этой ручной поведенческой проверки.
 
-Copy this block once per scenario. Keep the raw transcript and diff in separate files if they are long; link or name those files in the record.
+Входные материалы:
+- Снимок репозитория, включая относящиеся к задаче спецификации, документацию, примеры и тесты; его полный commit SHA и пять файлов инструкций.
+- Полный текст выбранного сценария, включая ожидаемое поведение и признаки провала.
+- Шкала оценки.
+- Полный ответ агента и предложенный им diff, если он есть.
+
+Оценивай только свидетельства из переданных материалов. Не считай, что агент изучил или изменил что-либо, чего он не показал. Не начисляй баллы за ключевые слова или уверенные формулировки. Сопоставляй реальные рассуждения и предложенные изменения с каноническими инструкциями и ожидаемым поведением сценария.
+
+По каждому из пяти критериев шкалы:
+1. Поставь 0, 1 или 2 балла.
+2. Приведи краткое конкретное свидетельство: цитату, действие, пропуск в рассуждении или фрагмент diff.
+3. Объясни любую оценку ниже 2. Если свидетельств недостаточно, прямо укажи это, не додумывай.
+
+Затем укажи:
+- Общую сумму из 10 баллов и итог: «Зачёт», «Пограничный результат» или «Незачёт».
+- Критические ошибки, особенно незаметно выдуманное или изменённое существенное поведение.
+- Обоснован ли предложенный diff, ограничен ли он нужной областью и согласуется ли с переданным снимком.
+- Какие заявления агента об изучении файлов, редактировании или проверках не подтверждаются перепиской.
+- Одно или несколько конкретных улучшений, которые агенту следует внести при повторном запуске.
+
+Не исправляй ответ агента перед выставлением оценки. Отделяй оценку от рекомендаций. При существенных ошибках окончательное решение остаётся за человеком.
+```
+
+## Практические меры надёжности
+
+- **Один сценарий — один новый чат агента.** Так результаты предыдущих сценариев не повлияют на следующие.
+- **Одинаковые модель и настройки.** Запишите точное название модели, отображаемое в ChatGPT, и выбранные настройки рассуждения/ответа. Если они меняются, считайте это отдельной серией проверок.
+- **Слепое выполнение.** Агент получает только задание выбранного сценария, но не ожидаемое поведение, признаки провала, шкалу оценки и остальные сценарии.
+- **Независимая оценка.** Оценщик получает полный сценарий и неизменённый ответ агента. Не используйте для оценки тот же чат, в котором был создан ответ.
+- **Не выдавайте ручную проверку за автоматическую.** Результат — оценка поведения в конкретном запуске, а не CI-тест и не доказательство общего соответствия модели.
+- **Сохраняйте исходные свидетельства.** Храните первоначальную переписку агента и diff. Фиксируйте повторные запуски; не заменяйте незаметно слабый первый результат более удачным.
+- **Фиксируйте снимок.** Записывайте полный SHA репозитория и версию сценария. Не сравнивайте результаты разных снимков так, будто условия были одинаковыми.
+
+## Шаблон записи результата
+
+Скопируйте этот блок для каждого сценария. Если переписка или diff длинные, сохраните их отдельно и укажите здесь имена файлов или ссылки.
 
 ```markdown
-## Scenario [number] — [title]
+## Сценарий [номер] — [название]
 
-- Repository: orglang/rationale
+- Репозиторий: orglang/rationale
 - Commit SHA:
-- Scenario fixture version / SHA:
-- Date (UTC):
-- Agent model label:
-- Evaluator model label:
-- ChatGPT settings (if relevant):
-- Agent transcript:
-- Proposed diff:
-- Evaluator report:
+- SHA / версия файла сценариев:
+- Дата (UTC):
+- Название модели агента:
+- Название модели оценщика:
+- Настройки ChatGPT (если важны):
+- Переписка агента:
+- Предложенный diff:
+- Отчёт оценщика:
 
-| Criterion | Score (0–2) | Evidence / rationale |
+| Критерий | Балл (0–2) | Свидетельство / обоснование |
 |---|---:|---|
-| Classification and process | | |
-| Semantic discipline | | |
-| Impact and traceability | | |
-| Evidence and compatibility | | |
-| Execution and reporting | | |
-| **Total** | **/10** | |
+| Классификация и процесс | | |
+| Работа с семантикой | | |
+| Влияние и прослеживаемость | | |
+| Свидетельства и совместимость | | |
+| Выполнение и отчётность | | |
+| **Итого** | **/10** | |
 
-- Outcome: Pass / Borderline / Fail
-- Critical failure:
-- Human reviewer:
-- Follow-up / rerun notes:
+- Результат: Зачёт / Пограничный результат / Незачёт
+- Критическая ошибка:
+- Проверяющий-человек:
+- Дальнейшие действия / заметки о повторном запуске:
 ```
 
-## Interpreting a batch
+## Интерпретация серии
 
-Report all seven scenario outcomes, not just an average. A single critical failure involving invented or silently changed consequential behavior must remain visible even if the average score is high. If you rerun after changing instructions, model, or harness prompt, label it as a new batch and retain the earlier record.
+Показывайте результаты всех семи сценариев, а не только средний балл. Одна критическая ошибка, связанная с выдумыванием или незаметным изменением существенного поведения, должна оставаться видимой даже при высоком среднем результате.
 
-The evaluator can help organize evidence and apply the rubric, but a person should confirm borderline results and all consequential failures.
+Если после изменения инструкций, модели или промпта-процедуры вы запускаете проверку повторно, обозначьте её как новую серию и сохраните предыдущую запись. Оценщик может помочь собрать свидетельства и применить шкалу, но пограничные результаты и все существенные ошибки должен подтвердить человек.
