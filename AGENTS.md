@@ -14,6 +14,15 @@ For classification and impact analysis of substantive changes, see [`skills/chan
 
 For checks of specification coherence, behavior scenarios, and semantic regressions, see [`skills/semantic-verification/SKILL.md`](skills/semantic-verification/SKILL.md).
 
+## Responsibility boundaries
+
+- **Documentation standards** own repository-wide quality principles: canonical-source discipline, evidence distinctions, terminology, clarity, and review criteria.
+- **Change management** owns change classification, decision-process proportionality, and downstream impact assessment.
+- **Semantic specification** owns semantic decisions and the operational workflow for finding and resolving duplicate claims while updating the canonical contract.
+- **Semantic verification** owns independent checks of the resulting contract, scenarios, regressions, and implementation evidence.
+
+A workflow may point to another module's responsibility, but should not restate that module's procedure. Keep completion reports distinct: report the decisions and contract edits, the change classification and impact, or the checks and results according to the workflow that owns that work.
+
 ## Changes and review
 
 Keep edits targeted. Before finishing or committing, review the full diff against the branch base and remove accidental or unrelated changes.
