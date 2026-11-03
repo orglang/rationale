@@ -239,6 +239,37 @@ The three references are also constructed and used in separate roles:
 
 The binding record carries all three, but that co-location does not make them interchangeable. A channel binding is the join point between participant execution, communication exchange, and channel identity. A more detailed lifecycle across public/private channel changes and process forwarding remains to be traced.
 
+### 8.5 Allocation transitions and process-incarnation lifecycle
+
+The canonical transaction model gives `Coop` and `Isol` precise state-changing semantics: for a named process `q` and positive weight `w`, `Coop` updates the current allocation function by adding `w`, while `Isol` subtracts `w) subject to the non-negative-weight condition. `Spawn` is separately guarded by `Q(q) > 0) and does not itself modify `Q`.
+
+The inspected implementation does not expose those semantics in its pool type representation:
+- `pool/typeexp` contains `One`, `Link`, `Plus`, `With`, `Up`, and `Down`, but no `Coop` or `Isol`;
+- its `ExpRec` variants carry a continuation and, for choices, process names, but no allocation function or weight;
+- `HireSpec`/`ApplySpec` carry a process-term name and represent competence request/offer, not an explicit increment/decrement of `Q`;
+- `FireSpec`/`QuitSpec` are declared, but no executor cases were found in the inspected pool executor;
+- the pool type representation has no visible `Spawn` constructor either.
+
+Therefore `Coop`/`Isol` have **no established implementation mapping** in this snapshot. It would be misleading to rename `Hire`/`Apply` or `Fire`/`Quit` as these model operations.
+
+For process incarnations, `compsem.New()` creates a fresh `SemRef` using `identity.New()` plus a revision number. The pool executor's `Spawn` method persists a new `proc/compexec.ExecRec` with that reference and `LinearMode`. This is evidence for allocation of a fresh execution record and identifier. It is not evidence for a complete process-incarnation start:
+- the inspected `Spawn` method does not bind channels, resolve a process declaration, or schedule a process body;
+- `proc/compexec.RetrieveSnap` is currently a stub returning an empty snapshot;
+- the inspected process PGX adapter's `selectChnls` SQL uses the literal `proc_id = 'proc1'` in its CTEs rather than the supplied execution reference, so this snapshot does not demonstrate correct per-incarnation channel retrieval through that adapter.
+
+The model's identity rule says allocated incarnation identities are never reused. A fresh `xid`-based identifier generator is consistent with uniqueness in ordinary operation, but the inspected code alone does not prove the model-wide persistence and never-reuse guarantee across deletion, restoration, or all execution paths.
+
+Sources:
+- [about-transaction/README.md](https://github.com/orglang/rationale/blob/main/about-transaction/README.md)
+- [about-incarnations-and-channels/README.md](https://github.com/orglang/rationale/blob/main/about-incarnations-and-channels/README.md)
+- [pool/typeexp/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/typeexp/core/core.go)
+- [pool/termexp/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/termexp/core/core.go)
+- [adt/compsem/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/adt/compsem/core.go)
+- [adt/identity/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/adt/identity/core.go)
+- [pool/compexec/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/compexec/core/core.go)
+- [proc/compexec/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/compexec/core/core.go)
+- [proc/compexec/adapter/ds_pgx.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/compexec/adapter/ds_pgx.go)
+
 ## 9. Next verification pass
 
 Before changing terminology in the canonical model documents, inspect and record evidence for the open questions above in this order:
