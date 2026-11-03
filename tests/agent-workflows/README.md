@@ -1,6 +1,6 @@
 # Agent workflow evaluations
 
-This directory contains seven controlled behavioral scenarios and a shared scoring rubric for the specification workflows.
+This directory contains seven controlled behavioral scenarios in `scenarios.jsonl` and a shared human-readable scoring rubric in `rubric.md`.
 
 ## What is automated
 
