@@ -169,7 +169,7 @@ The following vocabulary is recommended for cross-document use. It intentionally
 | **Channel identity** | The identifier of a channel (`ChnlID`) | Communication reference or execution reference |
 | **Channel placeholder** | A symbolic name in an expression/interface (`ChnlPH`) | Channel or channel identity |
 | **Channel binding** | A participant-local association between placeholder and channel, with its execution/communication/type context | Channel itself |
-| **Provider endpoint / client endpoint** | The participant's role-specific endpoint of a channel | `LiabSide` / `AssetSide` without a verified mapping |
+| **Provider endpoint / client endpoint** | The participant's role-specific endpoint of a channel | Treating `LiabSide` / `AssetSide` as a universal synonym beyond the inspected initialization and process type-checking paths |
 | **Transaction type** | Pool-level interaction protocol | Session type |
 | **Session type** | Process-channel protocol | Transaction type |
 | **Residual protocol state** | The remaining type/protocol after a transition | Type definition |
@@ -187,7 +187,7 @@ When discussing implementation details, retain the exact code identifiers in bac
 ## 7. Open questions before normative convergence
 
 1. **Pool and process lifecycle:** what exact implementation records and repository transitions create, update, terminate, and identify pool and process incarnations?
-2. **Endpoint role mapping:** is `LiabSide` always the provider endpoint and `AssetSide` always the client endpoint, including initial binding and channel transfer?
+2. **Endpoint role mapping:** does the observed `LiabSide` → provider and `AssetSide` → client correspondence hold across all initial-binding, transfer, and forwarding paths, beyond the pool initialization and process type-checking paths inspected so far?
 3. **Channel identity lifecycle:** how do `ChnlID`, `CommRef`, and `CompRef` relate across public/private pool-channel switching, process-channel communication, forwarding, and incarnation creation?
 4. **Allocation operations:** the vocabulary correspondence is agreed: `Hire`/`Apply` are the two sides of `Coop`, and `Fire`/`Quit` are the two sides of `Isol`. What changes to operation contracts, type representation, executor, and tests are required to implement the weighted `Q` updates and the non-negativity guard?
 5. **Transaction grammar coverage:** where and how are the model-level `Coop`, `Isol`, and typed `spawn` constructs represented, type-checked, and executed?
