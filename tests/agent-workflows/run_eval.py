@@ -1,253 +1,222 @@
 #!/usr/bin/env python3
-"""Text-only behavioral evaluation runner for orglang/rationale using DeepEval."""
+"""Run repository-instruction scenarios against the local Codex CLI."""
 import argparse
 import json
-import os
-import re
+import shutil
 import subprocess
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from deepeval.dataset import EvaluationDataset
-from deepeval.metrics import GEval
-from deepeval.test_case import LLMTestCase, SingleTurnParams
-
 CRITICAL = {"Semantic discipline", "Evidence and compatibility"}
+SCENARIOS = Path("tests/agent-workflows/scenarios.jsonl")
+RUBRIC = Path("tests/agent-workflows/rubric.md")
+
+
+def command(args, cwd, timeout=3600, check=True):
+    result = subprocess.run(args, cwd=cwd, text=True, capture_output=True, timeout=timeout)
+    if check and result.returncode:
+        raise RuntimeError(f"{args[0]} exited {result.returncode}:\n{result.stdout}\n{result.stderr}")
+    return result
 
 
 def load_scenarios(path):
-    dataset = EvaluationDataset()
-    dataset.add_goldens_from_jsonl_file(file_path=str(path))
-    scenarios = []
-    seen_ids = set()
-    for golden in dataset.goldens:
-        metadata = golden.additional_metadata or {}
-        required = {"id", "title", "failure_signals"}
-        missing = required - metadata.keys()
-        if missing:
-            raise ValueError(f"Scenario metadata is missing: {', '.join(sorted(missing))}")
-        scenario_id = int(metadata["id"])
-        if scenario_id in seen_ids:
-            raise ValueError(f"Duplicate scenario id: {scenario_id}")
-        if not golden.input or not golden.expected_output:
-            raise ValueError(f"Scenario {scenario_id}: input and expected_output are required")
-        if not isinstance(metadata["failure_signals"], list) or not metadata["failure_signals"]:
-            raise ValueError(f"Scenario {scenario_id}: failure_signals must be a non-empty list")
-        seen_ids.add(scenario_id)
-        scenarios.append({
-            "id": scenario_id,
-            "title": str(metadata["title"]),
-            "prompt": golden.input,
-            "expected_behavior": golden.expected_output,
-            "failure_signals": "\\n".join(metadata["failure_signals"]),
-        })
-    if not scenarios:
+    rows, ids = [], set()
+    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip():
+            continue
+        row = json.loads(line)
+        meta = row.get("additional_metadata") or {}
+        if not row.get("input") or not row.get("expected_output") or not all(k in meta for k in ("id", "title", "failure_signals")):
+            raise ValueError(f"{path}:{number}: invalid scenario record")
+        sid = int(meta["id"])
+        if sid in ids or not isinstance(meta["failure_signals"], list) or not meta["failure_signals"]:
+            raise ValueError(f"{path}:{number}: duplicate id or invalid failure_signals")
+        ids.add(sid)
+        rows.append({"id": sid, "title": meta["title"], "prompt": row["input"],
+                     "expected": row["expected_output"], "failure_signals": meta["failure_signals"]})
+    if not rows:
         raise ValueError("No scenarios found")
-    return sorted(scenarios, key=lambda item: item["id"])
+    return sorted(rows, key=lambda x: x["id"])
+
 
 def parse_rubric(path):
-    criteria = []
+    result = []
     for line in path.read_text(encoding="utf-8").splitlines():
         if not line.startswith("|"):
             continue
-        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        cells = [x.strip() for x in line.strip("|").split("|")]
         if len(cells) == 4 and cells[0] not in ("Criterion", "---") and cells[0] and not set(cells[0]) <= {"-", ":"}:
-            criteria.append({"name": cells[0], "zero": cells[1], "one": cells[2], "two": cells[3]})
-    if len(criteria) != 5:
-        raise ValueError(f"Expected five rubric criteria; found {len(criteria)}")
-    return criteria
+            result.append(dict(name=cells[0], zero=cells[1], one=cells[2], two=cells[3]))
+    if len(result) != 5:
+        raise ValueError(f"Expected five rubric criteria, got {len(result)}")
+    return result
 
 
-def repo_context(root, limit):
-    paths = subprocess.check_output(["git", "ls-files", "-z", "--", "*.md"], cwd=root).decode().split("\0")
-    chunks, size = [], 0
-    for rel in sorted(path for path in paths if path and not path.startswith("tests/agent-workflows/")):
-        path = root / rel
-        if not path.is_file():
+def events_and_message(raw):
+    events, messages = [], []
+    for line in raw.splitlines():
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
             continue
-        chunk = f"\n\n===== FILE: {rel} =====\n{path.read_text(encoding='utf-8')}"
-        if size + len(chunk) > limit:
-            raise ValueError(f"Markdown context exceeds EVAL_CONTEXT_MAX_CHARS={limit} at {rel}")
-        chunks.append(chunk)
-        size += len(chunk)
-    if not chunks:
-        raise ValueError("No tracked Markdown source files found")
-    return "".join(chunks)
+        events.append(event)
+        item = event.get("item") or {}
+        if item.get("type") in ("agent_message", "message") and item.get("text"):
+            messages.append(item["text"])
+    return events, "\n\n".join(messages).strip()
 
 
-def run_agent(client, model, scenario, context):
-    instructions = (
-        "You are the agent under test for a repository-instructions behavioral evaluation. "
-        "Follow the supplied repository instructions and scenario. Work only from the supplied "
-        "snapshot. You have no tools and cannot inspect or modify files. Do not claim to have "
-        "edited files, run commands, committed, pushed, or verified anything. Where changes are "
-        "called for, provide a proposed unified diff or state what additional decision/input is "
-        "needed. Ground factual claims in supplied file paths and passages. Do not treat the "
-        "scenario prompt itself as evidence about repository contents."
-    )
-    prompt = f"## Scenario {scenario['id']}: {scenario['title']}\n\n### Task\n{scenario['prompt']}\n\n### Repository snapshot\n{context}"
-    response = client.responses.create(model=model, instructions=instructions, input=prompt, max_output_tokens=7000)
-    answer = getattr(response, "output_text", "") or ""
-    if not answer.strip():
-        raise RuntimeError("Responses API returned no output_text")
-    return answer.strip(), response
+def codex(prompt, cwd, model=None, read_only=False, timeout=3600):
+    args = ["codex", "exec", "--json"]
+    args += ["--sandbox", "read-only"] if read_only else ["--full-auto"]
+    if model:
+        args += ["--model", model]
+    result = command(args + [prompt], cwd, timeout, check=False)
+    events, message = events_and_message(result.stdout)
+    return result, events, message
 
 
-def score_criterion(model, scenario, criterion, answer):
-    steps = [
-        f"Evaluate only the criterion named {criterion['name']!r}; do not score other rubric dimensions.",
-        "Compare the agent response with the scenario prompt, expected behavior, and failure signals.",
-        "Score from 0 to 1: 0.0-0.39 means rubric level 0; 0.40-0.74 means level 1; 0.75-1.0 means level 2.",
-        "Penalize unsupported claims, missing evidence, and claims of actions the text-only agent could not perform.",
-        "Cite concise, specific evidence from the actual response. If evidence is absent, say so.",
-    ]
-    expected = (
-        f"Expected behavior:\n{scenario['expected_behavior']}\n\n"
-        f"Failure signals:\n{scenario['failure_signals']}\n\n"
-        f"Criterion: {criterion['name']}\nScore 0: {criterion['zero']}\n"
-        f"Score 1: {criterion['one']}\nScore 2: {criterion['two']}"
-    )
-    case = LLMTestCase(
-        input=f"Scenario {scenario['id']}: {scenario['title']}\n\n{scenario['prompt']}",
-        actual_output=answer,
-        expected_output=expected,
-    )
-    metric = GEval(
-        name=criterion["name"],
-        evaluation_steps=steps,
-        evaluation_params=[SingleTurnParams.INPUT, SingleTurnParams.ACTUAL_OUTPUT, SingleTurnParams.EXPECTED_OUTPUT],
-        model=model,
-        threshold=0.75,
-        async_mode=False,
-    )
-    metric.measure(case)
-    normalized = float(metric.score or 0.0)
-    score = 2 if normalized >= 0.75 else (1 if normalized >= 0.40 else 0)
-    return {"criterion": criterion["name"], "score": score, "normalized_score": round(normalized, 4),
-            "evidence": str(metric.reason or "No rationale returned by evaluator.")}
+def run_scenario(root, scenario, model, timeout):
+    parent = Path(tempfile.mkdtemp(prefix=f"codex-eval-{scenario['id']}-"))
+    tree = parent / "repo"
+    try:
+        command(["git", "worktree", "add", "--detach", str(tree), "HEAD"], root, 120)
+        prompt = (
+            "You are evaluated against this repository's actual instructions. Read and follow "
+            "applicable instructions and skills. Work in this checkout: inspect files, edit files, "
+            "and run relevant checks as the task requires. Do not merely propose a diff. Do not "
+            "commit, push, or modify anything outside this worktree. Never claim an action or check "
+            "unless you actually performed it. If a consequential decision is missing, do not invent "
+            "it; record the unresolved decision and continue independent work. Report classification, "
+            "decisions, files changed, and checks performed.\n\n"
+            f"## Scenario {scenario['id']}: {scenario['title']}\n\n{scenario['prompt']}"
+        )
+        result, events, message = codex(prompt, tree, model, timeout=timeout)
+        status = command(["git", "status", "--short"], tree, check=False).stdout
+        diff = command(["git", "diff", "--no-ext-diff", "--binary", "HEAD"], tree, check=False).stdout
+        untracked = command(["git", "ls-files", "--others", "--exclude-standard"], tree, check=False).stdout
+        extra = []
+        for rel in untracked.splitlines():
+            path = tree / rel
+            if path.is_file():
+                extra.append(f"\n===== UNTRACKED: {rel} =====\n{path.read_text(encoding='utf-8', errors='replace')}")
+        return {"exit_code": result.returncode, "stdout": result.stdout, "stderr": result.stderr,
+                "message": message, "git_status": status, "diff": diff,
+                "untracked": "".join(extra)}
+    finally:
+        if tree.exists():
+            command(["git", "worktree", "remove", "--force", str(tree)], root, check=False)
+        shutil.rmtree(parent, ignore_errors=True)
 
 
-def grade_agent(model, scenario, criteria, answer):
-    scores = [score_criterion(model, scenario, criterion, answer) for criterion in criteria]
-    total = sum(item["score"] for item in scores)
-    critical_zero = any(item["criterion"] in CRITICAL and item["score"] == 0 for item in scores)
-    status = "fail" if total <= 5 or critical_zero else ("pass" if total >= 8 else "borderline")
-    return {
-        "scenario_id": scenario["id"], "scores": scores, "total": total, "status": status,
-        "critical_failure": critical_zero,
-        "summary": "Criterion-level G-Eval assessment; inspect evidence and full response before relying on the result.",
-        "material_failures": [], "human_review_required": True,
+def grade(scenario, criteria, execution, rubric, root, model, timeout):
+    evidence = {
+        "scenario": scenario, "agent_final_response": execution["message"],
+        "agent_exit_code": execution["exit_code"], "git_status": execution["git_status"],
+        "patch": execution["diff"], "untracked_files": execution["untracked"],
+        "stderr": execution["stderr"][-10000:],
     }
+    prompt = (
+        "Strictly evaluate the actual local agent execution using the rubric and evidence. "
+        "Score each of the five criteria 0, 1, or 2. Require concrete evidence; do not infer "
+        "actions from claims. Return ONLY JSON: {scores:[{criterion,score,evidence}],total,status,"
+        "critical_failure,summary}. Pass=8-10 and no zero in Semantic discipline or Evidence and "
+        "compatibility. Borderline=6-7 or any critical zero. Fail=0-5 or consequential invented "
+        "behavior.\n\nRUBRIC:\n" + rubric + "\n\nEVIDENCE:\n" +
+        json.dumps(evidence, ensure_ascii=False)
+    )
+    result, events, message = codex(prompt, root, model, read_only=True, timeout=timeout)
+    start, end = message.find("{"), message.rfind("}")
+    if result.returncode or start < 0 or end <= start:
+        raise RuntimeError(f"Grader failed: {result.stderr}\n{message}")
+    value = json.loads(message[start:end + 1])
+    expected = {c["name"] for c in criteria}
+    if {x["criterion"] for x in value["scores"]} != expected or any(x["score"] not in (0, 1, 2) for x in value["scores"]):
+        raise ValueError("Invalid grader score schema")
+    total = sum(x["score"] for x in value["scores"])
+    critical = any(x["criterion"] in CRITICAL and x["score"] == 0 for x in value["scores"])
+    value.update(total=total, critical_failure=critical,
+                 status="fail" if total <= 5 or critical else ("pass" if total >= 8 else "borderline"),
+                 human_review_required=True)
+    return value, result.stdout
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--repo-root", type=Path, default=Path.cwd())
-    parser.add_argument("--output-dir", type=Path, default=Path("eval-results"))
-    parser.add_argument("--model", default=os.getenv("OPENAI_EVAL_MODEL"))
-    parser.add_argument("--grader-model", default=os.getenv("OPENAI_EVAL_GRADER_MODEL"))
-    parser.add_argument("--scenario", type=int, action="append")
-    args = parser.parse_args()
-    key = os.getenv("OPENAI_API_KEY")
-    if not key:
-        parser.error("OPENAI_API_KEY is required")
-    if not args.model or not args.grader_model:
-        parser.error("--model/OPENAI_EVAL_MODEL and --grader-model/OPENAI_EVAL_GRADER_MODEL are required")
-    if args.grader_model == args.model:
-        parser.error("Use a different model ID for the independent grader")
-    try:
-        from openai import OpenAI
-    except ImportError as error:
-        parser.error(f"Install evaluation dependencies first: {error}")
-
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--repo-root", type=Path, default=Path.cwd())
+    p.add_argument("--output-dir", type=Path, default=Path("eval-results"))
+    p.add_argument("--scenario", type=int, action="append")
+    p.add_argument("--model", help="Optional Codex model override")
+    p.add_argument("--grader-model", help="Optional read-only grader model override")
+    p.add_argument("--timeout", type=int, default=3600)
+    args = p.parse_args()
     root = args.repo_root.resolve()
-    scenarios = load_scenarios(root / "tests/agent-workflows/scenarios.jsonl")
-    criteria = parse_rubric(root / "tests/agent-workflows/rubric.md")
-    if args.scenario:
-        wanted = set(args.scenario)
-        scenarios = [item for item in scenarios if item["id"] in wanted]
-        if {item["id"] for item in scenarios} != wanted:
-            parser.error("Unknown scenario id")
-    context = repo_context(root, int(os.getenv("EVAL_CONTEXT_MAX_CHARS", "260000")))
+    if not (root / ".git").exists() and not (root / ".git").is_file():
+        p.error("--repo-root must be a Git checkout")
     try:
-        sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
-        branch = subprocess.check_output(["git", "branch", "--show-current"], cwd=root, text=True).strip()
-    except subprocess.CalledProcessError:
-        sha, branch = "unknown", "unknown"
-
-    client = OpenAI(api_key=key)
-    out = args.output_dir.resolve()
-    out.mkdir(parents=True, exist_ok=True)
-    report = {
-        "schema_version": 2, "started_at": datetime.now(timezone.utc).isoformat(),
-        "repository": "orglang/rationale", "commit": sha, "branch": branch,
-        "agent_model": args.model, "grader_model": args.grader_model,
-        "evaluation_framework": "DeepEval G-Eval", "scenario_count": len(scenarios),
-        "evaluation_mode": "text-only proposed-work simulation",
-        "limitations": [
-            "No tools are exposed; proposed diffs are not applied.",
-            "No commands, tests, or implementation behavior are executed.",
-            "G-Eval grading is nondeterministic and advisory; human review is required.",
-            "A pass is not proof of correctness or reproducibility across model versions.",
-        ], "results": [],
-    }
+        command(["codex", "--version"], root, 30)
+    except (FileNotFoundError, RuntimeError) as error:
+        p.error(f"Install and authenticate Codex CLI first: {error}")
+    scenarios = load_scenarios(root / SCENARIOS)
+    criteria = parse_rubric(root / RUBRIC)
+    if args.scenario:
+        selected = set(args.scenario)
+        scenarios = [s for s in scenarios if s["id"] in selected]
+        if {s["id"] for s in scenarios} != selected:
+            p.error("Unknown scenario id")
+    sha = command(["git", "rev-parse", "HEAD"], root).stdout.strip()
+    branch = command(["git", "branch", "--show-current"], root).stdout.strip()
+    output = args.output_dir.resolve()
+    output.mkdir(parents=True, exist_ok=True)
+    rubric_text = (root / RUBRIC).read_text(encoding="utf-8")
+    report = {"schema_version": 3, "started_at": datetime.now(timezone.utc).isoformat(),
+              "repository": "orglang/rationale", "commit": sha, "branch": branch,
+              "mode": "local Codex CLI; isolated detached Git worktree per scenario",
+              "agent_model_override": args.model, "grader_model_override": args.grader_model,
+              "scenario_count": len(scenarios), "results": [],
+              "limitations": ["Codex grading is advisory; human review is required.",
+                              "Unless --grader-model is set, agent and grader may use the same configured model.",
+                              "Runs start from HEAD; uncommitted changes in the caller's checkout are excluded.",
+                              "Agent edits are captured as patches and never applied to the caller's checkout."]}
     failed = False
-    for index, scenario in enumerate(scenarios, start=1):
-        print(f"[{index}/{len(scenarios)}] {scenario['title']}...", flush=True)
+    for i, scenario in enumerate(scenarios, 1):
+        print(f"[{i}/{len(scenarios)}] {scenario['title']}...", flush=True)
         try:
-            answer, agent_response = run_agent(client, args.model, scenario, context)
-            grade = grade_agent(args.grader_model, scenario, criteria, answer)
-            usage = getattr(agent_response, "usage", None)
-            result = {
-                "scenario_id": scenario["id"], "title": scenario["title"],
-                "agent_output": answer, "grade": grade,
-                "usage": {"agent": usage.model_dump() if usage else None},
-            }
-            failed = failed or grade["status"] != "pass"
-            print(f"  {grade['status'].upper()} — {grade['total']}/10", flush=True)
+            execution = run_scenario(root, scenario, args.model, args.timeout)
+            result_grade, grader_trace = grade(scenario, criteria, execution, rubric_text, root,
+                                                args.grader_model, args.timeout)
+            (output / f"scenario-{scenario['id']}-agent.jsonl").write_text(execution["stdout"], encoding="utf-8")
+            (output / f"scenario-{scenario['id']}-grader.jsonl").write_text(grader_trace, encoding="utf-8")
+            item = {"scenario_id": scenario["id"], "title": scenario["title"],
+                    "agent_output": execution["message"], "agent_exit_code": execution["exit_code"],
+                    "git_status": execution["git_status"], "diff": execution["diff"],
+                    "untracked_files": execution["untracked"], "grade": result_grade}
+            failed |= result_grade["status"] != "pass" or execution["exit_code"] != 0
+            print(f"  {result_grade['status'].upper()} — {result_grade['total']}/10", flush=True)
         except Exception as error:
             failed = True
-            result = {"scenario_id": scenario["id"], "title": scenario["title"], "error": str(error),
-                      "grade": {"scenario_id": scenario["id"], "status": "error", "human_review_required": True}}
+            item = {"scenario_id": scenario["id"], "title": scenario["title"],
+                    "error": str(error), "grade": {"status": "error", "human_review_required": True}}
             print(f"  ERROR — {error}", file=sys.stderr, flush=True)
-        report["results"].append(result)
-
+        report["results"].append(item)
     report["finished_at"] = datetime.now(timezone.utc).isoformat()
-    report["summary"] = {
-        status: sum(item.get("grade", {}).get("status") == status for item in report["results"])
-        for status in ("pass", "borderline", "fail", "error")
-    }
+    report["summary"] = {s: sum(x.get("grade", {}).get("status") == s for x in report["results"])
+                         for s in ("pass", "borderline", "fail", "error")}
     report["summary"]["human_review_required"] = True
-    (out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2, default=str) + "\n", encoding="utf-8")
-    lines = [
-        "# Agent workflow evaluation", "", f"- Commit: {sha}", f"- Branch: {branch}",
-        f"- Agent model: {args.model}", f"- Grader model: {args.grader_model}",
-        "- Framework: DeepEval G-Eval", "- Mode: text-only proposed-work simulation", "",
-        "| Scenario | Score | Result |", "|---|---:|---|",
-    ]
+    (output / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    lines = ["# Local Codex behavioral evaluation", "", f"- Commit: {sha}", f"- Branch: {branch}",
+             "- Mode: local Codex CLI; isolated Git worktrees", "", "| Scenario | Score | Result |",
+             "|---|---:|---|"]
     for item in report["results"]:
-        grade = item["grade"]
-        score = f"{grade.get('total', '—')}/10" if "total" in grade else "—"
-        lines.append(f"| {item['scenario_id']}. {item['title']} | {score} | {grade['status']} |")
-    summary = report["summary"]
-    lines += [
-        "", f"**Summary:** {summary['pass']} pass, {summary['borderline']} borderline, {summary['fail']} fail, {summary['error']} error.",
-        "", "## Review notes", "",
-        "Every result requires human review. The runner has no tools and cannot apply proposed diffs or run repository checks.",
-        "G-Eval scores are nondeterministic and advisory, not certification.",
-    ]
-    for item in report["results"]:
-        grade = item["grade"]
-        lines += ["", f"## Scenario {item['scenario_id']}: {item['title']}", ""]
-        if "summary" in grade:
-            lines.append(grade["summary"])
-        for score in grade.get("scores", []):
-            lines.append(f"- **{score['criterion']} — {score['score']}/2 (G-Eval {score['normalized_score']:.2f}):** {score['evidence']}")
-        if item.get("error"):
-            lines.append(f"- Runner error: {item['error']}")
-    (out / "report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"Reports written to {out}")
+        g = item["grade"]
+        lines.append(f"| {item['scenario_id']}. {item['title']} | {g.get('total', '—')}/10 | {g['status']} |")
+    s = report["summary"]
+    lines += ["", f"**Summary:** {s['pass']} pass, {s['borderline']} borderline, {s['fail']} fail, {s['error']} error.",
+              "", "Review the JSON report and CLI traces. Scores are advisory; human review is required."]
+    (output / "report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"Reports written to {output}")
     return 1 if failed else 0
 
 
