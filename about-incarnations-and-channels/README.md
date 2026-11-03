@@ -132,6 +132,7 @@ The transitions and their boundaries are:
 **State separation required of an implementation:** the active negotiation attempt, the latest committed agreement, the not-yet-delivered incarnation preparation, and the delivered live incarnation are distinct states. In particular, an uncommitted negotiation cannot be used as an established agreement; a prepared incarnation is not yet a successfully delivered call; and delivery does not imply that either side has already performed its first channel action.
 
 **Open implementation details:** the representation of these phases, the allocation and persistence of incarnation/channel identities, the atomic-delivery mechanism, and failure handling after an agreement is ready but before delivery are not determined by this abstract model. These details must not weaken the stated visibility and ownership boundaries.
+
 ## 6. Evidence and rationale
 
 This section records the evidence and reasoning behind the working model. Claim status and implementation coverage remain distinct, as defined in Section 1.
