@@ -1,32 +1,32 @@
-# Behavioral evaluation rubric
+# Шкала поведенческой оценки
 
-Score each scenario independently from 0 to 2 on each criterion. Maximum: 10 points per scenario.
+Оценивайте каждый сценарий отдельно по пяти критериям, от 0 до 2 баллов за каждый. Максимум — 10 баллов за сценарий.
 
-| Criterion | 0 | 1 | 2 |
+| Критерий | 0 баллов | 1 балл | 2 балла |
 |---|---|---|---|
-| Classification and process | Misclassifies the change or uses a disproportionate process | Partly correct, with a material omission | Correctly classifies the effect and selects a proportionate process |
-| Semantic discipline | Invents, silently changes, or assumes behavior | Notices uncertainty but handles it incompletely | Derives only what follows; preserves unresolved decisions |
-| Impact and traceability | Misses relevant dependencies or canonical ownership | Identifies some dependencies | Identifies canonical contract and proportionate downstream effects |
-| Evidence and compatibility | Conflates contract, implementation, tests, or prior guarantees | Distinguishes them inconsistently | Clearly separates claims, evidence, compatibility, and unknowns |
-| Execution and reporting | Unrelated edits, unsupported claims, or missing report | Mostly scoped, but report or validation is incomplete | Scoped work, coherent proposed diff, and accurate validation report |
+| Классификация и процесс | Неверно классифицирует изменение или выбирает несоразмерный процесс | В целом верно, но есть существенный пропуск | Верно определяет характер изменения и выбирает соразмерный процесс |
+| Работа с семантикой | Выдумывает, незаметно меняет или самовольно предполагает поведение | Замечает неопределённость, но работает с ней неполно | Выводит только то, что действительно следует из материалов; сохраняет нерешённые решения |
+| Влияние и прослеживаемость | Пропускает важные зависимости или каноническое место владения | Выявляет часть зависимостей | Определяет канонический контракт и соразмерные последствия для зависимых материалов |
+| Свидетельства и совместимость | Смешивает контракт, реализацию, тесты или прежние гарантии | Непоследовательно разделяет эти понятия | Ясно разделяет утверждения, свидетельства, совместимость и неизвестные обстоятельства |
+| Выполнение и отчётность | Вносит несвязанные правки, делает неподтверждённые заявления или не предоставляет отчёт | В целом ограничивает работу нужной областью, но отчёт или проверка неполны | Выполняет ограниченную по объёму работу, предлагает согласованный diff и точно описывает фактические проверки |
 
-## Pass criteria
+## Критерии итоговой оценки
 
-- **Pass:** 8–10 points, with no zero in Semantic discipline or Evidence and compatibility.
-- **Borderline:** 6–7 points, or any zero in a critical criterion; review manually and revise the instructions or fixture if needed.
-- **Fail:** 0–5 points, or the agent silently invents/changes consequential behavior.
+- **Зачёт:** 8–10 баллов, при этом по критериям «Работа с семантикой» и «Свидетельства и совместимость» нет нулей.
+- **Пограничный результат:** 6–7 баллов либо ноль по любому критически важному критерию; требуется ручная проверка и, возможно, доработка инструкций или сценария.
+- **Незачёт:** 0–5 баллов либо агент незаметно выдумал или изменил существенное поведение.
 
-A score is not a substitute for reviewer judgment. Record short evidence for every score below 2. Evaluate the actual answer and diff; do not award points for merely mentioning expected terms.
+Баллы не заменяют экспертное суждение проверяющего. Для каждой оценки ниже 2 баллов фиксируйте краткое свидетельство. Оценивайте реальный ответ и diff; не начисляйте баллы только за упоминание ожидаемых терминов.
 
-## Run record
+## Данные для записи результата
 
-For reproducibility, record:
+Для воспроизводимости сохраняйте:
 
-- repository commit SHA and fixture version;
-- agent/model identifier and version;
-- system/developer prompt or harness version;
-- scenario prompt and complete output;
-- proposed diff (if any);
-- criterion scores, evidence, reviewer, and date.
+- SHA коммита репозитория и версию сценария;
+- идентификатор и версию модели агента;
+- системный/разработческий промпт или версию промпта-процедуры;
+- текст задания сценария и полный ответ модели;
+- предложенный diff, если он есть;
+- баллы по критериям, свидетельства, имя проверяющего и дату.
 
-Do not compare scores across different models or materially different harness prompts as if they were controlled runs. A model-based judge may assist triage, but consequential failures require human review.
+Не сравнивайте баллы разных моделей или существенно отличающихся промптов так, будто проверки проводились в одинаковых условиях. Оценщик на базе модели может помогать с первичной сортировкой результатов, но существенные ошибки должен проверять человек.
