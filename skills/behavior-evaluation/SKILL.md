@@ -29,7 +29,7 @@ Check all of the following:
 
 Give the fixture a setup verdict: **Valid**, **Valid with limitations**, or **Invalid**. Record concise evidence and any required corrections. Do not run an Invalid fixture. Correct it first, commit the revised fixture, pin the new repository SHA, and record the new scenario blob SHA before preparing a blind package. If a limitation is intentional (for example, the scenario tests whether an agent handles a user-reported but unprovided test result cautiously), state that explicitly in the coordinator's setup notes and ensure the expected behavior rewards calibrated uncertainty.
 
-A scenario or rubric change creates a new evaluation series under the Run ledger rules. Never silently repair a fixture only in the coordinator's interpretation while leaving the versioned scenario unchanged.
+A scenario, rubric, or acceptance-matrix change creates a new evaluation series under the Run ledger rules. Never silently repair a fixture only in the coordinator's interpretation while leaving the versioned scenario unchanged.
 
 ## Prepare a series in one pass
 
@@ -106,14 +106,14 @@ When the user wants to measure the effect of project instructions, offer a contr
 
 Keep the task wording, factual source snapshot, rubric, model, and settings constant wherever possible. If old instructions depend on old versions of other source files, record the mismatch and treat it as a limitation rather than silently changing the task. Do not assume every series must run all three conditions: agree the run matrix with the user. A small pilot on two or three informative scenarios may precede a full comparison. Compare per-scenario evidence; do not infer a general effect from a small sample.
 
-Maintain the ledger in the evaluation-series PR and this coordinator conversation; do not ask the user to fill out a separate report. For each series, keep the suite-level assessment from **Assess the scenario set**: capability importance, relative difficulty, overlap/redundancy, and coverage gaps. The series manifest should include source repository/full SHA, evaluation repository/PR, instruction condition and exact versions, scenario and rubric blob SHAs, model/settings, run order, response comment URLs, and run status. For each individual run, record:
+Maintain the ledger in the evaluation-series PR and this coordinator conversation; do not ask the user to fill out a separate report. For each series, keep the suite-level assessment from **Assess the scenario set**: capability importance, relative difficulty, overlap/redundancy, and coverage gaps. The series manifest should include source repository/full SHA, evaluation repository/PR, instruction condition and exact versions, scenario, rubric, and acceptance-matrix blob SHAs, model/settings, run order, response comment URLs, and run status. For each individual run, record:
 
 - series, scenario ID/title, repository, full SHA, scenario, rubric, and acceptance-matrix blob SHAs, setup verdict, and date;
 - model and settings, if known;
 - five scores, total, result, critical errors, and concise evidence;
 - whether a diff was proposed and its review outcome.
 
-Show individual scenario results, not only averages. Preserve the first result on reruns. Start a new series if the repository snapshot, scenario, rubric, tested model, or materially relevant settings change, and state what changed.
+Show individual scenario results, not only averages. Preserve the first result on reruns. Start a new series if the repository snapshot, scenario, rubric, acceptance matrix, tested model, or materially relevant settings change, and state what changed.
 
 If this conversation is lost, reconstruct only from the evaluation-series PR, available PR metadata, immutable source links, and preserved complete responses; label reconstructed entries.
 
