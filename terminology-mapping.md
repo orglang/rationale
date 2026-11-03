@@ -241,7 +241,7 @@ The binding record carries all three, but that co-location does not make them in
 
 ### 8.5 Allocation transitions and process-incarnation lifecycle
 
-The canonical transaction model gives `Coop` and `Isol` precise state-changing semantics: for a named process `q` and positive weight `w`, `Coop` updates the current allocation function by adding `w`, while `Isol` subtracts `w) subject to the non-negative-weight condition. `Spawn` is separately guarded by `Q(q) > 0) and does not itself modify `Q`.
+The canonical transaction model gives `Coop` and `Isol` precise state-changing semantics: for a named process `q` and positive weight `w`, `Coop` updates the current allocation function by adding `w`, while `Isol` subtracts `w`, subject to the non-negative-weight condition. `Spawn` is separately guarded by `Q(q) > 0` and does not itself modify `Q`.
 
 The inspected implementation does not expose those semantics in its pool type representation:
 - `pool/typeexp` contains `One`, `Link`, `Plus`, `With`, `Up`, and `Down`, but no `Coop` or `Isol`;
