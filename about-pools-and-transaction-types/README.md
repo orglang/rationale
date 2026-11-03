@@ -74,6 +74,29 @@ The grammar in the [transaction introduction](../about-transaction/README.md) gi
 | Service activation | Only after a suitable existing agreement is found or a new one is successfully established does the engine create the incarnation and deliver the provider channel. | Resource reservation/consumption semantics and failure handling between agreement establishment and channel delivery. |
 
 
+### Abstract runtime state
+
+The following is a representation-independent state model derived from the lifecycle above. It identifies the information a conforming runtime must preserve; it does not prescribe concrete structs, database records, storage locations, or identity encodings.
+
+| Abstract component | Meaning | Required invariant |
+|---|---|---|
+| Logical channel identity | Stable identity of the provider/client transaction relationship. | It is unchanged when the active physical representation switches between public and private channels. |
+| Transaction type | Provider-side protocol governing the logical channel. | The public and private physical representations use the same transaction type. |
+| Public physical channel | The public representation of the logical channel. | It remains the restoration target after a matched `Down` or pre-commit cancellation. |
+| Latest committed private channel | The private physical channel whose allocation state was most recently committed by matched `Down`; absent before the first successful negotiation. | Search reads the committed allocation state associated with this channel. An uncommitted attempt never replaces it. |
+| Active private attempt | The sole uncommitted private physical channel, if an `Up` match has started negotiation and no matching `Down` or cancellation has ended it. | At most one active private attempt exists for a logical channel. Its current allocation state is uncommitted `Q'`. |
+| Participant active bindings | The physical channel currently bound at each provider/client endpoint. | After matched `Up`, both endpoints use the new private channel. After matched `Down` or cancellation, both use the public channel. A one-sided pending operation does not itself switch the shared binding. |
+
+The corresponding state transitions are:
+
+1. **Search:** read the allocation state of the latest committed private channel, if one exists, to test suitability. Search does not mutate the committed channel or its `Q`.
+2. **Matched `Up` for candidate negotiation:** create a fresh private physical channel and initialize its uncommitted allocation state from that candidate provider pool's `Q⁰`. Keep the preceding committed private channel current for search; switch both participant bindings to the new private channel.
+3. **`Coop` or `Isol`:** update only the active private attempt's uncommitted allocation state, according to the canonical rules in [What is a transaction?](../about-transaction/README.md#типы-ограничения-уточнения).
+4. **Matched `Down`:** commit the active private channel's current allocation state, make that channel the latest committed private channel, end the active attempt, and restore both participant bindings to the public channel.
+5. **Pre-commit cancellation:** terminate the active private attempt, discard its uncommitted allocation state, end the attempt, and restore both participant bindings to the public channel. Leave the preceding committed private channel and its allocation state unchanged.
+
+This model deliberately distinguishes the **latest committed private channel** from the **active private attempt**. An implementation must not use the active attempt as the search source before matched `Down`, nor initialize a candidate negotiation by copying the preceding committed allocation state. The concrete mechanism for storing `Q`, resolving logical to physical identities, and notifying the peer of private-channel termination remains open.
+
 ### Questions required to complete the agreement model
 
 - How is `Q` physically represented or associated with a private channel? The current model does not decide whether it is stored within the channel or represented separately.
