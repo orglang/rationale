@@ -61,7 +61,7 @@ The implementation exposes several distinct identifiers and binding fields. They
 | **Channel placeholder** | `symbol.ADT`, stored as `ChnlPH` | Confirmed | A symbolic local name used to find a binding in an execution configuration. It is not the channel resource or its identity. |
 | **Channel binding** | `compvar.LinearRec`, `compvar.StructRec` | Confirmed (binding role) | A binding associates an execution, communication, channel identity, placeholder, side, and type-state key. It represents a participant's local binding to a channel. |
 | **Linear / structural binding mode** | `compvar.LinearRec` / `compvar.StructRec`; `LinearMode` / `StructMode` | Confirmed (implementation distinction) | The implementation distinguishes linear and structural channel-variable records. The precise correspondence between these modes and every language-level channel category should be stated where used. |
-| **Provider / client endpoint role** | `LiabSide` / `AssetSide` (`compvar.Side`) | Provisional | These are the implementation's liability/asset side names. They may correspond to provider/client roles in the model, but the naming asymmetry should remain visible until the full construction and use paths are verified. |
+| **Provider / client endpoint role** | `LiabSide` / `AssetSide` (`compvar.Side`) | Confirmed in process type checking | Pool execution initialization assigns `LiabSide` to the liability variable and `AssetSide` to asset variables. Process type checking routes `LiabSide` bindings through `checkProvider` and all other sides through `checkClient`; the implementation's own checker therefore explicitly treats these sides as provider and client. Keep `LiabSide`/`AssetSide` as code identifiers, but use Provider/Client in the model prose. |
 | **Communication exchange** | `commexch.ExchRec`, `CommRef`, `ExchSnap` | Provisional | The exchange record tracks communication-level state and turns. It is distinct from an individual channel identity. |
 | **Execution identity/reference** | `CompRef` (`compsem.SemRef`) | Confirmed (reference role) | Identifies the participating execution in binding and pending-turn records. It must not be confused with `ChnlID`. |
 | **Residual protocol state** | `valkey.ADT`, stored as `ExpVK` | Provisional | The key points to a protocol/type expression state. Its role resembles a residual type, but a full correspondence requires tracing type-expression evaluation and channel-state updates. |
@@ -223,6 +223,21 @@ Sources:
 - [proc/compexec/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/compexec/core/core.go)
 - [proc/termexp/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/termexp/core/core.go)
 - [test/e2e/pool_test.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/test/e2e/pool_test.go)
+
+### 8.4 Endpoint roles and identity domains
+
+The inspected pool execution creation path initializes its liability binding with `LiabSide` and its asset bindings with `AssetSide`. The process type checker then dispatches a `LiabSide` binding to `checkProvider` and the other side to `checkClient`; its context conversion likewise places liability bindings in the `Liabs` context and the remaining bindings in `Assets`.
+
+This is sufficient evidence to align the implementation-side terminology as follows:
+- `LiabSide` ↔ **provider side**;
+- `AssetSide` ↔ **client side** (the checker treats every non-`LiabSide` value as client, while the declared side enum also has an unknown value; callers should therefore ensure only valid sides enter this path).
+
+The three references are also constructed and used in separate roles:
+- `CompRef` is created for a pool/process execution and identifies the participant execution;
+- `CommRef` is created with a communication-exchange record and scopes the exchange;
+- `ChnlID` is created as a channel identity and is used to query the exchange and bind participant-local channel variables.
+
+The binding record carries all three, but that co-location does not make them interchangeable. A channel binding is the join point between participant execution, communication exchange, and channel identity. A more detailed lifecycle across public/private channel changes and process forwarding remains to be traced.
 
 ## 9. Next verification pass
 
