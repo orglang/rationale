@@ -31,7 +31,7 @@ The runner sends the tracked Markdown documentation in the checked-out repositor
 5. Supply distinct agent and grader model IDs and the branch, tag, or commit SHA to evaluate.
 6. Download the agent-workflow-evaluation artifact to inspect the JSON and Markdown reports.
 
-The workflow is manual by design: it does not expose the API key to arbitrary pull-request code through a pull_request trigger. Do not approve a run until the selected ref and its workflow/runner changes have been reviewed.
+The workflow is manual by design: it does not expose the API key to arbitrary pull-request code through a pull_request trigger. GitHub makes workflow_dispatch available only after the workflow file exists on the default branch, so this action becomes available after the PR is merged. Do not approve a run until the selected ref and its workflow/runner changes have been reviewed.
 
 ## Evaluation limits
 
