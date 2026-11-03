@@ -41,7 +41,7 @@ python tests/agent-workflows/run_eval.py --model <provider/model> --grader-model
 python tests/agent-workflows/run_eval.py --agent build --grader-agent plan
 ~~~
 
-The default timeout is one hour per OpenCode invocation; override it with `--timeout SECONDS`.
+The default timeout is one hour per OpenCode invocation; override it with `--timeout SECONDS`. The runner prints each scenario and its current phase, streams OpenCode stderr, reports tool-related events when available, and emits a 15-second heartbeat while either agent or grader is running.
 
 ## Execution model and isolation
 
