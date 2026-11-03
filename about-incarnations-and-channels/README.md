@@ -106,6 +106,32 @@ This is the intended process–pool contract, not a claim about implementation c
 
 **Open:** the convention that a value of `0` means an infinite timeout has been proposed but is not yet an agreed rule.
 
+
+### 5.6 Abstract runtime state at the process–pool boundary
+
+This is a representation-independent view of the `ExternalCall` lifecycle. It names the state distinctions a conforming runtime must preserve; it does not prescribe concrete data structures, persistence, scheduling, or channel identifiers. The call contract remains canonical in [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls), while transaction-channel negotiation state remains canonical in [Pools and transaction types](../about-pools-and-transaction-types/README.md).
+
+| Abstract phase | State that must be represented | Observable/ownership boundary |
+|---|---|---|
+| Call admitted | The caller remains live with its current channel bindings; the named process and supplied client-channel mapping have passed the applicable admission checks. | No target incarnation or fresh provider channel exists as a result of this call. |
+| Agreement search | The call's target process name and the logical transaction channels eligible for discovery. | Search reads only the latest committed allocation state for each logical transaction channel; it does not mutate that state. |
+| Candidate negotiation | The candidate pool and the active private attempt for its logical transaction channel, including that attempt's uncommitted allocation state. | The previous committed private channel remains the search source. The attempt is not an established agreement until matched `Down`. |
+| Agreement ready | The selected servicing pool and a suitable committed agreement for the requested process. | The search-and-negotiation timeout no longer governs the call. Incarnation creation and delivery follow; the call has not yet committed by delivery. |
+| Delivery committed | The fresh incarnation, its fresh provider channel, the selected servicing pool, and the transferred endpoint bindings. | One indivisible delivery makes the new provider channel available to the caller and the corresponding bindings available to the pool and incarnation. |
+| Servicing | The new incarnation is live and associated with the selected pool; the caller has received the fresh provider channel. | Caller continuation and pool servicing may proceed in either order or interleave, subject to channel protocols and linearity. |
+
+The transitions and their boundaries are:
+
+1. **Admission → search:** resolve the target and validate the supplied channel mapping. A failed admission leaves the caller's existing bindings unchanged.
+2. **Search → agreement ready:** if a suitable committed agreement is found, select its servicing pool. Search does not create an incarnation or provider channel.
+3. **Search → candidate negotiation:** if no suitable committed agreement is found, try candidate pools under the shared timeout. The private-attempt state and its cancellation/commit rules are defined in [Pools and transaction types, Section 2.1](../about-pools-and-transaction-types/README.md#21-negotiation-protocol-and-established-agreement).
+4. **Candidate negotiation → agreement ready:** only matched `Down` commits the candidate's prepared allocation state and makes that channel the current committed private channel. Candidate cancellation, candidate exhaustion, or timeout before this point ends the call without creating the target incarnation or fresh provider channel; supplied client channels remain with the caller.
+5. **Agreement ready → delivery committed:** create a fresh incarnation and fresh provider channel, associate the incarnation with the selected pool, and atomically deliver the provider channel to the caller together with the corresponding endpoint bindings to the pool and incarnation. Delivery is the `ExternalCall` commit point. The preparation must not expose a partially initialized live incarnation or partially transferred channel ownership.
+6. **Delivery committed → servicing:** both caller and selected pool may proceed. Neither must wait for the other to perform its first protocol action.
+
+**State separation required of an implementation:** the active negotiation attempt, the latest committed agreement, the not-yet-delivered incarnation preparation, and the delivered live incarnation are distinct states. In particular, an uncommitted negotiation cannot be used as an established agreement; a prepared incarnation is not yet a successfully delivered call; and delivery does not imply that either side has already performed its first channel action.
+
+**Open implementation details:** the representation of these phases, the allocation and persistence of incarnation/channel identities, the atomic-delivery mechanism, and failure handling after an agreement is ready but before delivery are not determined by this abstract model. These details must not weaken the stated visibility and ownership boundaries.
 ## 6. Evidence and rationale
 
 This section records the evidence and reasoning behind the working model. Claim status and implementation coverage remain distinct, as defined in Section 1.
