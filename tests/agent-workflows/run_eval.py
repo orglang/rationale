@@ -9,30 +9,42 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from deepeval.dataset import EvaluationDataset
 from deepeval.metrics import GEval
 from deepeval.test_case import LLMTestCase, SingleTurnParams
 
 CRITICAL = {"Semantic discipline", "Evidence and compatibility"}
 
 
-def parse_scenarios(path):
-    source = path.read_text(encoding="utf-8")
-    headings = list(re.finditer(r"(?m)^##\s+(\d+)\.\s+(.+?)\s*$", source))
+def load_scenarios(path):
+    dataset = EvaluationDataset()
+    dataset.add_goldens_from_jsonl_file(file_path=str(path))
     scenarios = []
-    for i, heading in enumerate(headings):
-        block = source[heading.end():headings[i + 1].start() if i + 1 < len(headings) else len(source)]
-        fields = {}
-        for label, next_label in (("Prompt", "Expected behavior"), ("Expected behavior", "Failure signals"), ("Failure signals", None)):
-            lookahead = rf"(?=\n\*\*{re.escape(next_label)}\*\*)" if next_label else r"\Z"
-            match = re.search(rf"\*\*{re.escape(label)}\*\*\s*\n(.*?){lookahead}", block, re.S)
-            if not match:
-                raise ValueError(f"Scenario {heading.group(1)}: missing {label}")
-            fields[label.lower().replace(" ", "_")] = match.group(1).strip()
-        scenarios.append({"id": int(heading.group(1)), "title": heading.group(2).strip(), **fields})
+    seen_ids = set()
+    for golden in dataset.goldens:
+        metadata = golden.additional_metadata or {}
+        required = {"id", "title", "failure_signals"}
+        missing = required - metadata.keys()
+        if missing:
+            raise ValueError(f"Scenario metadata is missing: {', '.join(sorted(missing))}")
+        scenario_id = int(metadata["id"])
+        if scenario_id in seen_ids:
+            raise ValueError(f"Duplicate scenario id: {scenario_id}")
+        if not golden.input or not golden.expected_output:
+            raise ValueError(f"Scenario {scenario_id}: input and expected_output are required")
+        if not isinstance(metadata["failure_signals"], list) or not metadata["failure_signals"]:
+            raise ValueError(f"Scenario {scenario_id}: failure_signals must be a non-empty list")
+        seen_ids.add(scenario_id)
+        scenarios.append({
+            "id": scenario_id,
+            "title": str(metadata["title"]),
+            "prompt": golden.input,
+            "expected_behavior": golden.expected_output,
+            "failure_signals": "\\n".join(metadata["failure_signals"]),
+        })
     if not scenarios:
-        raise ValueError("No numbered scenarios found")
-    return scenarios
-
+        raise ValueError("No scenarios found")
+    return sorted(scenarios, key=lambda item: item["id"])
 
 def parse_rubric(path):
     criteria = []
@@ -150,7 +162,7 @@ def main():
         parser.error(f"Install evaluation dependencies first: {error}")
 
     root = args.repo_root.resolve()
-    scenarios = parse_scenarios(root / "tests/agent-workflows/scenarios.md")
+    scenarios = load_scenarios(root / "tests/agent-workflows/scenarios.jsonl")
     criteria = parse_rubric(root / "tests/agent-workflows/rubric.md")
     if args.scenario:
         wanted = set(args.scenario)
