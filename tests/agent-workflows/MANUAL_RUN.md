@@ -15,7 +15,7 @@ This procedure runs the seven scenarios in ChatGPT without an API key, runner, o
    - the selected scenario's **Prompt** section copied from `scenarios.md`.
 4. Do **not** give the agent `scenarios.md` in full or `rubric.md`: they contain expected behavior and failure signals.
 5. Paste the **Agent prompt** below, replacing the scenario placeholder with that one prompt. Save the complete response and any proposed diff.
-6. In a separate conversation, give the evaluator the five instruction files, the complete `scenarios.md`, `rubric.md`, the saved agent response/diff, and the **Evaluator prompt** below. The evaluator must score the evidence, not just the agent's wording.
+6. In a separate conversation, give the evaluator the same repository snapshot and five instruction files, the complete `scenarios.md`, `rubric.md`, the saved agent response/diff, and the **Evaluator prompt** below. The evaluator must score the evidence, not just the agent's wording.
 7. Repeat for all seven scenarios. Use one run record per scenario, or copy the template at the end into a single combined record.
 
 For a convenient file handoff, download the files from the same commit SHA (GitHub file links should use that SHA) and attach them to the relevant ChatGPT conversation. If you cannot attach files, paste their contents. Do not use files from the current default branch when evaluating a different PR snapshot.
