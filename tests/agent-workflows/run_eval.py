@@ -209,10 +209,37 @@ def grade(scenario, criteria, execution, rubric, root, model, agent, timeout, tr
         "behavior.\n\nRUBRIC:\n" + rubric + "\n\nEVIDENCE:\n" +
         json.dumps(evidence, ensure_ascii=False)
     )
-    # Grading is evidence-only; an empty workspace prevents repository exploration.
+    # Grading is evidence-only; disable tools for the selected grader agent.
     with tempfile.TemporaryDirectory(prefix="opencode-grader-") as grader_dir:
+        grader_dir = Path(grader_dir)
+        config = {
+            "$schema": "https://opencode.ai/config.json",
+            "agent": {
+                agent: {
+                    "permission": {
+                        "bash": "deny",
+                        "read": "deny",
+                        "edit": "deny",
+                        "glob": "deny",
+                        "grep": "deny",
+                        "list": "deny",
+                        "task": "deny",
+                        "webfetch": "deny",
+                        "websearch": "deny",
+                        "skill": "deny",
+                        "lsp": "deny",
+                        "todowrite": "deny",
+                        "question": "deny",
+                        "external_directory": "deny"
+                    }
+                }
+            }
+        }
+        (grader_dir / "opencode.json").write_text(
+            json.dumps(config, ensure_ascii=False, indent=2) + "\\n",
+            encoding="utf-8")
         result, events, message = opencode(
-            prompt, Path(grader_dir), model, agent=agent, auto=False,
+            prompt, grader_dir, model, agent=agent, auto=False,
             timeout=timeout, label="Grader", trace_path=trace_path)
     trace_path.write_text(result.stdout, encoding="utf-8")
     start, end = message.find("{"), message.rfind("}")
