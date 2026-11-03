@@ -236,7 +236,7 @@ def grade(scenario, criteria, execution, rubric, root, model, agent, timeout, tr
             }
         }
         (grader_dir / "opencode.json").write_text(
-            json.dumps(config, ensure_ascii=False, indent=2) + "\\n",
+            json.dumps(config, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8")
         result, events, message = opencode(
             prompt, grader_dir, model, agent=agent, auto=False,
