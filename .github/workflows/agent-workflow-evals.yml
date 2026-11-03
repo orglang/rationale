@@ -21,7 +21,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: agent-workflow-evals-${ github.ref }}
+  group: agent-workflow-evals-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
       - name: Check out requested snapshot
         uses: actions/checkout@v4
         with:
-          ref: ${ inputs.ref }}
+          ref: ${{ inputs.ref }}
           persist-credentials: false
 
       - name: Set up Python
@@ -49,9 +49,9 @@ jobs:
 
       - name: Run behavioral evaluations
         env:
-          OPENAI_API_KEY: ${ secrets.OPENAI_API_KEY }}
-          OPENAI_EVAL_MODEL: ${ inputs.model }}
-          OPENAI_EVAL_GRADER_MODEL: ${ inputs.grader_model }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_EVAL_MODEL: ${{ inputs.model }}
+          OPENAI_EVAL_GRADER_MODEL: ${{ inputs.grader_model }}
           DEEPEVAL_TELEMETRY_OPT_OUT: "1"
         run: |
           python tests/agent-workflows/run_eval.py \
@@ -62,7 +62,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: agent-workflow-evaluation-${ github.run_id }}
+          name: agent-workflow-evaluation-${{ github.run_id }}
           path: eval-results/
           if-no-files-found: warn
           retention-days: 30
