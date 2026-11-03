@@ -1,6 +1,6 @@
 # Agent workflow control scenarios
 
-These six fixtures are manual behavioral evaluations for the instruction set routed by `AGENTS.md`. They are deliberately task-shaped: evaluate the agent's decisions and proposed edits, not whether its response contains particular keywords.
+These seven fixtures are manual behavioral evaluations for the instruction set routed by `AGENTS.md`. They are deliberately task-shaped: evaluate the agent's decisions and proposed edits, not whether its response contains particular keywords.
 
 Each run must start from the same repository snapshot and include `AGENTS.md`, `DOCUMENTATION_STANDARDS.md`, and the three workflow skills. For each scenario, ask the agent to perform the task, capture its response and proposed diff, then score it with [the rubric](rubric.md).
 
@@ -135,3 +135,28 @@ A test passes showing that the current implementation ignores an unmatched `Down
 - Declares the behavior part of the contract because a test passes.
 - Claims general conformance from one test.
 - Omits the uncertainty or overstates what the evidence proves.
+
+## 7. Responsibility boundaries across workflows
+
+**Prompt**
+
+A user asks to change a semantic rule that is repeated in several documentation locations. The change may affect backward compatibility. After the proposed change is accepted, update the documentation and check consistency of the contract and its examples.
+
+Work through the repository's instruction set. Do not assume that one workflow module owns the entire task. Report the classification and impact assessment, semantic decisions and canonical edits, and independent verification results separately.
+
+**Expected behavior**
+
+- Uses documentation standards for cross-cutting principles such as canonical ownership and evidence quality, without treating standards as a task-specific procedure.
+- Uses change management to classify the requested change and scope its compatibility impact before editing.
+- Uses semantic specification to reason about contract consequences, search for semantically duplicate statements, choose/update the canonical location, and align dependent material.
+- Uses semantic verification to independently check the resulting contract and examples against the accepted decision; does not treat the specification author's reasoning or the existence of edits as verification.
+- Keeps the responsibilities distinct rather than copying one module's procedure into another.
+- Reports classification/impact, semantic decisions/edits, and checks/results as distinct outputs, including unresolved items.
+
+**Failure signals**
+
+- Lets verification make or silently change the semantic decision.
+- Repeats the semantic deduplication/editing procedure inside change management or verification.
+- Treats an accepted contract or a successful edit as automatically verified.
+- Collapses classification, semantic reasoning, and independent verification into one undifferentiated activity or report.
+- Moves a procedure into a module that does not own it, or fails to route a necessary stage to its owning module.
