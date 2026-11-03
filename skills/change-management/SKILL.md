@@ -41,7 +41,7 @@ Trace consequences in proportion to the change. Consider:
 - relevant tests, reference behavior, and implementation evidence;
 - consumers, migration needs, or versioning implications when compatibility may change.
 
-Search for equivalent claims and alternate representations, not only identical wording. Update the canonical explanation first, then align affected material. Do not expand the scope to unrelated areas merely to complete a checklist.
+Identify which canonical rules and dependent representations may be affected; this is impact scoping, not the semantic-deduplication procedure. When the contract is being edited, use the search, ownership, and canonical-update procedure in [`semantic-specification`](../semantic-specification/SKILL.md). Do not expand the scope to unrelated areas merely to complete a checklist.
 
 Keep distinct:
 - the intended contract;
