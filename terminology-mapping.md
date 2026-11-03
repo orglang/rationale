@@ -5,9 +5,13 @@
 **Implementation snapshot:** `orglang/go-engine` commit [`8ef6983f7a112616ee3f78d4f98e615686931e6a`](https://github.com/orglang/go-engine/tree/8ef6983f7a112616ee3f78d4f98e615686931e6a).
 
 **Canonical model documents:**
+
 - [Pools and transaction types](about-pools-and-transaction-types/README.md)
+
 - [Processes and session types](about-processes-and-session-types/README.md)
+
 - [Incarnations and channels](about-incarnations-and-channels/README.md)
+
 - [What is a transaction?](about-transaction/README.md)
 
 ## 1. Purpose and method
@@ -24,7 +28,9 @@ A matching name is not sufficient evidence of matching semantics. An AST constru
 ### Mapping status
 
 - **Confirmed** — the correspondence is supported for the specific aspect stated in the notes. This does not imply full semantic or runtime conformance.
+
 - **Provisional** — the representation is a plausible or partial match, but its complete semantics or lifecycle has not been verified.
+
 - **Unresolved** — no reliable correspondence has been established, or the available evidence leaves a material mismatch.
 
 These labels describe terminology correspondence only. They do not replace the claim-evidence and implementation-coverage statuses used in the process and pool model documents.
@@ -46,10 +52,15 @@ For vocabulary convergence, distinguish **preferred language term**, **current i
 | **Term/type name** | `uniqsym.ADT` values such as `TermQN`, `ProcTermQN`, `TypeQN` | Confirmed (name role) | These are symbolic names used to look up definitions. They are not execution references or channel identities. |
 
 Relevant source locations:
+
 - [pool/termdef](https://github.com/orglang/go-engine/tree/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/termdef)
+
 - [pool/compexec](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/compexec/core/core.go)
+
 - [proc/termdef](https://github.com/orglang/go-engine/tree/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/termdef)
+
 - [proc/termdec](https://github.com/orglang/go-engine/tree/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/termdec)
+
 - [proc/compexec](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/compexec/core/core.go)
 
 ## 3. Channels, identities, and bindings
@@ -86,9 +97,13 @@ The model deliberately distinguishes pool-level transaction protocols from proce
 | **Session constructors** | `proc/typeexp` records | Provisional | The process type-expression package has its own constructor family. Do not infer a one-to-one mapping from pool constructors or assume the two grammars are interchangeable. |
 
 Sources:
+
 - [pool/typeexp/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/typeexp/core/core.go)
+
 - [proc/typeexp](https://github.com/orglang/go-engine/tree/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/typeexp)
+
 - [pool/typedef](https://github.com/orglang/go-engine/tree/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/typedef)
+
 - [proc/typedef](https://github.com/orglang/go-engine/tree/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/typedef)
 
 ### 4.1 Pool transaction operations
@@ -96,9 +111,13 @@ Sources:
 The pool expression package contains operational specifications including:
 
 - `AcquireSpec` and `AcceptSpec`;
+
 - `ReleaseSpec` and `DetachSpec`;
+
 - `HireSpec` and `ApplySpec`;
+
 - `FireSpec` and `QuitSpec`;
+
 - `SpawnSpec` and `SpawnSpec2`.
 
 The pool type-expression package separately contains `UpSpec` and `DownSpec`, each with a continuation expression. The inspected pool executor has paired handling for `Acquire`/`Accept`, `Hire`/`Apply`, and `Release`/`Detach`. Although `FireSpec` and `QuitSpec` are declared in `pool/termexp`, no corresponding `FireSpec` or `QuitSpec` cases were found in the inspected `pool/compexec` executor.
@@ -113,8 +132,11 @@ The pool type-expression package separately contains `UpSpec` and `DownSpec`, ea
 | Model-level `spawn` in transaction grammar | `SpawnSpec`, `SpawnSpec2` in `pool/termexp`; no corresponding `pool/typeexp` constructor | Provisional (AST only) | Pool-expression spawn forms refer to process terms and/or process execution references, but no matching case was found in the inspected pool executor and no typed `spawn` constructor exists in the inspected pool type grammar. Correspondence to the model's `Q(q) > 0` rule and runtime process creation is not established. |
 
 Sources:
+
 - [pool/termexp/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/termexp/core/core.go)
+
 - [pool/compexec/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/compexec/core/core.go)
+
 - [pool/typeexp/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/typeexp/core/core.go)
 
 ### 4.2 Pending interactions and matching
@@ -129,8 +151,11 @@ The implementation uses `commturn.PubRec` and `commturn.SubRec` records. Both co
 | **Continuation binding** | New `ChnlID` plus `LinearRec` entries | Confirmed (binding behavior in inspected cases) | The executor creates a channel identity and binds the two participant placeholders to it after a match. This is not the same as executing arbitrary language-level continuation expressions. |
 
 Sources:
+
 - [pool/commturn/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/commturn/core/core.go)
+
 - [pool/commexch/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/commexch/core/core.go)
+
 - [pool/compexec/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/compexec/core/core.go)
 
 ## 5. Calls and incarnation creation
@@ -199,7 +224,9 @@ This pass inspected the executor switch cases and the end-to-end pool test at th
 The pool executor contains explicit cases for `AcceptSpec`, `AcquireSpec`, `ApplySpec`, `HireSpec`, `ReleaseSpec`, and `DetachSpec`. In each pair, one side can store a pending `SubRec`; when the counterpart arrives, the executor creates a fresh `ChnlID`, installs continuation bindings for both participants, and schedules a continuation where one is present.
 
 The end-to-end test `test/e2e/pool_test.go` constructs a pool that performs:
+
 - `Acquire` followed by `Hire` and `Release`;
+
 - the matching `Accept` followed by `Apply` and `Detach`.
 
 The test therefore provides evidence for a working paired path for access acquisition, competence negotiation, and access release in this snapshot. The vocabulary correspondence is agreed: `Hire` and `Apply` are the two participant-side forms of one model-level `Coop` operation. This does **not** establish the weighted allocation update required by `Coop`; the implementation currently has no weight parameter or demonstrated `Q` update.
@@ -213,8 +240,11 @@ The process expression package declares `CallSpec`, `LinkSpec`, and `SpawnSpec`.
 The end-to-end process-call test constructs a `CallSpec`, invokes the process executor, and then contains a TODO instead of asserting the resulting incarnation, channel bindings, or continuation behavior. This test is not evidence of successful call semantics.
 
 Accordingly:
+
 - `ExternalCall` ↔ `CallSpec` remains an **AST-level candidate only**;
+
 - `InternalCall` ↔ `LinkSpec` remains **unresolved**;
+
 - process-expression `SpawnSpec` remains an **AST-level candidate only** in this execution path.
 
 ### 8.3 Evidence boundary
@@ -222,10 +252,15 @@ Accordingly:
 A negative search for a type-switch case is bounded to the inspected executor file and commit. It does not prove that no adapter, alternate executor, or later implementation path exists elsewhere in the repository. The status above is therefore phrased as “no matching case found in the inspected executor”, not as a repository-wide claim that the feature does not exist.
 
 Sources:
+
 - [pool/compexec/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/compexec/core/core.go)
+
 - [pool/termexp/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/termexp/core/core.go)
+
 - [proc/compexec/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/compexec/core/core.go)
+
 - [proc/termexp/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/termexp/core/core.go)
+
 - [test/e2e/pool_test.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/test/e2e/pool_test.go)
 
 ### 8.4 Endpoint roles and identity domains
@@ -233,12 +268,17 @@ Sources:
 The inspected pool execution creation path initializes its liability binding with `LiabSide` and its asset bindings with `AssetSide`. The process type checker then dispatches a `LiabSide` binding to `checkProvider` and the other side to `checkClient`; its context conversion likewise places liability bindings in the `Liabs` context and the remaining bindings in `Assets`.
 
 This is sufficient evidence to align the implementation-side terminology as follows:
+
 - `LiabSide` ↔ **provider side**;
+
 - `AssetSide` ↔ **client side** (the checker treats every non-`LiabSide` value as client, while the declared side enum also has an unknown value; callers should therefore ensure only valid sides enter this path).
 
 The three references are also constructed and used in separate roles:
+
 - `CompRef` is created for a pool/process execution and identifies the participant execution;
+
 - `CommRef` is created with a communication-exchange record and scopes the exchange;
+
 - `ChnlID` is created as a channel identity and is used to query the exchange and bind participant-local channel variables.
 
 The binding record carries all three, but that co-location does not make them interchangeable. A channel binding is the join point between participant execution, communication exchange, and channel identity. A more detailed lifecycle across public/private channel changes and process forwarding remains to be traced.
@@ -248,30 +288,47 @@ The binding record carries all three, but that co-location does not make them in
 The canonical transaction model gives `Coop` and `Isol` precise state-changing semantics: for a named process `q` and positive weight `w`, `Coop` updates the current allocation function by adding `w`, while `Isol` subtracts `w`, subject to the non-negative-weight condition. `Spawn` is separately guarded by `Q(q) > 0` and does not itself modify `Q`.
 
 The inspected implementation does not expose those semantics in its pool type representation:
+
 - `pool/typeexp` contains `One`, `Link`, `Plus`, `With`, `Up`, and `Down`, but no `Coop` or `Isol`;
+
 - its `ExpRec` variants carry a continuation and, for choices, process names, but no allocation function or weight;
+
 - `HireSpec`/`ApplySpec` carry a process-term name and represent competence request/offer, not an explicit increment/decrement of `Q`;
+
 - `FireSpec`/`QuitSpec` are declared, but no executor cases were found in the inspected pool executor;
+
 - the pool type representation has no visible `Spawn` constructor either.
 
 The vocabulary correspondence is agreed: `Hire` and `Apply` are the two participant-side forms of the single model operation `Coop`; `Fire` and `Quit` are the two participant-side forms of the single model operation `Isol`. They are not four separate model operations. This terminology alignment must not be mistaken for completed runtime semantics. In the inspected snapshot, the operation specifications have no weight parameter, the pool type representation has no allocation function or weight state, and no `Fire`/`Quit` executor cases were found. The weighted `Q` increment/decrement and the non-negativity guard therefore remain implementation work.
 
 For process incarnations, `compsem.New()` creates a fresh `SemRef` using `identity.New()` plus a revision number. The pool executor's `Spawn` method persists a new `proc/compexec.ExecRec` with that reference and `LinearMode`. This is evidence for allocation of a fresh execution record and identifier. It is not evidence for a complete process-incarnation start:
+
 - the inspected `Spawn` method does not bind channels, resolve a process declaration, or schedule a process body;
+
 - `proc/compexec.RetrieveSnap` is currently a stub returning an empty snapshot;
+
 - the inspected process PGX adapter's `selectChnls` SQL uses the literal `proc_id = 'proc1'` in its CTEs rather than the supplied execution reference, so this snapshot does not demonstrate correct per-incarnation channel retrieval through that adapter.
 
 The model's identity rule says allocated incarnation identities are never reused. A fresh `xid`-based identifier generator is consistent with uniqueness in ordinary operation, but the inspected code alone does not prove the model-wide persistence and never-reuse guarantee across deletion, restoration, or all execution paths.
 
 Sources:
+
 - [about-transaction/README.md](https://github.com/orglang/rationale/blob/main/about-transaction/README.md)
+
 - [about-incarnations-and-channels/README.md](https://github.com/orglang/rationale/blob/main/about-incarnations-and-channels/README.md)
+
 - [pool/typeexp/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/typeexp/core/core.go)
+
 - [pool/termexp/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/termexp/core/core.go)
+
 - [adt/compsem/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/adt/compsem/core.go)
+
 - [adt/identity/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/adt/identity/core.go)
+
 - [pool/compexec/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/compexec/core/core.go)
+
 - [proc/compexec/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/compexec/core/core.go)
+
 - [proc/compexec/adapter/ds_pgx.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/compexec/adapter/ds_pgx.go)
 
 ## 9. Next verification pass
