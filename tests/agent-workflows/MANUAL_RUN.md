@@ -6,7 +6,7 @@ This procedure runs the seven scenarios in ChatGPT without an API key, runner, o
 
 1. Choose the exact repository snapshot to test. For PR work, use the PR head SHA, not a moving branch name. Record it before starting.
 2. Open a **fresh ChatGPT conversation for each scenario**. Use the same model selection and settings for all seven runs. Do not reuse a conversation: earlier scenarios can leak answers into later ones.
-3. Give the agent only:
+3. Give the agent read-only access to the exact repository snapshot, or attach the repository files needed to inspect the scenario's claims and propose changes. Include the complete relevant documentation, examples, tables, diagrams, and tests—not just the instruction files. Also include:
    - `AGENTS.md`;
    - `DOCUMENTATION_STANDARDS.md`;
    - `skills/change-management/SKILL.md`;
@@ -43,13 +43,13 @@ TASK:
 
 ## Evaluator prompt
 
-Use a **separate conversation** from the agent run. Attach the same five instruction files, the full `scenarios.md`, `rubric.md`, and the complete agent response (including its proposed diff).
+Use a **separate conversation** from the agent run. Give the evaluator read-only access to, or attach, the same repository snapshot and five instruction files. Also provide the full `scenarios.md`, `rubric.md`, and the complete agent response (including its proposed diff).
 
 ```text
 Act as an independent reviewer of this manual behavioral evaluation.
 
 Inputs:
-- The repository instruction snapshot and its commit SHA.
+- The repository snapshot (including relevant specification/docs/examples/tests), its commit SHA, and the five instruction files.
 - The complete scenario fixture, including expected behavior and failure signals.
 - The scoring rubric.
 - The agent's complete response and proposed diff, if any.
