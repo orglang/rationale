@@ -25,7 +25,9 @@ Use [`semantic-verification`](../semantic-verification/SKILL.md) to select propo
 
 ## Semantic deduplication
 
-This section owns the operational procedure for semantic deduplication. [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) owns the general canonical-source principle; [`change-management`](../change-management/SKILL.md) identifies the potentially affected scope; [`semantic-verification`](../semantic-verification/SKILL.md) checks the resulting specification for remaining inconsistencies.\n\nTreat duplication as repeated claims, not just repeated wording. A rule may recur as prose, a table row, an example, or a transition description.
+This section owns the operational procedure for semantic deduplication. [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) owns the general canonical-source principle; [`change-management`](../change-management/SKILL.md) identifies the potentially affected scope; [`semantic-verification`](../semantic-verification/SKILL.md) checks the resulting specification for remaining inconsistencies.
+
+Treat duplication as repeated claims, not just repeated wording. A rule may recur as prose, a table row, an example, or a transition description.
 
 - Before editing, search relevant documents for the concept, its aliases, paraphrases, and other representations. Identify the canonical contract and distinguish it from necessary local context, derived consequences, evidence, and independent rules.
 - Keep the rule in one canonical location. Elsewhere use a link, or the minimum local explanation needed to understand that section.
