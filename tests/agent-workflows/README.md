@@ -17,7 +17,7 @@ opencode auth list
 opencode models
 ~~~
 
-OpenCode documents `opencode run --format json` as its non-interactive, machine-readable command. The scenario agent runs with `--auto` so approved local tools can be used without interactive prompts. The grader uses the `plan` agent by default to keep grading read-only.
+OpenCode documents `opencode run --format json` as its non-interactive, machine-readable command. The scenario agent runs with `--auto` so approved local tools can be used without interactive prompts. The grader uses the `plan` agent by default and receives a temporary project config that disables its tools; it scores only the supplied evidence.
 
 ## Run
 
@@ -49,7 +49,7 @@ For each scenario, the runner creates a detached Git worktree at the current `HE
 
 Each scenario starts from a clean copy of the same commit, so one scenario cannot contaminate another. Changes are never applied to the user's active checkout. The worktree is removed after its patch and evidence have been collected. Uncommitted changes in the active checkout are not included; commit or otherwise preserve the snapshot you want to evaluate before running.
 
-The grader runs as a separate OpenCode invocation using the `plan` agent by default. You can select another grader agent with `--grader-agent`, but ensure its permissions are read-only. Unless `--grader-model` selects another model, the agent and grader may use the same configured model. Model-based scoring is advisory, not an independent proof; review critical findings and saved evidence manually.
+The grader runs as a separate OpenCode invocation using the `plan` agent by default. In its temporary workspace, the runner explicitly denies shell, file, search, task, and network tools for the selected grader agent; grading is based only on the supplied rubric and evidence. You can select another grader agent with `--grader-agent`; the same tool restrictions are applied to that agent for this invocation. Unless `--grader-model` selects another model, the agent and grader may use the same configured model. Model-based scoring is advisory, not an independent proof; review critical findings and saved evidence manually.
 
 ## Reports
 
