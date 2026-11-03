@@ -4,23 +4,30 @@ This directory contains seven controlled behavioral scenarios and a shared scori
 
 ## What is automated
 
-The repository CI validates Markdown formatting and local links. A separate, manually dispatched GitHub Actions workflow can run all seven scenarios against an OpenAI model and grade the responses with a second, different model.
+The repository CI validates Markdown formatting, local links, and Python syntax. A separate, manually dispatched GitHub Actions workflow runs the scenarios against an OpenAI model and evaluates each rubric criterion with DeepEval G-Eval using a second, different model.
 
 ## Run locally
 
-The runner uses only the Python standard library:
+Install the pinned evaluation dependencies:
+
+~~~sh
+python -m pip install -r tests/agent-workflows/requirements-eval.txt
+~~~
+
+Configure credentials and model IDs, then run:
 
 ~~~sh
 export OPENAI_API_KEY="..."
 export OPENAI_EVAL_MODEL="model-id-for-agent"
 export OPENAI_EVAL_GRADER_MODEL="different-model-id-for-grader"
+export DEEPEVAL_TELEMETRY_OPT_OUT="YES"
 
 python tests/agent-workflows/run_eval.py
 ~~~
 
 Run one scenario with --scenario 7. Reports are written to eval-results/report.json and eval-results/report.md.
 
-The runner sends the tracked Markdown documentation in the checked-out repository, the selected scenario, and the rubric to the OpenAI Responses API. It makes one agent call and one independent grading call per scenario. The model IDs are explicit so runs can record and compare the exact configuration selected by the operator. The grader model ID must differ from the agent model ID.
+The runner sends the tracked Markdown documentation in the checked-out repository and the selected scenario to the agent model through the OpenAI Responses API. DeepEval then scores each of the five rubric criteria independently with G-Eval. The grader model ID must differ from the agent model ID. A full seven-scenario run makes one agent request and five judge evaluations per scenario; judge calls and cost are therefore higher than the previous single-call grader.
 
 ## Configure GitHub Actions
 
@@ -37,9 +44,9 @@ The workflow is manual by design: it does not expose the API key to arbitrary pu
 
 The runner is a first, text-only harness. It gives the tested model the repository's Markdown snapshot and asks for a response or proposed diff. It does not expose GitHub, shell, filesystem-write, or other tools to the model; proposed diffs are not applied and tests are not run.
 
-A separate model grades each response against the five criteria in rubric.md, using the scenario's expected behavior and failure signals. The score is advisory: all runs require human review, especially borderline results and any critical failure. A model grader can miss subtle semantic errors or be influenced by the same ambiguity as the tested model. Do not treat a passing score as proof of correctness.
+DeepEval G-Eval is used for subjective, criterion-specific assessment, not as a deterministic proof. The runner maps normalized G-Eval scores to the rubric's 0/1/2 scale and applies the existing pass/borderline/fail thresholds, including critical-failure gates. G-Eval is nondeterministic; scores can vary between runs. The complete response, per-criterion evidence, model IDs, repository SHA, and framework version must be reviewed together. A passing score is advisory and does not replace human review.
 
-Each report records the repository SHA, model IDs, outputs, criterion-level evidence, usage metadata, and limitations. Compare runs only when the snapshot, model IDs, and harness are controlled. The runner fails closed when an API call or grading step fails. This harness uses the Responses API directly and does not depend on the legacy OpenAI Evals platform.
+The runner fails closed when an API call or grading step fails. It does not depend on a Confident AI account; DeepEval runs locally with the configured LLM provider key. Telemetry is disabled in the provided workflow.
 
 ## Keeping scenarios current
 
