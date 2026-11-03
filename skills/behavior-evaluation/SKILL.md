@@ -38,7 +38,7 @@ A scenario or rubric change creates a new evaluation series under the Run ledger
    - `AGENTS.md`, `DOCUMENTATION_STANDARDS.md`;
    - `skills/change-management/SKILL.md`, `skills/semantic-specification/SKILL.md`, and `skills/semantic-verification/SKILL.md`;
    - **all** files under `tests/agent-workflows/` planned for the series;
-   - `skills/behavior-evaluation/prompt-template.md` and `rubric.md`;
+   - `skills/behavior-evaluation/prompt-template.md`, `rubric.md`, and the evaluator-only `scenario-acceptance.md`;
    - task-relevant canonical specifications, documentation, examples, diagrams, tables, and tests.
 3. Validate every planned fixture in the same preparation pass. Record each setup verdict and concise fixture-specific findings. Assess the scenario set once as a whole.
 4. Build one **complete prompt file for every planned scenario × condition** in the evaluation-series repository. Each file must contain the full user-facing task text, run metadata, an exact description of the condition, the pinned source snapshot SHA, and immutable links plus blob SHAs for every permitted source material. Do not store only a link to the source scenario or require the tested agent to assemble the prompt from multiple files. If a scenario is run under A/B/C, create a separate prompt file for each condition. Store the run matrix and prompt paths in the series manifest.
@@ -82,12 +82,13 @@ Any proposed diff is included inline in the tested agent's response only when th
 
 ## Evaluate
 
-Evaluate in the coordinator conversation using the pinned full scenario and rubric. Keep evaluation material out of the tested agent's context; do not include it in prompt files or provide it to the tested agent.
+Evaluate in the coordinator conversation using the pinned full scenario, `rubric.md`, and the scenario-specific acceptance/post-check matrix in `scenario-acceptance.md`. Keep all evaluation material out of the tested agent's context; do not include it in prompt files or provide it to the tested agent.
 
 - Score all five rubric criteria from 0–2.
 - Support each score with concrete evidence from the complete response. Explain every score below 2.
 - Distinguish demonstrated failure from missing evidence. Do not reward keywords, confidence, or unsupported claims.
-- Review any proposed diff for consistency with the pinned snapshot, justified/minimal scope, contract preservation, appropriate files, and supported verification claims.
+- Apply every relevant scenario-specific post-check and record it as **pass**, **fail**, **not applicable**, or **not verifiable**, with a concise evidence note. Keep objective artifact checks distinct from expert semantic judgment.
+- Review any proposed diff for consistency with the pinned snapshot, justified/minimal scope, contract preservation, appropriate files, and supported verification claims. In this evaluation setup, the tested agent has no working-tree editing capability: a returned diff is a proposal, not an applied change.
 - Apply the exact pinned rubric thresholds and critical-failure rules. Keep severe semantic failures visible even if the total is high.
 
 Return an English report with scenario/title, repository and SHA, fixture versions, setup verdict and concise setup findings, model/settings if known, five criterion scores and evidence, total /10 and rubric result, critical errors or missing evidence, diff assessment (or explicit no-diff statement), and concrete rerun recommendations. Do not rewrite the agent response before scoring. Human review is required for borderline outcomes and material failures.
@@ -107,7 +108,7 @@ Keep the task wording, factual source snapshot, rubric, model, and settings cons
 
 Maintain the ledger in the evaluation-series PR and this coordinator conversation; do not ask the user to fill out a separate report. For each series, keep the suite-level assessment from **Assess the scenario set**: capability importance, relative difficulty, overlap/redundancy, and coverage gaps. The series manifest should include source repository/full SHA, evaluation repository/PR, instruction condition and exact versions, scenario and rubric blob SHAs, model/settings, run order, response comment URLs, and run status. For each individual run, record:
 
-- series, scenario ID/title, repository, full SHA, scenario/rubric versions, setup verdict, and date;
+- series, scenario ID/title, repository, full SHA, scenario, rubric, and acceptance-matrix blob SHAs, setup verdict, and date;
 - model and settings, if known;
 - five scores, total, result, critical errors, and concise evidence;
 - whether a diff was proposed and its review outcome.
