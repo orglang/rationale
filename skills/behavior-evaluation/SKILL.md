@@ -13,6 +13,25 @@ Use when the user asks to prepare, run, coordinate, or assess the repository's m
 - Coordinator instructions, explanations, run summaries, and reports: English.
 - Tested-agent prompts and scenario task statements: Russian. Preserve the task wording and meaning.
 
+## Validate test setup
+
+Before preparing or running any blind test, validate the selected scenario as a test fixture against the exact pinned repository snapshot. This is a coordinator-only quality gate; never expose its findings, expected behavior, failure signals, or rubric to the tested agent.
+
+Check all of the following:
+
+1. **Snapshot currency:** the scenario's file paths, named concepts, examples, links, and claimed repository facts exist at the pinned SHA or are explicitly framed as hypotheses to investigate.
+2. **Premise validity:** verify every factual premise against the canonical source material. Distinguish a deliberately false/adversarial premise, which the agent is expected to challenge, from an accidental fixture error. Do not let a fixture accidentally assert a false canonical rule.
+3. **Source grounding:** identify the authoritative source for the behavior under test and confirm that the expected behavior and failure signals follow from it. Separate accepted decisions, inferences, open questions, implementation observations, and test evidence.
+4. **Task completeness and actionability:** ensure the requested outcome, target scope, decision status, and relevant context are sufficiently specific for the agent to act. For an accepted change, state the actual accepted behavior; do not merely say that some semantic rule should change.
+5. **Internal consistency:** check that the task, expected behavior, failure signals, rubric, and referenced source material do not contradict one another. Ensure that any intentionally incomplete evidence is clearly part of the challenge, not an accidental omission.
+6. **Observability and scorability:** confirm that a response can demonstrate success or failure using concrete evidence. Failure signals must identify meaningful errors, not penalize a correct challenge to a false premise, an appropriately scoped no-diff decision, or an explicit uncertainty.
+7. **Blindness:** confirm that the task statement does not disclose expected behavior, failure signals, rubric, coordinator notes, or answers to other scenarios.
+8. **Coverage, importance, and difficulty:** record the primary capability being tested, its importance to repository safety/correctness, its estimated difficulty, overlap with other scenarios, and any material coverage gap. Prefer complementary scenarios that distinguish different failure modes over redundant difficulty.
+
+Give the fixture a setup verdict: **Valid**, **Valid with limitations**, or **Invalid**. Record concise evidence and any required corrections. Do not run an Invalid fixture. Correct it first, commit the revised fixture, pin the new repository SHA, and record the new scenario blob SHA before preparing a blind package. If a limitation is intentional (for example, the scenario tests whether an agent handles a user-reported but unprovided test result cautiously), state that explicitly in the coordinator's setup notes and ensure the expected behavior rewards calibrated uncertainty.
+
+A scenario or rubric change creates a new evaluation series under the Run ledger rules. Never silently repair a fixture only in the coordinator's interpretation while leaving the versioned scenario unchanged.
+
 ## Prepare a run
 
 1. Identify the repository and target PR or branch. For a PR, pin its current **40-character head SHA**, not the base SHA or a moving branch.
@@ -22,8 +41,8 @@ Use when the user asks to prepare, run, coordinate, or assess the repository's m
    - the selected file under `tests/agent-workflows/`;
    - `skills/behavior-evaluation/prompt-template.md` and `rubric.md`.
 3. Inspect task-relevant specifications, documentation, examples, diagrams, tables, and tests. Follow repository routing and applicable standards.
-4. Record the scenario and rubric file versions (blob SHAs when available). If the repository HEAD changed since the previous run, start a new series; do not compare results across snapshots as identical conditions.
-5. Verify that the scenario premise still matches the pinned snapshot.
+4. Complete **Validate test setup** before preparing the blind package. Record the setup verdict, primary capability, importance, difficulty, overlap, and coverage limitations.
+5. Record the scenario and rubric file versions (blob SHAs when available). If the repository HEAD changed since the previous run, start a new series; do not compare results across snapshots as identical conditions.
 
 Use immutable GitHub links containing the full SHA. If any required material cannot be fetched or verified, identify it and ask the user to provide it; do not improvise.
 
@@ -53,13 +72,14 @@ Evaluate in the coordinator conversation using the pinned full scenario and rubr
 - Review any proposed diff for consistency with the pinned snapshot, justified/minimal scope, contract preservation, appropriate files, and supported verification claims.
 - Apply the exact pinned rubric thresholds and critical-failure rules. Keep severe semantic failures visible even if the total is high.
 
-Return an English report with scenario/title, repository and SHA, fixture versions, model/settings if known, five criterion scores and evidence, total /10 and rubric result, critical errors or missing evidence, diff assessment (or explicit no-diff statement), and concrete rerun recommendations. Do not rewrite the agent response before scoring. Human review is required for borderline outcomes and material failures.
+Return an English report with scenario/title, repository and SHA, fixture versions, setup verdict and concise setup findings, model/settings if known, five criterion scores and evidence, total /10 and rubric result, critical errors or missing evidence, diff assessment (or explicit no-diff statement), and concrete rerun recommendations. Do not rewrite the agent response before scoring. Human review is required for borderline outcomes and material failures.
 
 ## Run ledger
 
 Maintain the ledger in this coordinator conversation; do not ask the user to fill out a separate report. For each run record:
 
-- series, scenario ID/title, repository, full SHA, scenario/rubric versions, and date;
+- series, scenario ID/title, repository, full SHA, scenario/rubric versions, setup verdict, and date;
+- primary capability, importance, difficulty, overlap/coverage limitations;
 - model and settings, if known;
 - five scores, total, result, critical errors, and concise evidence;
 - whether a diff was proposed and its review outcome.
