@@ -1,6 +1,6 @@
 # Documentation review standards
 
-These criteria govern research and technical documentation. [`AGENTS.md`](AGENTS.md) is the repository-wide task router; [`skills/semantic-specification/SKILL.md`](skills/semantic-specification/SKILL.md) is the specialized user-led workflow for semantic specifications. This file owns recurring documentation-quality criteria. These links describe responsibility and are not additional workflow steps.
+These criteria govern research and technical documentation. [`AGENTS.md`](AGENTS.md) is the repository-wide task router; [`skills/semantic-specification/SKILL.md`](skills/semantic-specification/SKILL.md) is the specialized user-led workflow for semantic specifications. This file owns recurring documentation-quality criteria. It defines the quality principles, not the task procedures for applying them: semantic decisions and semantic deduplication belong to the specification workflow; change classification and impact assessment belong to change management; independent coherence and regression checks belong to semantic verification. These links describe responsibility and are not additional workflow steps.
 
 ## Accuracy and evidence
 
