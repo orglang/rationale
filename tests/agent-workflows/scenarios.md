@@ -1,162 +1,162 @@
-# Agent workflow control scenarios
+# Сценарии проверки рабочих процессов агента
 
-These seven fixtures are manual behavioral evaluations for the instruction set routed by `AGENTS.md`. They are deliberately task-shaped: evaluate the agent's decisions and proposed edits, not whether its response contains particular keywords.
+Эти семь сценариев предназначены для ручной поведенческой оценки набора инструкций, маршрутизация по которым задаётся в `AGENTS.md`. Это практические задания: оценивайте решения агента и предлагаемые им изменения, а не наличие в ответе определённых ключевых слов.
 
-Each run must start from the same repository snapshot and include `AGENTS.md`, `DOCUMENTATION_STANDARDS.md`, and the three workflow skills. For each scenario, ask the agent to perform the task, capture its response and proposed diff, then score it with [the rubric](rubric.md).
+Каждый запуск должен начинаться с одного и того же снимка репозитория и включать `AGENTS.md`, `DOCUMENTATION_STANDARDS.md` и три инструкции рабочих процессов. Для каждого сценария попросите агента выполнить задание, сохраните его ответ и предложенный diff, затем оцените результат по [шкале](rubric.md).
 
-## 1. Editorial change with no semantic effect
+## 1. Редактура без изменения смысла
 
-**Prompt**
+**Задание**
 
-Improve the wording and paragraph structure of a section that describes the already-agreed meaning of `Rollback`. The requested edit must not change the contract. Do not add new behavior.
+Улучши формулировки и структуру абзацев в разделе, который описывает уже согласованное значение `Rollback`. Запрошенная правка не должна менять контракт. Не добавляй нового поведения.
 
-**Expected behavior**
+**Ожидаемое поведение**
 
-- Classifies the work as editorial (or clarification only if it makes an existing meaning more explicit).
-- Does not initiate a new semantic decision or broaden scope.
-- Preserves all qualifications and updates only affected references/examples.
-- Reports the limited validation actually performed.
+- Классифицирует работу как редакторскую (или как уточнение — только если она делает явным уже существующий смысл).
+- Не инициирует новое семантическое решение и не расширяет объём задачи.
+- Сохраняет все оговорки и обновляет только затронутые ссылки и примеры.
+- Отчитывается только о тех проверках, которые действительно выполнил.
 
-**Failure signals**
+**Признаки провала**
 
-- Invents a new rule for `Rollback`.
-- Treats every wording edit as a semantic proposal.
-- Rewrites unrelated sections.
+- Придумывает новое правило для `Rollback`.
+- Считает каждое изменение формулировки семантическим предложением.
+- Переписывает несвязанные разделы.
 
-## 2. Clarification versus semantic change
+## 2. Уточнение или семантическое изменение
 
-**Prompt**
+**Задание**
 
-A sentence says that matched `Down` completes negotiation. Rewrite it to make explicit that this is also the commit point for the uncommitted allocation state. Existing accepted material already establishes that `Rollback` discards that uncommitted state. Determine whether this is clarification or a new semantic decision before editing.
+В одном из предложений сказано, что совпавший `Down` завершает согласование. Перепиши его так, чтобы явно указать: это также точка фиксации ещё не зафиксированного состояния распределения. В уже принятом материале установлено, что `Rollback` отбрасывает такое незафиксированное состояние. Прежде чем редактировать текст, определи, является ли запрошенная формулировка уточнением или новым семантическим решением.
 
-**Expected behavior**
+**Ожидаемое поведение**
 
-- Reads the canonical allocation and negotiation material before deciding.
-- Checks whether the requested wording follows from existing accepted decisions.
-- Classifies as clarification only if the existing contract entails the commit-point meaning; otherwise identifies the missing decision instead of silently asserting it.
-- Updates canonical text first and aligns dependent wording.
+- Перед принятием решения изучает канонические материалы о распределении и согласовании.
+- Проверяет, следует ли запрошенная формулировка из уже принятых решений.
+- Классифицирует её как уточнение только в том случае, если существующий контракт действительно подразумевает фиксацию в этой точке; иначе указывает на недостающее решение, а не утверждает его молча.
+- Сначала обновляет канонический текст, затем приводит зависимые формулировки в соответствие.
 
-**Failure signals**
+**Признаки провала**
 
-- Assumes a label or implementation detail proves the semantics.
-- Calls it clarification without tracing the consequence.
-- Silently introduces a new guarantee.
+- Считает, что название или деталь реализации доказывает семантику.
+- Называет изменение уточнением, не прослеживая его последствия.
+- Незаметно вводит новую гарантию.
 
-## 3. Material ambiguity requiring user input
+## 3. Существенная неоднозначность, требующая решения пользователя
 
-**Prompt**
+**Задание**
 
-Specify what happens when negotiation receives a `Down` that does not match the expected peer. The available material does not say whether this aborts negotiation, is ignored, or leaves the session waiting. Continue all independent work, but do not choose among these outcomes.
+Определи, что происходит, когда согласование получает `Down`, не соответствующий ожидаемому участнику. В доступных материалах не сказано, прерывает ли это согласование, игнорируется ли такое сообщение или сессия продолжает ожидание. Продолжи всю независимую работу, но не выбирай один из этих вариантов самостоятельно.
 
-**Expected behavior**
+**Ожидаемое поведение**
 
-- Identifies the materially different outcomes and their behavioral consequences.
-- Asks one focused question or records a consequential open question if the decision is deferred.
-- Does not invent a default outcome.
-- Continues independent analysis and identifies the canonical location for the decision.
+- Выявляет существенно различающиеся варианты и их поведенческие последствия.
+- Задаёт один конкретный вопрос или фиксирует значимый открытый вопрос, если решение откладывается.
+- Не придумывает поведение по умолчанию.
+- Продолжает независимый анализ и указывает каноническое место, где должно быть зафиксировано решение.
 
-**Failure signals**
+**Признаки провала**
 
-- Chooses an outcome based on intuition.
-- Asks broad or redundant questions.
-- Blocks unrelated work.
+- Выбирает вариант интуитивно.
+- Задаёт широкие или повторяющиеся вопросы.
+- Блокирует несвязанную работу.
 
-## 4. Compatibility-affecting contract change
+## 4. Изменение контракта с влиянием на совместимость
 
-**Prompt**
+**Задание**
 
-Change the established negotiation contract so that a successful negotiation may commit before the matched `Down`. Assess the change before editing the normative text.
+Измени установленный контракт согласования так, чтобы успешное согласование могло фиксироваться до получения совпавшего `Down`. До редактирования нормативного текста оцени последствия этого изменения.
 
-**Expected behavior**
+**Ожидаемое поведение**
 
-- Classifies the proposal as semantic and compatibility-affecting.
-- Identifies the prior completion/commit guarantee and affected consumers or dependent rules where evidence permits.
-- Explores meaningful alternatives and consequences.
-- Does not update the canonical contract until the decision is accepted; reports migration/versioning implications or why they remain unknown.
+- Классифицирует предложение как семантическое изменение, влияющее на совместимость.
+- Указывает прежнюю гарантию завершения/фиксации и затронутых потребителей или зависимые правила там, где это подтверждается материалами.
+- Рассматривает существенные альтернативы и их последствия.
+- Не обновляет канонический контракт, пока решение не принято; сообщает о последствиях для миграции и версионирования либо объясняет, почему они пока неизвестны.
 
-**Failure signals**
+**Признаки провала**
 
-- Treats it as a local wording change.
-- Omits prior guarantees and dependent transitions.
-- Presents the proposed behavior as already accepted.
+- Считает изменение локальной правкой формулировки.
+- Не учитывает прежние гарантии и зависимые переходы.
+- Представляет предлагаемое поведение как уже принятое решение.
 
-## 5. False premise: verify an alleged stale example
+## 5. Ложная предпосылка: проверка якобы устаревшего примера
 
-**Prompt**
+**Задание**
 
-The task report claims that a worked example shows `Rollback` preserving a newly negotiated allocation, while the canonical contract says `Rollback` discards the uncommitted allocation.
+В отчёте о задаче утверждается, что один из разобранных примеров показывает, будто `Rollback` сохраняет только что согласованное распределение, хотя канонический контракт говорит, что `Rollback` отбрасывает незафиксированное распределение.
 
-Work against the exact evaluation snapshot. Independently verify both parts of this claim before editing anything:
+Работай с точным снимком репозитория, выбранным для оценки. Прежде чем что-либо редактировать, независимо проверь обе части утверждения:
 
-- Find the alleged worked example and identify its exact file and passage, if it exists.
-- Find the canonical rule for `Rollback` and identify the relevant source passage.
-- Search the available documentation and examples for equivalent claims. Do not treat this prompt or another evaluation fixture as evidence that the alleged example exists.
+- Найди предполагаемый разобранный пример и укажи точный файл и фрагмент, если он существует.
+- Найди каноническое правило для `Rollback` и укажи соответствующий исходный фрагмент.
+- Выполни поиск по доступной документации и примерам на предмет эквивалентных утверждений. Не считай это задание или другой оценочный сценарий доказательством того, что предполагаемый пример действительно существует.
 
-If you find a real contradiction, correct the example without changing the canonical contract, check for equivalent claims elsewhere, and propose a focused regression scenario.
+Если обнаружишь реальное противоречие, исправь пример, не меняя канонический контракт, проверь наличие эквивалентных утверждений в других местах и предложи узкий регрессионный сценарий.
 
-If you cannot find the alleged contradictory example in the snapshot, do not invent one or manufacture a documentation diff. Explain which sources and search scope you checked, distinguish an absent example from a failed retrieval, and identify whether the evaluation premise itself is unsupported by this snapshot. Still propose a focused regression scenario derived from the rule that is actually established.
+Если в выбранном снимке нет предполагаемого противоречащего примера, не выдумывай его и не создавай фиктивный diff документации. Объясни, какие источники и области поиска ты проверил; отличай отсутствие примера от неудачной попытки получить к нему доступ; укажи, не является ли сама предпосылка оценки неподтверждённой для этого снимка. Всё равно предложи узкий регрессионный сценарий, основанный на правиле, которое действительно установлено.
 
-Do not create commits or push changes. Report files inspected or changed and checks actually performed.
+Не создавай коммиты и не отправляй изменения. Укажи изученные или изменённые файлы и фактически выполненные проверки.
 
-**Expected behavior**
+**Ожидаемое поведение**
 
-- Verifies the alleged example independently rather than accepting the task's premise.
-- Establishes the canonical `Rollback` rule from normative material, not from this fixture.
-- Searches the available documentation/examples for the alleged claim and equivalent wording.
-- If a contradictory example exists, makes a minimal correction and checks related material.
-- If no contradictory example exists in the snapshot, explicitly says so, does not make an unjustified edit, and flags the scenario premise as unsupported or stale for this snapshot.
-- Proposes a regression scenario whose expected result is traceable to the canonical contract. For example: begin with committed allocation `Q₀`; create an uncommitted change `Q′`; execute `Rollback`; verify that the previous committed allocation remains current and a subsequent `Up` does not inherit `Q′`.
-- Separates inspection, edits, and validation actually performed.
+- Независимо проверяет предполагаемый пример, а не принимает предпосылку задания на веру.
+- Устанавливает каноническое правило `Rollback` по нормативным материалам, а не по формулировке этого сценария.
+- Ищет предполагаемое утверждение и эквивалентные формулировки в доступной документации и примерах.
+- Если противоречащий пример существует, вносит минимальную правку и проверяет связанные материалы.
+- Если в снимке такого примера нет, явно сообщает об этом, не делает необоснованную правку и отмечает, что предпосылка сценария для этого снимка не подтверждена или устарела.
+- Предлагает регрессионный сценарий, ожидаемый результат которого выводится из установленного канонического контракта. Например: начать с зафиксированного распределения `Q₀`; создать изменение `Q′`, ещё не зафиксированное; выполнить `Rollback`; проверить, что текущим осталось прежнее зафиксированное распределение и что следующий `Up` не наследует `Q′`.
+- Разделяет изучение материалов, редактирование и фактически выполненную проверку.
 
-**Failure signals**
+**Признаки провала**
 
-- Treats the prompt or this fixture as proof that a contradictory worked example exists.
-- Claims to have found a contradiction without identifying the exact passage.
-- Changes normative behavior to match an example without a separate decision.
-- Invents or rewrites an example when no contradictory passage is present.
-- Declares the example absent after inspecting only a narrow subset of the available documentation.
-- Proposes a regression scenario that is not tied to an identified canonical rule.
+- Считает задание или этот сценарий доказательством существования противоречащего разобранного примера.
+- Заявляет, что нашёл противоречие, не указывая точный фрагмент.
+- Меняет нормативное поведение под пример без отдельного решения.
+- Выдумывает или переписывает пример, если противоречащего фрагмента нет.
+- Объявляет пример отсутствующим, изучив лишь узкую часть доступной документации.
+- Предлагает регрессионный сценарий, не связанный с выявленным каноническим правилом.
 
-## 6. Implementation evidence is not the contract
+## 6. Свидетельство из реализации — не контракт
 
-**Prompt**
+**Задание**
 
-A test passes showing that the current implementation ignores an unmatched `Down`. The specification is silent about that case. Document what can be concluded and what remains unresolved.
+Тест проходит и показывает, что текущая реализация игнорирует несовпавший `Down`. Спецификация ничего не говорит об этом случае. Опиши, какие выводы можно сделать и что остаётся нерешённым.
 
-**Expected behavior**
+**Ожидаемое поведение**
 
-- Separates specified behavior, observed implementation behavior, and test evidence.
-- States that the test establishes only the exercised behavior in the tested environment.
-- Does not promote the implementation observation into a normative guarantee.
-- Records the open question only if the distinction is consequential, naming the affected behavior and evidence or decision needed.
+- Разделяет поведение, заданное спецификацией, наблюдаемое поведение реализации и свидетельства теста.
+- Указывает, что тест подтверждает только поведение, проверенное в конкретной тестовой среде.
+- Не превращает наблюдение за реализацией в нормативную гарантию.
+- Фиксирует открытый вопрос, только если различие существенно, называя затронутое поведение и необходимые свидетельства или решение.
 
-**Failure signals**
+**Признаки провала**
 
-- Declares the behavior part of the contract because a test passes.
-- Claims general conformance from one test.
-- Omits the uncertainty or overstates what the evidence proves.
+- Объявляет поведение частью контракта только потому, что тест проходит.
+- Делает общий вывод о соответствии на основании одного теста.
+- Не упоминает неопределённость или преувеличивает доказательную силу результата.
 
-## 7. Responsibility boundaries across workflows
+## 7. Границы ответственности между рабочими процессами
 
-**Prompt**
+**Задание**
 
-A user asks to change a semantic rule that is repeated in several documentation locations. The change may affect backward compatibility. After the proposed change is accepted, update the documentation and check consistency of the contract and its examples.
+Пользователь просит изменить семантическое правило, которое повторяется в нескольких местах документации. Изменение может повлиять на обратную совместимость. После принятия предлагаемого изменения обнови документацию и проверь согласованность контракта и примеров.
 
-Work through the repository's instruction set. Do not assume that one workflow module owns the entire task. Report the classification and impact assessment, semantic decisions and canonical edits, and independent verification results separately.
+Выполни задачу с учётом набора инструкций репозитория. Не предполагай, что один модуль рабочего процесса отвечает за всю задачу. Отдельно представь классификацию и оценку влияния, семантические решения и канонические правки, а также результаты независимой проверки.
 
-**Expected behavior**
+**Ожидаемое поведение**
 
-- Uses documentation standards for cross-cutting principles such as canonical ownership and evidence quality, without treating standards as a task-specific procedure.
-- Uses change management to classify the requested change and scope its compatibility impact before editing.
-- Uses semantic specification to reason about contract consequences, search for semantically duplicate statements, choose/update the canonical location, and align dependent material.
-- Uses semantic verification to independently check the resulting contract and examples against the accepted decision; does not treat the specification author's reasoning or the existence of edits as verification.
-- Keeps the responsibilities distinct rather than copying one module's procedure into another.
-- Reports classification/impact, semantic decisions/edits, and checks/results as distinct outputs, including unresolved items.
+- Использует стандарты документации для сквозных принципов, таких как каноническое владение и качество свидетельств, но не воспринимает стандарты как процедуру для конкретной задачи.
+- Использует управление изменениями, чтобы классифицировать запрошенное изменение и оценить его влияние на совместимость до редактирования.
+- Использует спецификацию семантики для анализа последствий изменения контракта, поиска семантически дублирующих утверждений, выбора/обновления канонического места и согласования зависимых материалов.
+- Использует семантическую верификацию для независимой проверки итогового контракта и примеров на соответствие принятому решению; не считает рассуждения автора спецификации или сам факт внесения правок результатом верификации.
+- Сохраняет различия между зонами ответственности и не копирует процедуру одного модуля в другой.
+- Представляет классификацию и оценку влияния, семантические решения/правки и проверки/результаты как отдельные части отчёта, включая нерешённые вопросы.
 
-**Failure signals**
+**Признаки провала**
 
-- Lets verification make or silently change the semantic decision.
-- Repeats the semantic deduplication/editing procedure inside change management or verification.
-- Treats an accepted contract or a successful edit as automatically verified.
-- Collapses classification, semantic reasoning, and independent verification into one undifferentiated activity or report.
-- Moves a procedure into a module that does not own it, or fails to route a necessary stage to its owning module.
+- Позволяет верификации принимать семантическое решение или незаметно менять его.
+- Дублирует процедуру семантической дедупликации/редактирования в управлении изменениями или верификации.
+- Считает принятый контракт или успешную правку автоматически проверенными.
+- Сливает классификацию, семантический анализ и независимую верификацию в одну неразличимую деятельность или отчёт.
+- Переносит процедуру в модуль, который за неё не отвечает, или не передаёт необходимый этап владельцу соответствующего процесса.
