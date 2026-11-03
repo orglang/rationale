@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run repository-instruction scenarios against the local Codex CLI."""
+"""Run repository-instruction scenarios against the local OpenCode CLI."""
 import argparse
 import json
 import shutil
@@ -56,30 +56,31 @@ def parse_rubric(path):
 
 def events_and_message(raw):
     events, messages = [], []
+    def walk(value):
+        if isinstance(value, dict):
+            if value.get('type') == 'text' and isinstance(value.get('text'), str): messages.append(value['text'])
+            for child in value.values(): walk(child)
+        elif isinstance(value, list):
+            for child in value: walk(child)
     for line in raw.splitlines():
-        try:
-            event = json.loads(line)
-        except json.JSONDecodeError:
-            continue
+        try: event = json.loads(line)
+        except json.JSONDecodeError: continue
         events.append(event)
-        item = event.get("item") or {}
-        if item.get("type") in ("agent_message", "message") and item.get("text"):
-            messages.append(item["text"])
-    return events, "\n\n".join(messages).strip()
+        walk(event)
+    return events, '\n'.join(dict.fromkeys(messages)).strip()
 
 
-def codex(prompt, cwd, model=None, read_only=False, timeout=3600):
-    args = ["codex", "exec", "--json"]
-    args += ["--sandbox", "read-only"] if read_only else ["--full-auto"]
-    if model:
-        args += ["--model", model]
+def opencode(prompt, cwd, model=None, agent=None, auto=False, timeout=3600):
+    args = ['opencode', 'run', '--format', 'json', '--dir', str(cwd)]
+    if model: args += ['--model', model]
+    if agent: args += ['--agent', agent]
+    if auto: args.append('--auto')
     result = command(args + [prompt], cwd, timeout, check=False)
     events, message = events_and_message(result.stdout)
     return result, events, message
 
-
-def run_scenario(root, scenario, model, timeout):
-    parent = Path(tempfile.mkdtemp(prefix=f"codex-eval-{scenario['id']}-"))
+def run_scenario(root, scenario, model, agent, timeout):
+    parent = Path(tempfile.mkdtemp(prefix=f"opencode-eval-{scenario['id']}-"))
     tree = parent / "repo"
     try:
         command(["git", "worktree", "add", "--detach", str(tree), "HEAD"], root, 120)
@@ -93,7 +94,7 @@ def run_scenario(root, scenario, model, timeout):
             "decisions, files changed, and checks performed.\n\n"
             f"## Scenario {scenario['id']}: {scenario['title']}\n\n{scenario['prompt']}"
         )
-        result, events, message = codex(prompt, tree, model, timeout=timeout)
+        result, events, message = opencode(prompt, tree, model, agent=agent, auto=True, timeout=timeout)
         status = command(["git", "status", "--short"], tree, check=False).stdout
         diff = command(["git", "diff", "--no-ext-diff", "--binary", "HEAD"], tree, check=False).stdout
         untracked = command(["git", "ls-files", "--others", "--exclude-standard"], tree, check=False).stdout
@@ -111,7 +112,7 @@ def run_scenario(root, scenario, model, timeout):
         shutil.rmtree(parent, ignore_errors=True)
 
 
-def grade(scenario, criteria, execution, rubric, root, model, timeout, trace_path):
+def grade(scenario, criteria, execution, rubric, root, model, agent, timeout, trace_path):
     evidence = {
         "scenario": scenario, "agent_final_response": execution["message"],
         "agent_exit_code": execution["exit_code"], "git_status": execution["git_status"],
@@ -127,7 +128,7 @@ def grade(scenario, criteria, execution, rubric, root, model, timeout, trace_pat
         "behavior.\n\nRUBRIC:\n" + rubric + "\n\nEVIDENCE:\n" +
         json.dumps(evidence, ensure_ascii=False)
     )
-    result, events, message = codex(prompt, root, model, read_only=True, timeout=timeout)
+    result, events, message = opencode(prompt, root, model, agent=agent, auto=False, timeout=timeout)
     trace_path.write_text(result.stdout, encoding="utf-8")
     start, end = message.find("{"), message.rfind("}")
     if result.returncode or start < 0 or end <= start:
@@ -150,14 +151,16 @@ def main():
     p.add_argument("--output-dir", type=Path, default=Path("eval-results"))
     p.add_argument("--scenario", type=int, action="append")
     p.add_argument("--model", help="Optional Codex model override")
-    p.add_argument("--grader-model", help="Optional read-only grader model override")
+    p.add_argument("--grader-model", help="Optional grader model override (provider/model)")
+    p.add_argument("--agent", help="Optional OpenCode agent for scenario execution")
+    p.add_argument("--grader-agent", default="plan", help="Read-only grader agent (default: plan)")
     p.add_argument("--timeout", type=int, default=3600)
     args = p.parse_args()
     root = args.repo_root.resolve()
     if not (root / ".git").exists() and not (root / ".git").is_file():
         p.error("--repo-root must be a Git checkout")
     try:
-        command(["codex", "--version"], root, 30)
+        command(["opencode", "--version"], root, 30)
     except (FileNotFoundError, RuntimeError) as error:
         p.error(f"Install and authenticate Codex CLI first: {error}")
     scenarios = load_scenarios(root / SCENARIOS)
@@ -176,6 +179,7 @@ def main():
               "repository": "orglang/rationale", "commit": sha, "branch": branch,
               "mode": "local Codex CLI; isolated detached Git worktree per scenario",
               "agent_model_override": args.model, "grader_model_override": args.grader_model,
+              "agent": args.agent, "grader_agent": args.grader_agent,
               "scenario_count": len(scenarios), "results": [],
               "limitations": ["Codex grading is advisory; human review is required.",
                               "Unless --grader-model is set, agent and grader may use the same configured model.",
@@ -186,12 +190,12 @@ def main():
         print(f"[{i}/{len(scenarios)}] {scenario['title']}...", flush=True)
         execution = None
         try:
-            execution = run_scenario(root, scenario, args.model, args.timeout)
+            execution = run_scenario(root, scenario, args.model, args.agent, args.timeout)
             (output / f"scenario-{scenario['id']}-agent.jsonl").write_text(
                 execution["stdout"], encoding="utf-8")
             result_grade, grader_trace = grade(
                 scenario, criteria, execution, rubric_text, root, args.grader_model,
-                args.timeout, output / f"scenario-{scenario['id']}-grader.jsonl")
+                args.grader_agent, args.timeout, output / f"scenario-{scenario['id']}-grader.jsonl")
             item = {"scenario_id": scenario["id"], "title": scenario["title"],
                     "agent_output": execution["message"], "agent_exit_code": execution["exit_code"],
                     "git_status": execution["git_status"], "diff": execution["diff"],
