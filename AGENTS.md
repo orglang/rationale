@@ -12,7 +12,7 @@ The reading order is this router, the applicable general standards, and then the
 
 For classification and impact analysis of substantive changes, see [`skills/change-management/SKILL.md`](skills/change-management/SKILL.md).
 
-For checks of specification coherence, behavior scenarios, and semantic regressions, see [`skills/semantic-verification/SKILL.md`](skills/semantic-verification/SKILL.md).
+For checks of specification coherence, behavior scenarios, and semantic regressions, see [`skills/semantic-verification/SKILL.md`](skills/semantic-verification/SKILL.md).\n\nFor manual behavioral evaluation of repository agent workflows, when explicitly requested, use [`skills/manual-behavioral-evaluation/SKILL.md`](skills/manual-behavioral-evaluation/SKILL.md).
 
 ## Responsibility boundaries
 
