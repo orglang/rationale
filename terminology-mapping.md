@@ -99,14 +99,14 @@ The pool expression package contains operational specifications including:
 - `FireSpec` and `QuitSpec`;
 - `SpawnSpec` and `SpawnSpec2`.
 
-The pool type-expression package separately contains `UpSpec` and `DownSpec`, each with a continuation expression. The inspected executor handles `Acquire`/`Accept` and `Hire`/`Apply` as paired pending interactions, and has corresponding cases for `Release`/`Detach` and `Fire`/`Quit`.
+The pool type-expression package separately contains `UpSpec` and `DownSpec`, each with a continuation expression. The inspected pool executor has paired handling for `Acquire`/`Accept`, `Hire`/`Apply`, and `Release`/`Detach`. Although `FireSpec` and `QuitSpec` are declared in `pool/termexp`, no corresponding `FireSpec` or `QuitSpec` cases were found in the inspected `pool/compexec` executor.
 
 | Model operation / construct | Candidate implementation operation(s) | Status | Notes |
 |---|---|---|---|
 | `Up` / grant-access transition | Provider-side `AcceptSpec`; client-side `AcquireSpec` | Provisional | The pool type package has `UpSpec`/`UpRec`; the executor pairs `Accept` and `Acquire`. This is a strong operational candidate, but exact role/polarity and full conformance must be checked against the language contract. |
 | `Down` / revoke-access transition | Provider-side `DetachSpec`; client-side `ReleaseSpec` | Provisional | The pool type package has `DownSpec`/`DownRec`; the executor pairs `Detach` and `Release`. In the inspected snapshot, these operation specs do not carry the participant-specific `ContExp` fields required by the current language-level contract. |
 | Competence request/offer | `HireSpec` / `ApplySpec` | Provisional | The code comments describe employer/applicant and request/offer of competence. Their exact relationship to the model's allocation-state changes is not established by name or constructor presence. |
-| Position termination | `FireSpec` / `QuitSpec` | Provisional | The code comments describe employer/employee initiative. A one-to-one mapping to `Coop`/`Isol` is not established. |
+| Position termination | `FireSpec` / `QuitSpec` | Unresolved (runtime handling not found) | The AST/spec types and comments exist, but no matching executor cases were found in the inspected `pool/compexec` source. Their operational semantics are therefore not demonstrated by this snapshot. |
 | `Coop` / `Isol` allocation transitions | No matching `pool/typeexp` constructors found in inspected package | Unresolved | `Hire`/`Apply` and `Fire`/`Quit` are related operational vocabulary, but the inspected evidence does not establish equivalence to the type-level allocation transitions. |
 | Model-level `spawn` in transaction grammar | `SpawnSpec`, `SpawnSpec2` in `pool/termexp` | Provisional | These are pool-expression spawn forms referring to process terms and/or process execution references. Their correspondence to the model's typed `spawn` value/continuation rule is not yet established. |
 
@@ -137,8 +137,8 @@ The OrgLang model distinguishes `ExternalCall` and `InternalCall`. Both create a
 
 | OrgLang term | Implementation term(s) | Status | Correspondence and limits |
 |---|---|---|---|
-| **ExternalCall** | `proc/termexp.CallSpec` | Provisional | A named-process call AST candidate. The inspected field set includes a communication placeholder, a new channel placeholder, a process term name, channel placeholders, and a continuation. It does not alone establish pool discovery, negotiation, incarnation creation, or outward channel delivery. |
-| **InternalCall** | `proc/termexp.LinkSpec` | Unresolved | A possible candidate based on its process-term name and identity fields, but the field types and runtime path do not establish the intended complete channel-environment transfer. |
+| **ExternalCall** | `proc/termexp.CallSpec` | Provisional (AST only) | A named-process call AST candidate. The inspected field set includes a communication placeholder, a new channel placeholder, a process term name, channel placeholders, and a continuation. No matching `CallSpec` execution case was found in the inspected `proc/compexec` executor. An end-to-end test constructs a call but ends with `TODO add assertion`, so it does not establish successful runtime behavior. |
+| **InternalCall** | `proc/termexp.LinkSpec` | Unresolved | A possible candidate based on its process-term name and identity fields, but the inspected process executor has no matching `LinkSpec` execution case. The field types and runtime path do not establish the intended complete channel-environment transfer. |
 | **Process spawning** | `proc/termexp.SpawnSpec`; `pool/termexp.SpawnSpec`, `SpawnSpec2` | Provisional | Several spawn-related representations exist at different layers. The process model document explicitly treats the process-expression `SpawnSpec` as an unfinished implementation attempt, not an established source-language operation. |
 | **Fresh process incarnation** | `proc/compexec.ExecRec`, process executor creation path | Provisional | Candidate runtime representation. The full call-to-creation lifecycle and identity guarantee require end-to-end path and test evidence. |
 | **Servicing pool** | Pool execution references and pool/process executor interaction | Unresolved | No single inspected type establishes the model-level servicing-pool relationship and its lifecycle. |
@@ -186,7 +186,45 @@ When discussing implementation details, retain the exact code identifiers in bac
 7. **Pending interaction semantics:** what are the observable pending/matching boundaries, and how are concurrency, cancellation, failure, and atomicity handled?
 8. **Residual protocol state:** how do `ExpVK` and `valkey.ADT` correspond to the model's residual transaction/session types, including dual endpoint checking?
 
-## 8. Next verification pass
+## 8. Verification findings (first pass)
+
+This pass inspected the executor switch cases and the end-to-end pool test at the pinned implementation snapshot.
+
+### 8.1 Pool operations: declaration versus execution
+
+The pool executor contains explicit cases for `AcceptSpec`, `AcquireSpec`, `ApplySpec`, `HireSpec`, `ReleaseSpec`, and `DetachSpec`. In each pair, one side can store a pending `SubRec`; when the counterpart arrives, the executor creates a fresh `ChnlID`, installs continuation bindings for both participants, and schedules a continuation where one is present.
+
+The end-to-end test `test/e2e/pool_test.go` constructs a pool that performs:
+- `Acquire` followed by `Hire` and `Release`;
+- the matching `Accept` followed by `Apply` and `Detach`.
+
+The test therefore provides evidence for a working paired path for access acquisition, competence negotiation, and access release in this snapshot. It does **not** establish that these operations are equivalent to every model-level transaction transition; in particular, the model-level `Coop`/`Isol` mapping remains open.
+
+By contrast, `FireSpec` and `QuitSpec` are declared in `pool/termexp`, and matching continuation record types also exist, but no corresponding executor cases were found in the inspected `pool/compexec/core/core.go`. Their presence is evidence of an AST/data representation, not an implemented runtime path.
+
+### 8.2 Process calls: AST presence versus execution evidence
+
+The process expression package declares `CallSpec`, `LinkSpec`, and `SpawnSpec`. However, no matching `CallSpec`, `LinkSpec`, or `SpawnSpec` execution cases were found in the inspected `proc/compexec/core/core.go` switch.
+
+The end-to-end process-call test constructs a `CallSpec`, invokes the process executor, and then contains a TODO instead of asserting the resulting incarnation, channel bindings, or continuation behavior. This test is not evidence of successful call semantics.
+
+Accordingly:
+- `ExternalCall` ↔ `CallSpec` remains an **AST-level candidate only**;
+- `InternalCall` ↔ `LinkSpec` remains **unresolved**;
+- process-expression `SpawnSpec` remains an **AST-level candidate only** in this execution path.
+
+### 8.3 Evidence boundary
+
+A negative search for a type-switch case is bounded to the inspected executor file and commit. It does not prove that no adapter, alternate executor, or later implementation path exists elsewhere in the repository. The status above is therefore phrased as “no matching case found in the inspected executor”, not as a repository-wide claim that the feature does not exist.
+
+Sources:
+- [pool/compexec/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/compexec/core/core.go)
+- [pool/termexp/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/termexp/core/core.go)
+- [proc/compexec/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/compexec/core/core.go)
+- [proc/termexp/core/core.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/termexp/core/core.go)
+- [test/e2e/pool_test.go](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/test/e2e/pool_test.go)
+
+## 9. Next verification pass
 
 Before changing terminology in the canonical model documents, inspect and record evidence for the open questions above in this order:
 
