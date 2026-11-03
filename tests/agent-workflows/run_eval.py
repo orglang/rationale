@@ -104,7 +104,7 @@ def run_agent(key, model, scenario, context):
     prompt = f"## Scenario {scenario['id']}: {scenario['title']}\n\n### Task\n{scenario['prompt']}\n\n### Repository snapshot\n{context}"
     return api_call(key, model, instructions, prompt, 7000)
 
-def grade_agent(key, model, scenario, criteria, agent_output):
+def grade_agent(key, model, scenario, criteria, rubric_text, agent_output):
     instructions = (
         "You are an independent evaluator. Grade only the supplied agent response against the "
         "scenario expected behavior, failure signals, and rubric. Do not reward keywords or "
@@ -117,7 +117,7 @@ def grade_agent(key, model, scenario, criteria, agent_output):
     prompt = (
         f"Scenario {scenario['id']}: {scenario['title']}\n\nPrompt:\n{scenario['prompt']}"
         f"\n\nExpected behavior:\n{scenario['expected_behavior']}\n\nFailure signals:\n{scenario['failure_signals']}"
-        f"\n\nRubric criteria:\n{json.dumps(criteria, ensure_ascii=False)}"
+        f"\n\nRubric criteria:\n{json.dumps(criteria, ensure_ascii=False)}"\n        f"\n\nFull scoring rubric:\n{rubric_text}"
         "\n\nPass: 8-10 and no zero in Semantic discipline or Evidence and compatibility. "
         "Borderline: 6-7. Fail: 0-5 or silent invention/change of consequential behavior."
         "\n\nAgent response:\n" + agent_output +
@@ -168,7 +168,7 @@ def main():
         parser.error("Use a different model ID for the independent grader")
     root = args.repo_root.resolve()
     scenarios = parse_scenarios(root / "tests/agent-workflows/scenarios.md")
-    criteria = parse_criteria(root / "tests/agent-workflows/rubric.md")
+    rubric_path = root / "tests/agent-workflows/rubric.md"\n    criteria = parse_criteria(rubric_path)\n    rubric_text = rubric_path.read_text(encoding="utf-8")
     if args.scenario:
         wanted = set(args.scenario)
         scenarios = [s for s in scenarios if s["id"] in wanted]
@@ -195,7 +195,7 @@ def main():
         print(f"[{scenario['id']}/{len(scenarios)}] {scenario['title']}...", flush=True)
         try:
             answer, agent_data = run_agent(key, args.model, scenario, context)
-            scored, grader_data = grade_agent(key, grader_model, scenario, criteria, answer)
+            scored, grader_data = grade_agent(key, grader_model, scenario, criteria, rubric_text, answer)
             result = {"scenario_id": scenario["id"], "title": scenario["title"], "agent_output": answer,
                 "grade": scored, "usage": {"agent": agent_data.get("usage"), "grader": grader_data.get("usage")}}
             failed = failed or scored["status"] != "pass"
