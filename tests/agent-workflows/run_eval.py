@@ -73,7 +73,7 @@ def events_and_message(raw):
     return events, '\n'.join(dict.fromkeys(messages)).strip()
 
 
-def opencode(prompt, cwd, model=None, agent=None, auto=False, timeout=3600, label="OpenCode"):
+def opencode(prompt, cwd, model=None, agent=None, auto=False, timeout=3600, label="OpenCode", trace_path=None):
     args = ['opencode', 'run', '--format', 'json', '--dir', str(cwd)]
     if model: args += ['--model', model]
     if agent: args += ['--agent', agent]
@@ -84,6 +84,8 @@ def opencode(prompt, cwd, model=None, agent=None, auto=False, timeout=3600, labe
     process = subprocess.Popen(args + [prompt], cwd=cwd, text=True, bufsize=1,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, errors = [], []
+    event_count = tool_count = 0
+    trace_handle = trace_path.open("w", encoding="utf-8") if trace_path else None
     messages = queue.Queue()
 
     def read_stream(stream, name):
@@ -104,26 +106,37 @@ def opencode(prompt, cwd, model=None, agent=None, auto=False, timeout=3600, labe
     while len(finished_streams) < 2:
         elapsed = time.monotonic() - started
         if elapsed > timeout:
+            if trace_handle:
+                trace_handle.close()
             process.kill()
             process.wait()
             raise subprocess.TimeoutExpired(args, timeout, output=''.join(output), stderr=''.join(errors))
         try:
             name, line = messages.get(timeout=15)
         except queue.Empty:
-            print(f"    {label}: still running ({int(elapsed)}s elapsed)", flush=True)
+            print(f"    {label}: still running ({int(elapsed)}s elapsed; {event_count} events, {tool_count} tool calls)", flush=True)
             continue
         if line is None:
             finished_streams.add(name)
             continue
         if name == "stdout":
             output.append(line)
+            if trace_handle:
+                trace_handle.write(line)
+                trace_handle.flush()
             try:
                 event = json.loads(line)
+                event_count += 1
                 event_type = event.get("type", "event")
-                part_type = (event.get("part") or {}).get("type", "")
+                part = event.get("part") or {}
+                part_type = part.get("type", "") if isinstance(part, dict) else ""
+                if event_type in ("tool_use", "tool_result") or part_type == "tool":
+                    tool_count += 1
                 if event_type in ("step_start", "step_finish", "tool_use", "tool_result") or part_type == "tool":
-                    detail = (event.get("part") or {}).get("tool") or event.get("tool") or part_type
+                    detail = part.get("tool") or event.get("tool") or part_type
                     print(f"    {label}: {event_type} {detail}".rstrip(), flush=True)
+                elif event_type == "text":
+                    print(f"    {label}: text output received", flush=True)
             except (json.JSONDecodeError, AttributeError):
                 pass
         else:
@@ -131,6 +144,8 @@ def opencode(prompt, cwd, model=None, agent=None, auto=False, timeout=3600, labe
             if line.strip():
                 print(f"    {label} [stderr]: {line.rstrip()[:240]}", flush=True)
 
+    if trace_handle:
+        trace_handle.close()
     returncode = process.wait()
     for thread in threads:
         thread.join()
@@ -198,7 +213,7 @@ def grade(scenario, criteria, execution, rubric, root, model, agent, timeout, tr
     with tempfile.TemporaryDirectory(prefix="opencode-grader-") as grader_dir:
         result, events, message = opencode(
             prompt, Path(grader_dir), model, agent=agent, auto=False,
-            timeout=timeout, label="Grader")
+            timeout=timeout, label="Grader", trace_path=trace_path)
     trace_path.write_text(result.stdout, encoding="utf-8")
     start, end = message.find("{"), message.rfind("}")
     if result.returncode or start < 0 or end <= start:
