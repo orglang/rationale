@@ -12,7 +12,7 @@
 
 ## 1. Purpose and method
 
-The goal is to converge on a shared vocabulary without mechanically replacing language-level concepts with Go identifiers. The mapping distinguishes:
+The goal is to converge on a shared vocabulary without mechanically replacing language-level concepts with Go identifiers. In particular, the shared conceptual vocabulary should use `Coop` and `Isol`; `Hire`/`Apply` and `Fire`/`Quit` are treated as implementation-side names to be aligned with those concepts, not as competing canonical terms. The mapping distinguishes:
 
 1. **Language concept** — a term used by the OrgLang model.
 2. **Implementation representation** — a Go type, field, or operation that may represent some or all of that concept.
@@ -28,6 +28,8 @@ A matching name is not sufficient evidence of matching semantics. An AST constru
 - **Unresolved** — no reliable correspondence has been established, or the available evidence leaves a material mismatch.
 
 These labels describe terminology correspondence only. They do not replace the claim-evidence and implementation-coverage statuses used in the process and pool model documents.
+
+For vocabulary convergence, distinguish **preferred language term**, **current implementation identifier**, and **semantic correspondence**. Use the language term as the shared conceptual name in cross-project discussion and documentation. Preserve Go identifiers when describing concrete code. Where semantics are not yet verified, record a target alignment rather than asserting equivalence.
 
 ## 2. Participant, definition, and execution terms
 
@@ -105,9 +107,9 @@ The pool type-expression package separately contains `UpSpec` and `DownSpec`, ea
 |---|---|---|---|
 | `Up` / grant-access transition | Provider-side `AcceptSpec`; client-side `AcquireSpec` | Provisional | The pool type package has `UpSpec`/`UpRec`; the executor pairs `Accept` and `Acquire`. This is a strong operational candidate, but exact role/polarity and full conformance must be checked against the language contract. |
 | `Down` / revoke-access transition | Provider-side `DetachSpec`; client-side `ReleaseSpec` | Provisional | The pool type package has `DownSpec`/`DownRec`; the executor pairs `Detach` and `Release`. In the inspected snapshot, these operation specs do not carry the participant-specific `ContExp` fields required by the current language-level contract. |
-| Competence request/offer | `HireSpec` / `ApplySpec` | Provisional | The code comments describe employer/applicant and request/offer of competence. Their exact relationship to the model's allocation-state changes is not established by name or constructor presence. |
-| Position termination | `FireSpec` / `QuitSpec` | Unresolved (runtime handling not found) | The AST/spec types and comments exist, but no matching executor cases were found in the inspected `pool/compexec` source. Their operational semantics are therefore not demonstrated by this snapshot. |
-| `Coop` / `Isol` allocation transitions | No matching `pool/typeexp` constructors or allocation-state fields found | Unresolved (no mapping established) | The model changes allocation function `Q` by a positive weight for a named process. The inspected `pool/typeexp` grammar has only `One`, `Link`, `Plus`, `With`, `Up`, and `Down`, and no `Q`/weight state. `Hire`/`Apply` negotiate a process term name; `Fire`/`Quit` have no executor cases in the inspected executor. Neither pair implements the documented `Q` update on available evidence. |
+| Competence request/offer | `HireSpec` / `ApplySpec` | Provisional; target alignment with `Coop` | The code comments describe employer/applicant and request/offer of competence. Treat this pair as the current implementation candidate for the model-level `Coop` concept, not as an established equivalent. Convergence requires confirming that the interaction changes allocation function `Q` by the specified positive weight and preserves the model's guards and participant roles. |
+| Position termination | `FireSpec` / `QuitSpec` | Unresolved at runtime; target alignment with `Isol` | Treat this pair as the current implementation candidate for the model-level `Isol` concept. The AST/spec types and comments exist, but no matching executor cases were found in the inspected `pool/compexec` source. Convergence requires implementing/verifying the corresponding decrement of `Q`, including the non-negative constraint and initiator/role semantics. |
+| `Coop` / `Isol` allocation transitions | `HireSpec` / `ApplySpec` as candidate for `Coop`; `FireSpec` / `QuitSpec` as candidate for `Isol` | Target vocabulary alignment; runtime semantics not established | The model changes allocation function `Q` by a positive weight for a named process. The inspected `pool/typeexp` grammar has only `One`, `Link`, `Plus`, `With`, `Up`, and `Down`, and no `Q`/weight state. The operation pairs are therefore useful implementation candidates and naming convergence targets, but neither pair is shown to implement the documented `Q` updates in this snapshot. |
 | Model-level `spawn` in transaction grammar | `SpawnSpec`, `SpawnSpec2` in `pool/termexp`; no corresponding `pool/typeexp` constructor | Provisional (AST only) | Pool-expression spawn forms refer to process terms and/or process execution references, but no matching case was found in the inspected pool executor and no typed `spawn` constructor exists in the inspected pool type grammar. Correspondence to the model's `Q(q) > 0` rule and runtime process creation is not established. |
 
 Sources:
@@ -180,7 +182,7 @@ When discussing implementation details, retain the exact code identifiers in bac
 1. **Pool and process lifecycle:** what exact implementation records and repository transitions create, update, terminate, and identify pool and process incarnations?
 2. **Endpoint role mapping:** is `LiabSide` always the provider endpoint and `AssetSide` always the client endpoint, including initial binding and channel transfer?
 3. **Channel identity lifecycle:** how do `ChnlID`, `CommRef`, and `CompRef` relate across public/private pool-channel switching, process-channel communication, forwarding, and incarnation creation?
-4. **Allocation operations:** what language-level transitions, if any, are implemented by `Hire`/`Apply` and `Fire`/`Quit`? Are they distinct from `Coop`/`Isol`?
+4. **Allocation operations:** can `Hire`/`Apply` be brought into semantic and naming alignment with `Coop`, and `Fire`/`Quit` with `Isol`? What changes to the operation contracts, type representation, executor, and tests are required to implement the exact `Q` updates?
 5. **Transaction grammar coverage:** where and how are the model-level `Coop`, `Isol`, and typed `spawn` constructs represented, type-checked, and executed?
 6. **Call semantics:** what complete runtime path implements `ExternalCall` and `InternalCall`, including channel transfer, fresh incarnation identity, and servicing-pool selection?
 7. **Pending interaction semantics:** what are the observable pending/matching boundaries, and how are concurrency, cancellation, failure, and atomicity handled?
