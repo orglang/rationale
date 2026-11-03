@@ -10,7 +10,7 @@ The repository CI validates Markdown formatting and local links.
 
 The seven scenarios are **behavioral evaluations**, not ordinary unit tests. They require an agent to read the instruction set and produce an answer and, where applicable, a proposed diff. The repository currently has no configured model/API runner, fixed model version, or trusted automated judge. CI therefore does not claim to execute these scenarios or certify agent behavior.
 
-Run them manually using the procedure in [`scenarios.md`](scenarios.md), score with [`rubric.md`](rubric.md), and retain the run record. A future runner should pin the model and harness, capture outputs/diffs, and use the rubric; it should not replace semantic review with keyword matching.
+Run them manually using [`MANUAL_RUN.md`](MANUAL_RUN.md), which provides a two-chat ChatGPT procedure, copy-ready agent/evaluator prompts, and a run-record template. The scenario prompts are in [`scenarios.md`](scenarios.md); score with [`rubric.md`](rubric.md). Keep the agent run blind to expected behavior and rubric, and retain the raw output and proposed diff. A future runner should pin the model and harness, capture outputs/diffs, and use the rubric; it should not replace semantic review with keyword matching.
 
 ## Keeping scenarios current
 
