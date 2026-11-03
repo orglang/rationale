@@ -16,12 +16,12 @@ Never include evaluator-only material (expected behavior, failure signals, rubri
 Параметры прогона:
 - Серия: [ID / НАЗВАНИЕ СЕРИИ]
 - Сценарий: [ID / НАЗВАНИЕ СЦЕНАРИЯ]
-- Условие: [A / B / C]
+- Условие: [A-restricted / A-unrestricted / B / C]
 - Репозиторий с исходными материалами: [OWNER/REPOSITORY]
 - Зафиксированный commit исходного репозитория: [ПОЛНЫЙ 40-СИМВОЛЬНЫЙ SHA]
 
 Условие эксперимента:
-[ТОЧНО ОПИШИТЕ УСЛОВИЕ A/B/C. A: проектные инструкции не предоставляются; B: предоставляется зафиксированная предыдущая версия инструкций; C: предоставляется зафиксированная текущая версия инструкций. Укажите точные ссылки и SHA доступных инструкций для B/C.]
+[ТОЧНО ОПИШИТЕ УСЛОВИЕ. A-restricted: изолированный набор материалов проверен и не содержит проектных инструкций; A-unrestricted: инструкции не предоставлены явно, но агент может обнаружить их через доступ к репозиторию — не называйте это отсутствием инструкций. B: предыдущая версия инструкций; C: текущая версия. Для B/C укажите точные ссылки и SHA. Для A перечислите разрешённые материалы и явно опишите границы доступности.]
 
 Задание:
 
@@ -30,7 +30,7 @@ Never include evaluator-only material (expected behavior, failure signals, rubri
 Исходные материалы, которые следует использовать:
 [ПЕРЕЧИСЛИТЕ КОНКРЕТНЫЕ IMMUTABLE-ССЫЛКИ НА ФАЙЛЫ И ИХ SHA. ВКЛЮЧИТЕ ТОЛЬКО МАТЕРИАЛЫ, РАЗРЕШЁННЫЕ ДЛЯ ЭТОГО УСЛОВИЯ.]
 
-Следуй только тем проектным инструкциям, которые предоставлены для указанного условия. Не подменяй зафиксированные версии материалами из других веток, более поздних коммитов или текущего состояния репозитория.
+Следуй проектным инструкциям, доступным в рамках указанного условия. Не подменяй зафиксированные версии материалами из других веток, более поздних коммитов или текущего состояния репозитория.
 
 Ограничения:
 - Используй указанные зафиксированные версии исходных материалов. Если ссылка или файл недоступны, прямо сообщи об этом; не подменяй их другой версией и не утверждай, что изучил недоступное содержимое.
@@ -45,13 +45,7 @@ Never include evaluator-only material (expected behavior, failure signals, rubri
 - Не раскрывай и не угадывай критерии оценки.
 
 Формат ответа:
-1. Краткий результат.
-2. Фактически изученные и недоступные инструкции/файлы.
-3. Основной анализ.
-4. Выводы, решения и открытые вопросы.
-5. Предлагаемая редакция/действие или diff — в формате, подходящем к заданию. Если ничего предлагать не следует, объясни почему.
-6. Фактически выполненные и невыполненные проверки.
-7. Ограничения и оставшаяся неопределённость.
+Дай полный, структурированный ответ, достаточный для понимания результата и его обоснования. Отделяй факты, предположения, решения, открытые вопросы и фактически выполненные проверки. Не заявляй о действиях, которые фактически не выполнялись. Выбери структуру, подходящую к самому заданию.
 
 Оставь один финальный ответ комментарием к этому файлу промпта в PR серии тестирования. Укажи идентификатор серии, сценарий, условие, модель/настройки и дату. Не редактируй файл промпта; дополнительные комментарии после финального ответа считай дополнениями, а не заменой финального ответа.
 \`\`\`
@@ -60,11 +54,11 @@ Never include evaluator-only material (expected behavior, failure signals, rubri
 
 For each planned run (scenario × condition):
 
-1. Read the source scenario and copy its complete **Задание** section into a new file in the evaluation-series repository. Do not copy evaluator-only sections.
+1. Read the source scenario and copy its complete **Задание** section into a new file in the evaluation-series repository. Do not copy evaluator-only sections. Create one file per scenario × condition (for example, `scenario-01/condition-A.md`, `scenario-01/condition-B.md`, `scenario-01/condition-C.md`).
 2. Insert the series/scenario identifiers, condition, pinned source commit SHA, and immutable links plus blob SHAs for the exact source materials available in that condition.
-3. For A, explicitly state that no project instructions are supplied and do not include instruction files or links. For B/C, include only the exact pinned instruction version assigned to that condition.
+3. For A-restricted, explicitly state that the verified isolated material set excludes project instructions. For A-unrestricted, state only that project instructions are not explicitly supplied and disclose that the agent may be able to discover them; do not claim they are unavailable. For B/C, include only the exact pinned instruction version assigned to that condition.
 4. Finish and validate the entire prompt file before opening the tested-agent session. Ensure no placeholders remain and that the task and permitted source set are complete.
-5. Put one prompt file per scenario and condition in the series PR. The tested agent's only entry point is the immutable permalink to its corresponding prompt file. Send a short message such as: «Открой файл по ссылке, прочитай его полностью и выполни содержащийся в нём промпт. Ответ оставь комментарием к этому файлу».
+5. Put one prompt file per scenario and condition in the series PR. Validate every file, all pinned links/SHAs, absence of placeholders and evaluator leakage, and the accuracy of each condition before any run. The tested agent's only entry point is the immutable permalink to its corresponding prompt file. Send a short message such as: «Открой файл по ссылке, прочитай его полностью и выполни содержащийся в нём промпт. Ответ оставь комментарием к этому файлу».
 6. Use a fresh independent session for each run. Capture the final answer as a comment on that prompt file; do not edit the prompt file to add the answer.
 7. Keep expected behavior, failure signals, rubric, scores, and coordinator notes outside all tested-agent prompt files.
 
