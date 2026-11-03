@@ -161,7 +161,11 @@ def main():
         parser.error("OPENAI_API_KEY is required")
     if not args.model:
         parser.error("--model or OPENAI_EVAL_MODEL is required")
-    grader_model = args.grader_model or args.model
+    grader_model = args.grader_model
+    if not grader_model:
+        parser.error("--grader-model or OPENAI_EVAL_GRADER_MODEL is required")
+    if grader_model == args.model:
+        parser.error("Use a different model ID for the independent grader")
     root = args.repo_root.resolve()
     scenarios = parse_scenarios(root / "tests/agent-workflows/scenarios.md")
     criteria = parse_criteria(root / "tests/agent-workflows/rubric.md")
