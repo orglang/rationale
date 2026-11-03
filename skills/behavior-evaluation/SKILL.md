@@ -86,10 +86,9 @@ Return an English report with scenario/title, repository and SHA, fixture versio
 
 ## Run ledger
 
-Maintain the ledger in this coordinator conversation; do not ask the user to fill out a separate report. For each run record:
+Maintain the ledger in this coordinator conversation; do not ask the user to fill out a separate report. For each series, keep the suite-level assessment from **Assess the scenario set**: capability importance, relative difficulty, overlap/redundancy, and coverage gaps. For each individual run, record only:
 
 - series, scenario ID/title, repository, full SHA, scenario/rubric versions, setup verdict, and date;
-- primary capability, importance, difficulty, overlap/coverage limitations;
 - model and settings, if known;
 - five scores, total, result, critical errors, and concise evidence;
 - whether a diff was proposed and its review outcome.
