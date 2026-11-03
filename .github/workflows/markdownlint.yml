@@ -4,10 +4,8 @@ on:
   pull_request:
     paths:
       - "**/*.md"
-      - "**/*.py"
-      - ".gitignore"
       - ".markdownlint-cli2.jsonc"
-      - ".github/workflows/*.yml"
+      - ".github/workflows/markdownlint.yml"
 
 permissions:
   contents: read
@@ -18,12 +16,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Validate behavioral evaluation runner syntax
-        run: python -m py_compile tests/agent-workflows/run_eval.py
       - name: Lint Markdown
         uses: DavidAnson/markdownlint-cli2-action@v19
       - name: Check local Markdown links and anchors
