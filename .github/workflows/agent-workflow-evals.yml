@@ -8,8 +8,8 @@ on:
         required: true
         type: string
       grader_model:
-        description: Optional separate model ID for grading (defaults to the agent model)
-        required: false
+        description: Different model ID for independent grading
+        required: true
         type: string
       ref:
         description: Branch, tag, or commit SHA to evaluate
@@ -40,6 +40,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Validate runner syntax
+        run: python -m py_compile tests/agent-workflows/run_eval.py
 
       - name: Run behavioral evaluations
         env:
