@@ -54,7 +54,7 @@ The Evaluation record stores the objective, pinned versions, agreed run matrix, 
 
 Create one Run Issue per run. Its body contains the complete tested-agent prompt and task materials, but not the rubric, expected behavior, failure signals, scores, or coordinator notes. Capture the tested agent's complete response as a top-level comment. Keep the response distinct from the coordinator's separately attributed assessment.
 
-GitHub repository permissions apply across Issues; they do not provide per-Issue privacy. A tested agent with repository access may discover other runs, comments, or repository files. Do not claim access isolation or a genuinely blind run based on separate Issues, neutral titles, or missing links. Do not deliberately place other runs' responses or evaluator-only material in a prompt. Record any discoverability or cross-run exposure as an experimental limitation rather than treating it as a setup failure by itself.
+GitHub repository permissions apply across Issues; they do not provide per-Issue privacy. A tested agent with repository access may discover other runs, comments, or repository files. Do not claim access isolation based on separate Issues, neutral titles, or missing links. Do not deliberately place other runs' responses or evaluator-only material in a prompt. Record any discoverability or cross-run exposure as an experimental limitation rather than treating it as a setup failure by itself.
 
 Do not publish coordinator assessments or aggregate results until the planned response collection is complete. Then publish run assessments as separate top-level comments and aggregate results as a separate Evaluation-level comment. These records are visible according to repository permissions; do not describe them as confidential.
 
