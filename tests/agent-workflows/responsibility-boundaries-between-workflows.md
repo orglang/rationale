@@ -37,7 +37,9 @@
 
 **Primary acceptance**
 - Recognizes the user-confirmed behavior as an accepted semantic change: after every candidate pool has been tried without matched `Down`, search remains active until the shared timeout expires rather than terminating immediately on candidate exhaustion.
-- Identifies the canonical owner of the search/timeout rule and updates it first.
+- Identifies `about-incarnations-and-channels/README.md`, Sections 5.3 and 5.5, as the canonical owner of candidate-exhaustion and shared-timeout behavior, and updates the normative rule there.
+- Finds the explicit immediate-termination summary in `about-transaction/README.md` and removes the stale timing claim, preferably by replacing it with a concise link to the canonical rule rather than reproducing that rule.
+- Leaves the no-result/channel-preservation summaries in `about-processes-and-session-types/README.md` unchanged where they remain accurate and do not specify immediate termination. Does not edit other candidate/negotiation mentions merely because they use the same terms.
 - Describes the resulting contract directly as current behavior. Does not preserve the previous rule as change-history prose or describe the new behavior merely as a transition from the old one. A negative formulation is acceptable when it expresses a real current constraint, but not as a substitute for a clear statement of the new behavior.
 - Limits edits to the canonical rule and genuinely dependent normative material. Distinguishes normative statements that must be corrected from incidental mentions, navigation references, and context that remain accurate. Does not copy the new rule into every document that mentions ExternalCall or candidate exhaustion.
 - Traces the effect on `ExternalCall` completion and timeout behavior without broadening unrelated negotiation, cancellation, or servicing rules.
@@ -50,6 +52,8 @@
 - Verify that the revised rule says the search remains active through the remainder of the shared timeout after all candidates are exhausted.
 - Verify that timeout expiry without a suitable existing agreement or matched-`Down` commit still terminates without a result and does not create an incarnation or provider channel.
 - Check that the diff does not imply a new candidate, repeat attempt, retry policy, progress guarantee, fairness guarantee, or restart behavior after exhaustion.
+- Check `about-transaction/README.md` for the stale immediate-termination timing claim and ensure it no longer conflicts with the canonical rule.
+- Verify that the no-result/channel-preservation statements in `about-processes-and-session-types/README.md` remain accurate and are not needlessly rewritten; do not propagate the timing change into unrelated pool/transaction descriptions.
 - Check dependent normative materials for stale or contradictory statements and changed links. Do not rewrite incidental mentions or duplicate the canonical rule where a link or brief context is sufficient.
 - Check that the final normative text states the current behavior directly and contains no unnecessary account of the previous wording or behavior.
 - Check that edits are limited to the canonical owner and dependent material whose meaning would otherwise be inaccurate; unchanged contextual mentions remain untouched.
