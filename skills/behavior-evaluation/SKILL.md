@@ -80,7 +80,7 @@ Check all of the following:
 
 Give each fixture a setup verdict: **Valid**, **Valid with limitations**, or **Invalid**. Record concise evidence and any required corrections. Do not run an Invalid fixture. If a limitation is intentional (for example, the scenario tests whether an agent handles a user-reported but unprovided test result cautiously), state that explicitly in coordinator setup notes and ensure the expected behavior rewards calibrated uncertainty.
 
-A scenario, rubric, or acceptance-matrix change creates a new evaluation series under the Run ledger rules. Never silently repair a fixture only in the coordinator's interpretation while leaving the versioned scenario unchanged.
+A scenario, its evaluator-only acceptance criteria, or rubric change creates a new evaluation series under the Run ledger rules. Never silently repair a fixture only in the coordinator's interpretation while leaving the versioned scenario unchanged.
 
 ## Prepare blind prompt files
 
@@ -159,7 +159,7 @@ Keep the task wording, factual source snapshot, rubric, model, and settings cons
 
 Maintain the ledger in the evaluation-series PR and this coordinator conversation; do not ask the user to fill out a separate report. For each series, keep the suite-level assessment from **Assess the scenario set**: capability importance, relative difficulty, overlap/redundancy, and coverage gaps. The series manifest should include source repository/full SHA, evaluation repository/PR, instruction condition and exact versions, scenario and rubric blob SHAs (the scenario file includes its evaluator-only acceptance criteria), model/settings, run order, response-file paths, and run status. For each individual run, record:
 
-- series, stable scenario ID/title, repository, full SHA, scenario, rubric, and acceptance-matrix blob SHAs, setup verdict, and date;
+- series, stable scenario ID/title, repository, full SHA, scenario and rubric blob SHAs (the scenario file includes its evaluator-only acceptance criteria), setup verdict, and date;
 - model and settings, if known;
 - five scores, total, result, critical errors, concise evidence, and instruction-effect classifications with evidence;
 - whether a diff was proposed and its review outcome.
