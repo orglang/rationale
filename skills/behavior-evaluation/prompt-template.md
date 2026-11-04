@@ -15,7 +15,7 @@ Never include evaluator-only material (expected behavior, failure signals, rubri
 
 Параметры прогона:
 - Серия: [ID / НАЗВАНИЕ СЕРИИ]
-- Сценарий: [ID / НАЗВАНИЕ СЦЕНАРИЯ]
+- Сценарий: [СТАБИЛЬНЫЙ ID, НЕ ЗАВИСЯЩИЙ ОТ ИМЕНИ ФАЙЛА / НАЗВАНИЕ]
 - Условие: [A-restricted / A-unrestricted / B / C]
 - Репозиторий с исходными материалами: [OWNER/REPOSITORY]
 - Зафиксированный commit исходного репозитория: [ПОЛНЫЙ 40-СИМВОЛЬНЫЙ SHA]
@@ -55,8 +55,8 @@ Never include evaluator-only material (expected behavior, failure signals, rubri
 
 For each planned run (scenario × condition):
 
-1. Read the source scenario and copy its complete **Задание** section into a new file in the evaluation-series repository. Do not copy evaluator-only sections. Create one file per scenario × condition (for example, `scenario-01/condition-A.md`, `scenario-01/condition-B.md`, `scenario-01/condition-C.md`).
-2. Insert the series/scenario identifiers, condition, pinned source commit SHA, and immutable links plus blob SHAs for the exact source materials available in that condition.
+1. Read the source scenario and copy its complete **Задание** section into a new file in the evaluation-series repository. Do not copy evaluator-only sections. Create one file per scenario × condition, using the stable ID in paths (for example, `AWF-001/condition-A.md`, `AWF-001/condition-B.md`, `AWF-001/condition-C.md`).
+2. Insert the series identifier, stable scenario ID (copied from the source fixture, never inferred from its filename or title), condition, pinned source commit SHA, and immutable links plus blob SHAs for the exact source materials available in that condition.
 3. For A-restricted, explicitly state that the verified isolated material set excludes project instructions. For A-unrestricted, state only that project instructions are not explicitly supplied and disclose that the agent may be able to discover them; do not claim they are unavailable. For B/C, include only the exact pinned instruction version assigned to that condition.
 4. Finish and validate the entire prompt file before opening the tested-agent session. Ensure no placeholders remain and that the task and permitted source set are complete.
 5. Put one prompt file per scenario and condition in the series PR. Validate every file, all pinned links/SHAs, absence of placeholders and evaluator leakage, and the accuracy of each condition before any run. The tested agent's only entry point is the immutable permalink to its corresponding prompt file. Send a short message such as: «Открой файл по ссылке, прочитай его полностью и выполни содержащийся в нём промпт. Финальный ответ добавь новым файлом по указанному в промпте пути; других файлов не меняй».
