@@ -105,9 +105,9 @@ The tested agent must:
 - not include evaluation IDs, condition labels, scoring guesses, or coordinator metadata in the comment;
 - report in its chat reply only whether the comment was successfully published and provide its URL if available; it must not claim success without confirmation from GitHub.
 
-The tested agent needs a GitHub integration capable of creating Issue comments and permission to comment on that Run Issue. Do not assume another ChatGPT context has the same connector or permissions as the coordinator. Verify the capability before the run when possible. Do not grant source-repository write access merely to enable a Run Issue comment; use the narrowest available permission in the agreed repository.
+The response-capture method uses a top-level comment on the Run Issue. Do not make a pre-run permission check or a particular permission configuration a universal setup condition. Do not change the tested agent's existing capabilities just to fit the capture method. If the agent can publish the comment, capture and verify it there; if it cannot, record the response-capture limitation and mark the run incomplete as described below.
 
-If the agent cannot create a comment, lacks permission, or GitHub rejects the comment, the response capture requirement has not been met. Mark **Run completeness: incomplete (response comment missing)**. Do not pretend the comment exists, reconstruct it, or silently substitute a local `response.md` or a coordinator-authored comment. A chat answer without the required Run Issue comment is not a complete captured run. Do not retry in the same run; a retry is a new Run with a new ID.
+If the agent cannot publish a comment or GitHub rejects the publication, the response capture requirement has not been met. Mark **Run completeness: incomplete (response comment missing)**. Do not pretend the comment exists, reconstruct it, or silently substitute a local `response.md` or a coordinator-authored comment. A chat answer without the required Run Issue comment is not a complete captured run. Do not retry in the same run; a retry is a new Run with a new ID.
 
 ### Completeness
 
