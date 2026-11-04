@@ -186,9 +186,9 @@ Include a concise report table with instruction file/heading and blob SHA, inten
 
 When measuring project-instruction effects, use the same scenario task and, where feasible, the same task-relevant repository snapshot under these conditions:
 
-- **A — Project instructions withheld:** provide the task and necessary domain/source material, but do not explicitly supply project-level instructions/skills (for example, `AGENTS.md`, standards, and workflow skills).
-  - **A-restricted:** use an isolated, verified snapshot containing only allowed task/domain files and excluding project instructions. Claim “no project instructions available” only if exclusion is verified.
-  - **A-unrestricted:** if the agent can browse the source repository or otherwise discover withheld instructions, describe A only as “instructions not explicitly supplied”; record the limitation and do not claim absence/isolation.
+- **A — Optional project instructions withheld:** the bootstrap `AGENTS.md` may be loaded, but it does not activate other project instructions. Provide the task and necessary domain/source material without explicitly activating or supplying optional project instructions/skills. Do not use links from the task or source materials to activate them.
+  - **A-restricted:** use an isolated, verified snapshot containing the bootstrap `AGENTS.md` plus only allowed task/domain files; exclude all optional project instructions and verify that the runtime does not preload them. Claim “no optional project instructions available or activated” only if this boundary is verified.
+  - **A-unrestricted:** if the agent can browse the source repository or the runtime may preload optional project instructions, describe A only as “optional instructions not explicitly activated by the task”; record the limitation and do not claim absence/isolation.
   - This does not remove system/developer instructions or built-in model capabilities.
 - **B — Previous instructions:** provide the previous instruction version, pinned by exact SHA/blob SHAs.
 - **C — Current instructions:** provide the current instruction version, pinned by exact SHA/blob SHAs.
