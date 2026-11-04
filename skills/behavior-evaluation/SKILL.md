@@ -72,9 +72,7 @@ Use neutral titles and labels that do not reveal the condition or evaluator meta
 
 A missing parent link is necessary but does **not** provide access isolation. Standard GitHub repository permissions do not create per-Issue visibility: a collaborator with repository access may be able to discover other Issues, comments, labels, and repository contents through the UI, search, or API.
 
-For a genuinely isolated/blind run, use a separate private repository for each Run Issue, with no other Runs or Evaluation record in it. Keep the parent Evaluation record in a different coordinator-only repository. Give the tested agent access only to that one private run repository, and only when the connected GitHub integration supports the required access. Do not create these repositories or grant access without explicit user authorization.
-
-If separate private repositories are not available or authorized, a shared repository can still be used as an operational convenience, but classify the access condition as **unrestricted** or **valid with limitations** as appropriate. Do not claim the tested agent can see only its own Issue, and do not claim a blind evaluation. Record that other Issues may be discoverable even though the Run Issue itself contains no cross-links.
+Use one agreed repository for Run Issues and the coordinator's Evaluation record; do not create separate repositories for individual runs. Since repository permissions are not scoped to individual Issues, a tested agent with access to a Run Issue may be able to discover other Issues, comments, labels, and repository contents. Therefore, a shared-repository run is not access-isolated and must not be described as genuinely blind. Record this visibility limitation for every run. Keep evaluator-only material out of Run Issues and their comments.
 
 A public repository cannot provide confidentiality. Do not put sensitive coordinator material or evaluator-only criteria in a public Run repository.
 
@@ -99,7 +97,7 @@ For each selected scenario, verify:
 3. **Task completeness:** the requested outcome, target scope, decision status, and necessary context are actionable. For an accepted change, state the actual accepted behavior.
 4. **Consistency and scorability:** task, expected behavior, failure signals, rubric, and sources do not conflict. Intentional evidence gaps are clearly part of the challenge. Success/failure must be demonstrable; do not penalize a justified challenge to a false premise, a scoped no-diff decision, or explicit uncertainty.
 5. **Blindness:** task text contains only the user's request, minimum factual context, decision status, and necessary scope constraints. Remove evaluator criteria, coordinator notes, answers to other scenarios, workflow/ownership hints, checklists of expected consequences, rubric-shaped report requirements, and distinctive wording copied from evaluator criteria. Generic directions to follow repository guidance and report evidence are acceptable. Retain process details only when genuinely necessary to state the user's request.
-6. **Issue isolation:** inspect the Run Issue title, body, labels, comments, attachments, and repository. There must be no direct or indirect link/reference to the parent Evaluation or another Run. Confirm the actual repository access boundary separately; absence of links is not proof of isolation.
+6. **Issue separation:** inspect the Run Issue title, body, labels, comments, and attachments. There must be no direct or indirect link/reference to the parent Evaluation or another Run. Record that repository-level visibility may still expose other Issues; absence of links is not access isolation.
 
 Assign **Valid**, **Valid with limitations**, or **Invalid**. Record concise evidence and required corrections. Do not run Invalid scenarios. For intentional limitations (such as an unprovided user-reported test result or discoverable sibling Issues), record the limitation in coordinator-only notes and ensure the expected behavior rewards calibrated uncertainty.
 
@@ -107,12 +105,12 @@ Assign **Valid**, **Valid with limitations**, or **Invalid**. Record concise evi
 
 Use `prompt-template.md` after scenario-set assessment, run-matrix agreement, fixture validation, and source pinning. Materialize one complete prompt per planned run. Each prompt must contain:
 - the full selected scenario's `Задание` section, not a link in its place;
-- only the exact immutable source materials available to the tested agent, preferably materialized in an isolated, sanitized snapshot that excludes evaluator-only sections and unrelated evaluation artifacts;
+- only the exact immutable source materials available to the tested agent, preferably materialized in a sanitized snapshot that excludes evaluator-only sections and unrelated evaluation artifacts;
 - no evaluation ID, Run ID, run condition label (A/B/C), rubric, evaluator-only criteria, or coordinator metadata.
 
 Keep task wording and task-relevant factual snapshot constant across conditions where possible. Exclude all evaluator-only material. Do not leave placeholders or require the tested agent to assemble a prompt from multiple files.
 
-The Run Issue body is the canonical delivered prompt. The coordinator retains an exact copy in its private evaluation records for provenance. Do not send the tested agent a parent link, another Run link, or a link to coordinator-only records. A permalink is navigation, not access control. If the tested agent can browse the original public source repository, discover withheld instructions, or otherwise reach evaluator-only material, blindness is not guaranteed. Record the limitation and classify the setup as **Valid with limitations** or **Invalid** as appropriate. For A, use `A-restricted` only when the isolated snapshot and its access boundary are verified. Otherwise use `A-unrestricted` and say only that instructions were not explicitly supplied.
+The Run Issue body is the canonical delivered prompt. The coordinator retains an exact copy in the coordinator's evaluation record for provenance. Do not send the tested agent a parent link, another Run link, or a link to coordinator-only records. A permalink is navigation, not access control. If the tested agent can browse the original public source repository, discover withheld instructions, or otherwise reach evaluator-only material, blindness is not guaranteed. Record the limitation and classify the setup as **Valid with limitations** or **Invalid** as appropriate. For A, use `A-restricted` only when the tested agent's actual execution environment is demonstrably limited to the approved snapshot and cannot browse optional project instructions. A GitHub Issue in a shared repository does not establish that boundary. Otherwise use `A-unrestricted` and say only that instructions were not explicitly activated by the task.
 
 ## Run and capture responses
 
@@ -126,7 +124,7 @@ The tested agent must:
 - not include evaluation IDs, condition labels, scoring guesses, or coordinator metadata in the comment;
 - report in its chat reply only whether the comment was successfully published and provide its URL if available; it must not claim success without confirmation from GitHub.
 
-The tested agent needs a GitHub integration capable of creating Issue comments and permission to comment on that Run Issue. Do not assume another ChatGPT context has the same connector or permissions as the coordinator. Verify the capability before the run when possible. Do not grant source-repository write access merely to enable a Run Issue comment; use the isolated run repository and the narrowest available permission.
+The tested agent needs a GitHub integration capable of creating Issue comments and permission to comment on that Run Issue. Do not assume another ChatGPT context has the same connector or permissions as the coordinator. Verify the capability before the run when possible. Do not grant source-repository write access merely to enable a Run Issue comment; use the narrowest available permission in the agreed repository.
 
 If the agent cannot create a comment, lacks permission, or GitHub rejects the comment, the response capture requirement has not been met. Mark **Run completeness: incomplete (response comment missing)**. Do not pretend the comment exists, reconstruct it, or silently substitute a local `response.md` or a coordinator-authored comment. A chat answer without the required Run Issue comment is not a complete captured run. Do not retry in the same run; a retry is a new Run with a new ID.
 
@@ -141,7 +139,7 @@ Track **run completeness** separately from **grading completeness** in the coord
 
 The coordinator verifies the response comment on the Run Issue and records its URL/permalink, author, timestamp, and the exact Run Issue URL in the private assessment record. Preserve the comment text as returned by GitHub; do not edit the agent's comment. If the comment is edited or deleted before verification, capture is incomplete. GitHub comments are not immutable: record this limitation and preserve the observed provenance. The coordinator's assessment is stored separately in coordinator-only records, never as a reply that could be mistaken for the agent's answer.
 
-The tested agent has no write access to the source repository or coordinator-only Evaluation repository. It may have permission to comment only in its isolated Run repository. Any returned diff is a proposal, not an applied change. Include a proposed diff only when the task requests a concrete change or a diff is needed to represent it unambiguously. Do not require diffs for analysis/decision/recommendation tasks.
+The tested agent should have no write access to source files or evaluator-only records. Grant only the permission needed to comment on its Run Issue, and record that repository-level access may still expose other Issues. Any returned diff is a proposal, not an applied change. Include a proposed diff only when the task requests a concrete change or a diff is needed to represent it unambiguously. Do not require diffs for analysis/decision/recommendation tasks.
 
 ## Evaluate
 
@@ -187,7 +185,7 @@ Include a concise report table with instruction file/heading and blob SHA, inten
 When measuring project-instruction effects, use the same scenario task and, where feasible, the same task-relevant repository snapshot under these conditions:
 
 - **A — Optional project instructions withheld:** the bootstrap `AGENTS.md` may be loaded, but it does not activate other project instructions. Provide the task and necessary domain/source material without explicitly activating or supplying optional project instructions/skills. Do not use links from the task or source materials to activate them.
-  - **A-restricted:** use an isolated, verified snapshot containing the bootstrap `AGENTS.md` plus only allowed task/domain files; exclude all optional project instructions and verify that the runtime does not preload them. Claim “no optional project instructions available or activated” only if this boundary is verified.
+  - **A-restricted:** use a verified execution environment containing the bootstrap `AGENTS.md` plus only allowed task/domain files; exclude all optional project instructions and verify that the runtime does not preload them. Claim “no optional project instructions available or activated” only if this boundary is verified. The Run Issue's repository location does not itself prove this boundary.
   - **A-unrestricted:** if the agent can browse the source repository or the runtime may preload optional project instructions, describe A only as “optional instructions not explicitly activated by the task”; record the limitation and do not claim absence/isolation.
   - This does not remove system/developer instructions or built-in model capabilities.
 - **B — Previous instructions:** explicitly activate the agreed previous-version entrypoint instruction(s), pinned by exact SHA/blob SHAs; follow only their transitive instruction links.
