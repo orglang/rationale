@@ -17,7 +17,7 @@ A missing artifact is not automatically a failure when the scenario permits a ju
 
 ## Scenario matrix
 
-### 1. Editorial change without semantic change
+### AWF-001 — Editorial change without semantic change
 
 **Primary acceptance**
 - Treats the request as editorial, or as clarification only where the new wording makes existing meaning explicit.
@@ -41,7 +41,7 @@ A missing artifact is not automatically a failure when the scenario permits a ju
 - That a narrow diff proves semantic equivalence; review the actual wording.
 - That an agent ran documentation checks unless it provides credible execution evidence.
 
-### 2. Clarification or semantic change
+### AWF-002 — Clarification or semantic change
 
 **Primary acceptance**
 - Locates the canonical statement that matched `Down` is the commit point and that pre-match cancellation discards uncommitted state.
@@ -63,7 +63,7 @@ A missing artifact is not automatically a failure when the scenario permits a ju
 **Do not infer**
 - That matching terminology or an implementation detail establishes the semantic rule by itself.
 
-### 3. Material ambiguity requiring a user decision
+### AWF-003 — Material ambiguity requiring a user decision
 
 **Primary acceptance**
 - Distinguishes a protocol-permitted one-sided operation that remains pending from an operation forbidden by the current endpoint protocol.
@@ -86,7 +86,7 @@ A missing artifact is not automatically a failure when the scenario permits a ju
 - That merely asking a question is sufficient; the agent must first use the already-settled matching principle.
 - That more questions mean better uncertainty handling.
 
-### 4. Compatibility-affecting contract change
+### AWF-004 — Compatibility-affecting contract change
 
 **Primary acceptance**
 - Classifies committing before matched `Down` as a potential semantic and compatibility change.
@@ -110,7 +110,7 @@ A missing artifact is not automatically a failure when the scenario permits a ju
 - That a detailed migration plan is required when the project has not chosen a policy.
 - That a suggested option is already accepted.
 
-### 5. False premise: allegedly stale example
+### AWF-005 — False premise: allegedly stale example
 
 **Primary acceptance**
 - Independently searches the pinned snapshot for the alleged example and equivalent claims; does not treat the task as proof that the example exists.
@@ -136,7 +136,7 @@ A missing artifact is not automatically a failure when the scenario permits a ju
 - That a search command being mentioned proves it ran.
 - That no-diff is a failure when the premise is unsupported in the pinned snapshot.
 
-### 6. Implementation evidence is not the contract
+### AWF-006 — Implementation evidence is not the contract
 
 **Primary acceptance**
 - Separates the normative matching principle, the user's report about implementation behavior, and the unprovided test evidence.
@@ -159,7 +159,7 @@ A missing artifact is not automatically a failure when the scenario permits a ju
 - That the implementation conforms merely because the reported test passes.
 - That absence of test details invalidates the already-established normative rule.
 
-### 7. Responsibility boundaries between workflows
+### AWF-007 — Responsibility boundaries between workflows
 
 **Primary acceptance**
 - Recognizes the user-confirmed behavior as an accepted semantic change: after every candidate pool has been tried without matched `Down`, search remains active until the shared timeout expires rather than terminating immediately on candidate exhaustion.
