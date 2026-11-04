@@ -2,7 +2,7 @@
 
 Generate one complete `prompt.md` for each planned run. The prompt is the tested agent's sole entry point. It contains the task and only the source materials actually made available to that agent.
 
-Never include evaluator-only material: expected behavior, failure signals, rubric, scores, coordinator notes, evaluation ID, or the A/B/C condition label. Do not expose the experimental comparison design.
+Never include evaluator-only material: expected behavior, failure signals, rubric, scores, coordinator notes, evaluation ID, or the A/B/C condition label. Do not expose the evaluation design or the run's condition.
 
 ## Generated prompt file
 
