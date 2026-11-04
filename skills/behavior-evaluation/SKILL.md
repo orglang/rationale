@@ -57,6 +57,16 @@ Create one Run Issue per run. Its body contains the complete tested-agent prompt
 
 Do not publish coordinator assessments or aggregate results until the planned response collection is complete. Then publish run assessments as separate top-level comments and aggregate results as a separate Evaluation-level comment.
 
+## GitHub labels
+
+Apply the repository's compact evaluation-label scheme to operational Issues:
+
+- Evaluation (coordination) Issue: `eval-coordination`.
+- Each Run Issue: `eval-run`, exactly one `scenario-awf-<NNN>` label matching its stable scenario ID (for example, `scenario-awf-007`), and exactly one `condition-a`, `condition-b`, or `condition-c` label matching that run's condition.
+- Do not apply run labels to the Evaluation Issue or the coordination label to Run Issues.
+- Add labels without replacing labels already present. Before applying them, verify that the required labels exist in the repository; do not silently invent alternate spellings or create a parallel taxonomy.
+- Labels are an operational index only. The Evaluation record remains the source of truth for the run matrix, scenario IDs, conditions, provenance, and results. Keep the matrix to its prescribed `Run`, `Scenario`, and `Condition` columns.
+
 ## Assess the scenario set
 
 Do this once after fetching candidate scenarios and before agreeing the run matrix. Record:
