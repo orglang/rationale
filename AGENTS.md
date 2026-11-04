@@ -11,7 +11,7 @@ Activate a project instruction only when:
 - the user explicitly asks to use or follow that instruction, or an unambiguous set of project instructions; or
 - an already activated project instruction contains an explicit link to that instruction.
 
-An explicit request to follow **all project instructions** in a stated repository/scope activates all documents designated there as agent instructions, standards, or workflow skills. In that case, inventory those instruction locations. Do not interpret a generic request to follow repository conventions as a request to activate every project instruction unless the context makes that scope unambiguous.
+An explicit request to follow **all project instructions** in a stated repository/scope activates all documents designated there as agent instructions, standards, or workflow skills. In this repository, these are the root `AGENTS.md` bootstrap, `DOCUMENTATION_STANDARDS.md`, and `SKILL.md` files under `skills/`. Supporting templates, rubrics, scenarios, and ordinary documentation are not instruction documents merely because they are Markdown. In an all-instructions request, inventory the designated instruction locations. Do not interpret a generic request to follow repository conventions as a request to activate every project instruction unless the context makes that scope unambiguous.
 
 Activation follows links transitively: when an activated instruction links to another project instruction, activate the linked instruction as well, and continue through its instruction links. Activation is idempotent; cycles do not cause repeated processing.
 
