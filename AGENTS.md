@@ -26,7 +26,3 @@ Activation does not change instruction precedence. Follow the host environment's
 ## Runtime limitations
 
 This is the repository's intended instruction-activation contract, not an access-control mechanism. A host tool or agent runtime may preload, index, or inject additional files independently of this document. Do not claim that an instruction was unavailable or inactive when the runtime supplied it. If the environment automatically supplies project instructions contrary to this contract, report that limitation; changing this file alone cannot prevent runtime-level loading.
-
-## Repository work
-
-Keep edits targeted. Before finishing or committing, review the full diff against the branch base and remove accidental or unrelated changes.
