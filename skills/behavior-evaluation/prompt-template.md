@@ -50,10 +50,10 @@ For each planned run:
 
 1. Copy the complete `Задание` section from the selected scenario into a new Run Issue body; exclude evaluator-only sections.
 2. Add the exact source materials available to the tested agent and identify their versions. Do not include rubric or evaluator-only material in the task prompt.
-3. Validate the prompt for placeholders, missing materials, false access claims, and evaluator-only material.
+3. Validate the prompt for placeholders, missing materials, unsupported claims, and evaluator-only material.
 4. Create the Run Issue in the agreed evaluation repository. Retain its exact URL and a canonical copy of the prompt in the Evaluation record.
 5. Use the publication block in the Run Issue body exactly as written in the template. The tested agent's final answer is the response record and must remain unedited. After every response in the evaluation batch has been captured and verified, the coordinator publishes a separate top-level comment on each Run Issue titled `Coordinator assessment — RUN-XX`, following `skills/behavior-evaluation/SKILL.md` and `rubric.md`. Never merge the assessment into the response comment or post it as an inline reply.
 
-Run Issues and the Evaluation record may be discoverable by anyone with repository access. Do not treat Issue structure, missing links, or prompt wording as an access-control boundary. Do not deliberately include evaluator-only criteria or another run's response in a tested-agent prompt. If an agent can discover other runs or instructions through its normal repository access, record that as an experimental limitation; do not claim the run was isolated. Publish coordinator assessments and aggregate results after the planned response collection is complete, and keep them clearly attributed as coordinator material.
+Do not deliberately include evaluator-only criteria or another run's response in a tested-agent prompt. Publish coordinator assessments and aggregate results after the planned response collection is complete, and keep them clearly attributed as coordinator material.
 
 Use a fresh session per run where practical.
