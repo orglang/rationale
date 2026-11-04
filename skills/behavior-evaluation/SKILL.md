@@ -18,11 +18,11 @@ Use this skill to prepare, run, coordinate, or assess manual agent-workflow eval
 An **evaluation** (`EVAL-*`) is the coordinator's top-level unit for assessing an instruction change/version across an agreed scenario × condition matrix. A **run** (`RUN-*`) is one execution of one stable scenario under one condition.
 
 Terminology:
-- **Evaluation**: the parent coordination record, visible only to the coordinator.
+- **Evaluation**: the parent coordination record for the run matrix, provenance, and aggregate results. Its visibility follows the repository's GitHub permissions.
 - **Run**: one isolated GitHub Issue used to deliver one task and collect one response.
 - **Prompt**: the exact task input in the Run Issue body.
 - **Response**: the tested agent's complete final answer, published by the tested agent as a comment on that same Run Issue.
-- **Assessment**: coordinator's scoring and evidence, stored outside the Run Issue in coordinator-only records.
+- **Assessment**: the coordinator's scoring and evidence for one run, published as a separate top-level comment on that run's Issue after all responses in the evaluation batch have been captured.
 - **Results**: aggregate comparison and conclusions for the evaluation.
 
 Do not introduce a separate `experiment` or `series` level. Use **assessment** for run-level judgement and **results** for evaluation-level synthesis.
@@ -42,21 +42,22 @@ Prepare the evaluation once, in this order:
 4. **Validate every selected scenario** against the pinned snapshot (see **Validate test setup**). Record its verdict and any correction. Do not prepare or run an Invalid scenario. If corrected, commit the fixture, pin the new source SHA and scenario blob SHA, then restart preparation against that snapshot.
 5. **Pin all relevant versions and activation roots.** Record the full source SHA and blob SHAs for each scenario (including evaluator-only criteria), instruction file, prompt template, rubric, and task-relevant canonical source. For each condition, record the exact instruction activation roots and the transitive set of linked instructions, with blob SHAs. The always-loaded `AGENTS.md` bootstrap is present in every condition but does not activate optional project instructions.
 6. **Prepare all prompts** in one pass using `prompt-template.md`: exactly one complete Russian prompt per planned run. The exact prompt is placed in the Run Issue body; it must not expose evaluation metadata or evaluator-only material.
-7. **Create the coordinator-only Evaluation record** and one Run Issue per planned run. The Evaluation record contains the matrix and links to Runs. A Run Issue contains only its task prompt and allowlisted task materials. Never put a link, reference, breadcrumb, identifier, or other navigation hint to the parent Evaluation or another Run in a Run Issue, its title, body, labels, comments, or attachments.
+7. **Create the Evaluation record** and one Run Issue per planned run. The Evaluation record contains the matrix, provenance, and links to Runs. A Run Issue body contains only its task prompt and allowlisted task materials. The tested agent's response must be a separate top-level comment. After every response in the evaluation batch has been captured, publish the coordinator's assessment as another clearly labelled top-level comment on that same Run Issue. Never put a link, reference, breadcrumb, identifier, or other navigation hint to the parent Evaluation or another Run in a Run Issue, its title, body, labels, or comments.
 
 Keep `rationale` as the source of truth for instructions, scenarios, expected behavior, failure signals, and rubric. GitHub Issues are operational run records, not replacements for canonical fixtures or rubric.
 
 ## Issue architecture and access boundaries
 
-### Coordinator-only Evaluation record
+### Evaluation record
 
 The parent Evaluation record stores:
 - evaluation objective and pinned source/instruction/scenario/rubric versions;
 - agreed run matrix (exactly `Run`, `Scenario`, and `Condition` columns);
 - links to each Run Issue;
-- aggregate `results` and coordinator-only setup/provenance notes.
+- aggregate `results` (published as a separate evaluation-level comment after run assessments are complete); and
+- operational setup/provenance metadata. Keep sensitive credentials and material that must remain confidential outside the shared repository.
 
-The tested agent must not receive the parent URL, its number, title, repository, or any other reference to it. Do not link from a Run Issue to the Evaluation record. The parent may link to Runs; the relationship is one-way from coordinator-only parent to child.
+Do not give the tested agent the parent URL or deliberately point it to the Evaluation record. Do not link from a Run Issue to the Evaluation record. The parent may link to Runs; the relationship is one-way from parent to child. This is a workflow convention, not access control: repository collaborators may still discover the parent Issue.
 
 ### Run Issue
 
@@ -64,7 +65,7 @@ Create exactly one Issue for each run. Its body contains the complete tested-age
 - parent Evaluation links or identifiers, including indirect references;
 - links or identifiers for other Runs;
 - A/B/C condition labels, model-comparison notes, and evaluation design;
-- expected behavior, failure signals, rubric, scores, evaluator-only criteria, and coordinator notes.
+- expected behavior, failure signals, rubric, scores, evaluator-only criteria, and coordinator notes in the Issue body or in any comment posted before the evaluation batch is closed.
 
 Use neutral titles and labels that do not reveal the condition or evaluator metadata. Do not cross-link Run Issues. The tested agent is given only the URL of its own Run Issue and the minimum access needed to read the task and publish a comment. Keep the operational handoff instruction separate from the Run Issue body: tell the agent to complete the task in the Issue and publish its complete final answer as a comment on that same Issue. Do not place this response-capture instruction in the tested-agent prompt template.
 
@@ -72,7 +73,7 @@ Use neutral titles and labels that do not reveal the condition or evaluator meta
 
 A missing parent link is necessary but does **not** provide access isolation. Standard GitHub repository permissions do not create per-Issue visibility: a collaborator with repository access may be able to discover other Issues, comments, labels, and repository contents through the UI, search, or API.
 
-Use one agreed repository for Run Issues and the coordinator's Evaluation record; do not create separate repositories for individual runs. Since repository permissions are not scoped to individual Issues, a tested agent with access to a Run Issue may be able to discover other Issues, comments, labels, and repository contents. Therefore, a shared-repository run is not access-isolated and must not be described as genuinely blind. Record this visibility limitation for every run. Keep evaluator-only material out of Run Issues and their comments.
+Use one agreed repository for Run Issues and the Evaluation record; do not create separate repositories for individual runs. Since repository permissions are not scoped to individual Issues, a tested agent with access to a Run Issue may be able to discover other Issues, comments, labels, and repository contents. Therefore, a shared-repository run is not access-isolated and must not be described as genuinely blind. Record this visibility limitation for every run. Do not publish coordinator assessments or aggregate results until every response in the evaluation batch has been captured and verified. After that point, publish assessments in separate top-level Run Issue comments and aggregate results in a separate top-level Evaluation Issue comment. These comments are visible to repository collaborators; do not describe them as confidential or coordinator-only.
 
 A public repository cannot provide confidentiality. Do not put sensitive coordinator material or evaluator-only criteria in a public Run repository.
 
@@ -88,7 +89,7 @@ Use this assessment to choose scenarios and conditions. Lower importance or over
 
 ## Validate test setup
 
-This is a coordinator-only quality gate. Never expose its findings, expected behavior, failure signals, or rubric to the tested agent.
+This is a coordinator-only quality gate. Do not expose its findings, expected behavior, failure signals, or rubric to the tested agent before all responses in the evaluation batch have been captured. Assessments may disclose this material after the batch is closed.
 
 For each selected scenario, verify:
 
@@ -99,7 +100,7 @@ For each selected scenario, verify:
 5. **Blindness:** task text contains only the user's request, minimum factual context, decision status, and necessary scope constraints. Remove evaluator criteria, coordinator notes, answers to other scenarios, workflow/ownership hints, checklists of expected consequences, rubric-shaped report requirements, and distinctive wording copied from evaluator criteria. Generic directions to follow repository guidance and report evidence are acceptable. Retain process details only when genuinely necessary to state the user's request.
 6. **Issue separation:** inspect the Run Issue title, body, labels, comments, and attachments. There must be no direct or indirect link/reference to the parent Evaluation or another Run. Record that repository-level visibility may still expose other Issues; absence of links is not access isolation.
 
-Assign **Valid**, **Valid with limitations**, or **Invalid**. Record concise evidence and required corrections. Do not run Invalid scenarios. For intentional limitations (such as an unprovided user-reported test result or discoverable sibling Issues), record the limitation in coordinator-only notes and ensure the expected behavior rewards calibrated uncertainty.
+Assign **Valid**, **Valid with limitations**, or **Invalid**. Record concise evidence and required corrections. Do not run Invalid scenarios. For intentional limitations (such as an unprovided user-reported test result or discoverable sibling Issues), record the limitation in the evaluation's setup/provenance notes and ensure the expected behavior rewards calibrated uncertainty.
 
 ## Prepare blind prompts
 
@@ -137,7 +138,7 @@ Track **run completeness** separately from **grading completeness** in the coord
 - A complete run can receive an incomplete grade while assessment is underway. An incomplete run is normally `not evaluable`; do not turn an execution/capture failure into a behavioral fail or a zero score. If partial evidence still supports limited conclusions, preserve them explicitly without presenting a final rubric result.
 - Missing evidence in the agent's answer is not, by itself, an incomplete run or incomplete grading. Assess the response as received, record relevant checks as `not verifiable` where appropriate, and score the demonstrated omission under the rubric. Do not confuse an agent's failure to provide evidence with a failure to collect its response.
 
-The coordinator verifies the response comment on the Run Issue and records its URL/permalink, author, timestamp, and the exact Run Issue URL in the private assessment record. Preserve the comment text as returned by GitHub; do not edit the agent's comment. If the comment is edited or deleted before verification, capture is incomplete. GitHub comments are not immutable: record this limitation and preserve the observed provenance. The coordinator's assessment is stored separately in coordinator-only records, never as a reply that could be mistaken for the agent's answer.
+The coordinator verifies the response comment on the Run Issue and records its URL/permalink, author, timestamp, and the exact Run Issue URL in the assessment. Preserve the comment text as returned by GitHub; do not edit the agent's comment. If the comment is edited or deleted before verification, capture is incomplete. GitHub comments are not immutable: record this limitation and preserve the observed provenance. After all responses in the evaluation batch have been captured, publish the assessment as a separate top-level comment titled `Coordinator assessment — RUN-XX`. Never edit, replace, or reply inline to the tested agent's response comment. The two comments must remain distinct and clearly attributed.
 
 The tested agent should have no write access to source files or evaluator-only records. Grant only the permission needed to comment on its Run Issue, and record that repository-level access may still expose other Issues. Any returned diff is a proposal, not an applied change. Include a proposed diff only when the task requests a concrete change or a diff is needed to represent it unambiguously. Do not require diffs for analysis/decision/recommendation tasks.
 
@@ -152,7 +153,7 @@ Evaluate against the pinned full scenario (including its evaluator-only acceptan
 - Review any proposed diff for consistency with the pinned snapshot, justified/minimal scope, contract preservation, appropriate files, and truthful verification claims. The tested agent has no source-repository write access; any diff in its response is a proposal, not an applied change.
 - Apply the pinned rubric thresholds and critical-failure rules. Keep severe semantic failures visible even when the total is high.
 
-Write an English run-level assessment in the coordinator-only evaluation record with scenario ID/title, repository and SHA, fixture versions and setup verdict, model/settings if known, Run Issue URL, response comment URL/author/timestamp, **Run completeness** (`complete`/`incomplete`, with reason), **Grading completeness** (`complete`/`incomplete`, with outstanding work), five scores and evidence when grading is complete, total /10 and rubric result, critical errors/missing evidence, instruction-effect analysis, diff assessment (or explicit no-diff statement), and concrete rerun recommendations. Use `not evaluable` rather than `fail` when an incomplete run prevents a defensible behavioral assessment. Do not rewrite the response before scoring. Human review is required for borderline outcomes and material failures.
+Write an English run-level assessment and publish it as a separate top-level comment on the corresponding Run Issue, titled `Coordinator assessment — RUN-XX`. Include scenario ID/title, repository and SHA, fixture versions and setup verdict, model/settings if known, Run Issue URL, response comment URL/author/timestamp, **Run completeness** (`complete`/`incomplete`, with reason), **Grading completeness** (`complete`/`incomplete`, with outstanding work), five scores and evidence when grading is complete, total /10 and rubric result, critical errors/missing evidence, instruction-effect analysis, diff assessment (or explicit no-diff statement), and concrete rerun recommendations. Preserve the full assessment; do not place it in or rewrite the tested agent's response. Use `not evaluable` rather than `fail` when an incomplete run prevents a defensible behavioral assessment. Human review is required for borderline outcomes and material failures. Publish only after all responses in the evaluation batch are captured. The assessment comment is visible according to repository permissions.
 
 ### Cross-scenario post-checks
 
@@ -178,7 +179,7 @@ For each run, assess which supplied project instructions helped, failed to help,
 - Compare the same stable scenario across A/B/C. Qualify causal claims for model variability, access differences, and confounders; behavior also present in A does not by itself show that B/C caused it.
 - If only one condition ran or evidence is insufficient, mark the relationship **not observable**.
 
-Include a concise report table with instruction file/heading and blob SHA, intended behavior, observed evidence, classification, and confidence/limitations. Summarize instruction elements to retain, clarify, revise, or add. Keep this analysis evaluator-only.
+Include a concise report table with instruction file/heading and blob SHA, intended behavior, observed evidence, classification, and confidence/limitations. Summarize instruction elements to retain, clarify, revise, or add. Keep this analysis out of tested-agent prompts and do not publish it until all responses in the evaluation batch are captured; it may then appear in the coordinator assessment comment.
 
 ## Conditions and run ledger
 
@@ -193,11 +194,11 @@ When measuring project-instruction effects, use the same scenario task and, wher
 
 Keep task wording, factual snapshot, rubric, model, and settings constant where possible. Record the activation roots and resolved instruction set for every run; do not treat the mere presence of a file as activation. Record mismatches when old instructions depend on older source versions. Not every evaluation needs all three conditions; agree the matrix with the user. A pilot of two or three informative scenarios may precede a broader comparison. The comparison unit is the same stable scenario ID across conditions; a run is one execution of that scenario under one condition. Do not infer a general effect from a small sample.
 
-Maintain the run matrix in the coordinator-only Evaluation record. It contains only the `Run`, `Scenario`, and `Condition` columns. Record source pins, scenario/rubric blob SHAs, model/settings, run date, scores, Issue/comment URLs, provenance, and other coordinator-only data in the private assessment record. Preserve the scenario-set assessment (capability importance, difficulty, overlap, coverage gaps) in `results`.
+Maintain the run matrix in the Evaluation record. It contains only the `Run`, `Scenario`, and `Condition` columns. Record source pins, scenario/rubric blob SHAs, model/settings, run date, Issue/comment URLs, and provenance in the Evaluation record or assessment comments as appropriate. Publish aggregate `results` in a separate top-level Evaluation Issue comment after all run assessments are complete. Preserve the scenario-set assessment (capability importance, difficulty, overlap, coverage gaps) in `results`.
 
-For each run, record stable scenario ID/title, source SHA, scenario/rubric blob SHAs, setup verdict, date, model/settings if known, Run Issue URL, response comment URL/author/timestamp, five scores and total, result, critical errors, concise evidence, instruction-effect classifications, and diff/review outcome. Show individual scenario results, not only averages. Preserve initial results on reruns.
+For each run, record stable scenario ID/title, source SHA, scenario/rubric blob SHAs, setup verdict, date, model/settings if known, Run Issue URL, response comment URL/author/timestamp, assessment comment URL, five scores and total, result, critical errors, concise evidence, instruction-effect classifications, and diff/review outcome. Show individual scenario results, not only averages. Preserve initial results on reruns.
 
-Start a new evaluation if the source snapshot, scenario (including evaluator-only criteria), rubric, tested model, or materially relevant settings change; state what changed. If the conversation is lost, reconstruct only from the coordinator-only Evaluation record, immutable source links, verified Run Issues/comments, and preserved assessment records, and label reconstructed entries.
+Start a new evaluation if the source snapshot, scenario (including evaluator-only criteria), rubric, tested model, or materially relevant settings change; state what changed. If the conversation is lost, reconstruct only from the Evaluation record, immutable source links, verified Run Issues/comments, and preserved assessments, and label reconstructed entries.
 
 ## Boundaries
 
