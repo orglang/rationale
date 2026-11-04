@@ -15,7 +15,7 @@ Use when the user asks to prepare, run, coordinate, or assess the repository's m
 
 ## Coordinator-only setup gate
 
-Fixture validation is performed once during experiment-experiment-series preparation, after scenario-set selection and before prompt generation. See the dedicated **Validate test setup** section below. Keep all findings and evaluator materials out of the tested agent's context.
+Fixture validation is performed once during experiment series preparation, after scenario-set selection and before prompt generation. See the dedicated **Validate test setup** section below. Keep all findings and evaluator materials out of the tested agent's context.
 
 Check all of the following:
 
@@ -35,21 +35,21 @@ A scenario, its evaluator-only acceptance criteria, or rubric change requires a 
 
 Treat preparation as one ordered coordinator workflow. Fetch and pin source material once; do not repeat setup for each run.
 
-1. Identify the source repository and target PR or branch. For a PR, pin its current **40-character head SHA**, not the base SHA or a moving branch. Identify the separate evaluation repository and the experiment-experiment-series PR/branch if one has been created. Do not create a repository or change access permissions without the user's authorization.
+1. Identify the source repository and target PR or branch. For a PR, pin its current **40-character head SHA**, not the base SHA or a moving branch. Identify the separate evaluation repository and the experiment series PR/branch if one has been created. Do not create a repository or change access permissions without the user's authorization.
 2. Fetch once from the pinned source SHA:
    - `AGENTS.md`, `DOCUMENTATION_STANDARDS.md`;
    - `skills/change-management/SKILL.md`, `skills/semantic-specification/SKILL.md`, and `skills/semantic-verification/SKILL.md`;
-   - **all** files under `tests/agent-workflows/` planned for the series, including their stable scenario IDs;
+   - **all** files under `tests/agent-workflows/` planned for the experiment series, including their stable scenario IDs;
    - `skills/behavior-evaluation/prompt-template.md` and `rubric.md`;
    - task-relevant canonical specifications, documentation, examples, diagrams, tables, and tests.
-3. Assess the scenario set as a whole (see **Assess the scenario set**) and agree the agreed run matrix with the user. An experiment series is the top-level unit: it has one research purpose, one agreed scenario × condition run matrix, one manifest, and one report. Do not create a nested `experiment` entity unless a future protocol genuinely requires independently governed experiments. This happens before generating any prompt files.
+3. Assess the scenario set as a whole (see **Assess the scenario set**) and agree the run matrix with the user. An experiment series is the top-level unit: it has one research purpose, one agreed scenario × condition run matrix, one manifest, and one report. Do not create a nested `experiment` entity unless a future protocol genuinely requires independently governed experiments. This happens before generating any prompt files.
 
 Scenario identity is carried by an explicit stable ID stored in the scenario file, not by its filename, heading, or ordinal position. Use the existing ID in manifests, prompt metadata, response paths, reports, and the evaluator-only acceptance criteria embedded in that scenario. Never change or reuse an assigned ID when a file or title is renamed; assign a new ID only to a genuinely new scenario, and keep retired IDs reserved.
 4. Validate every selected fixture against the exact pinned snapshot (see **Validate test setup**). Record each verdict and required correction. Do not prepare prompts or run an Invalid fixture. If a fixture is corrected, commit the correction, pin the new source SHA, and restart preparation against that snapshot.
 5. Record the full source SHA and blob SHAs for every scenario (including its evaluator-only acceptance criteria), instruction file, prompt template, rubric, and task-relevant canonical source. Record the model/settings plan and control conditions.
-6. Materialize **all** complete Russian prompt files in one pass: exactly one prompt file per planned scenario × condition, in the evaluation-experiment-series repository. Each file contains the full user-facing task text, stable scenario ID (independent of filename/title), run metadata, exact condition definition, pinned source snapshot SHA, and immutable links plus blob SHAs for every permitted source material. Never store only a link to the source scenario or require the tested agent to assemble its prompt from multiple files. Record prompt paths in the experiment-experiment-series manifest.
-7. Create or update the series manifest with the run matrix, immutable source references, prompt paths, response-file paths, and run status. The evaluation repository stores experiment records (manifest, complete prompt files, response files, scores, analyses, and report); `rationale` remains the source of truth for instructions, scenarios, expected behavior, failure signals, and rubric. Do not copy source files unless needed to preserve an exact historical artifact, and label any such copy with its source SHA.
-8. Apply the **series readiness gate** before any run: every planned run has exactly one complete prompt file; no placeholders remain; all pinned links and SHAs resolve to the intended content; A/B/C access conditions are accurate; no evaluator-only material appears; each prompt permalink opens the correct file; and a distinct, initially absent response-file path is reserved for the run.
+6. Materialize **all** complete Russian prompt files in one pass: exactly one prompt file per planned scenario × condition, in the experiment-series repository. Each file contains the full user-facing task text, stable scenario ID (independent of filename/title), run metadata, exact condition definition, pinned source snapshot SHA, and immutable links plus blob SHAs for every permitted source material. Never store only a link to the source scenario or require the tested agent to assemble its prompt from multiple files. Record prompt paths in the experiment experiment-series manifest.
+7. Create or update the experiment-series manifest with the run matrix, immutable source references, prompt paths, response-file paths, and run status. The evaluation repository stores experiment records (manifest, complete prompt files, response files, scores, analyses, and report); `rationale` remains the source of truth for instructions, scenarios, expected behavior, failure signals, and rubric. Do not copy source files unless needed to preserve an exact historical artifact, and label any such copy with its source SHA.
+8. Apply the **experiment-series readiness gate** before any run: every planned run has exactly one complete prompt file; no placeholders remain; all pinned links and SHAs resolve to the intended content; A/B/C access conditions are accurate; no evaluator-only material appears; each prompt permalink opens the correct file; and a distinct, initially absent response-file path is reserved for the run.
 
 Use immutable GitHub links containing the full SHA. If any required material cannot be fetched or verified, identify it and ask the user to provide it; do not improvise.
 
@@ -62,7 +62,7 @@ Do this once, after fetching the candidate fixtures and before generating prompt
 - overlap and redundancy between scenarios, including whether they exercise distinct failure modes;
 - material coverage gaps and any capability that is over- or under-represented.
 
-Use this assessment to agree which scenarios and conditions enter the run matrix. Do not make a fixture invalid merely because its capability is less important or overlaps another scenario; those are suite-level design considerations.
+Use this assessment to agree which scenarios and conditions enter the run matrix. Do not make a fixture invalid merely because its capability is less important or overlaps another scenario; those are scenario-set-level design considerations.
 
 ## Validate test setup
 
@@ -84,10 +84,10 @@ A scenario, its evaluator-only acceptance criteria, or rubric change requires a 
 
 ## Prepare blind prompt files
 
-Generate every prompt file using `prompt-template.md` only after the suite assessment, final run matrix, and fixture validation are complete. Create one complete prompt file per scenario × condition in the evaluation-series repository. Each file contains the full selected scenario's `Задание` text (not a link in its place), exact condition definition, pinned source snapshot, and complete immutable links and blob SHAs for materials allowed in that condition. Keep task wording and task-relevant factual snapshot constant across conditions wherever possible. Exclude all evaluator-only material.
+Generate every prompt file using `prompt-template.md` only after the scenario-set assessment, final run matrix, and fixture validation are complete. Create one complete prompt file per scenario × condition in the experiment-series repository. Each file contains the full selected scenario's `Задание` text (not a link in its place), exact condition definition, pinned source snapshot, and complete immutable links and blob SHAs for materials allowed in that condition. Keep task wording and task-relevant factual snapshot constant across conditions wherever possible. Exclude all evaluator-only material.
 
 - Do not deliver prompt links proactively. Wait until the user explicitly asks to prepare/show/provide prompts.
-- A request for the whole series authorizes providing all prepared prompt links together; do not impose a one-at-a-time cadence.
+- A request for the whole experiment series authorizes providing all prepared prompt links together; do not impose a one-at-a-time cadence.
 - For each run, the tested agent receives only the immutable permalink to its corresponding prompt file, plus a short instruction to read and execute it. Do not paste the prompt package into chat, provide the source scenario as the entry point, or separately send source files; all permitted materials must already be linked inside the prompt.
 - A permalink is a navigation aid, not an access-control boundary. Do not claim that it prevents browsing other repository files.
 - If a permitted source link is inaccessible, the tested agent must report that limitation rather than substitute another version.
@@ -96,11 +96,11 @@ Do not issue a partial or improvised prompt if required material or the selected
 
 ## Run and capture responses
 
-Use a fresh, independent tested-agent context for every run (scenario × experimental condition). Keep the model and relevant settings identical across compared conditions unless the series explicitly tests those variables. Give the tested agent **only the immutable permalink to the corresponding complete prompt file** in the evaluation-series PR, plus a short instruction to read and execute it. Do not give the source scenario link as the entry point or send separate source-file links outside the prompt. The prompt contains the complete task and all permitted source links. A permalink is a navigation aid, not an access-control boundary.
+Use a fresh, independent tested-agent context for every run (scenario × condition). Keep the model and relevant settings identical across compared conditions unless the experiment series explicitly tests those variables. Give the tested agent **only the immutable permalink to the corresponding complete prompt file** in the experiment-series PR, plus a short instruction to read and execute it. Do not give the source scenario link as the entry point or send separate source-file links outside the prompt. The prompt contains the complete task and all permitted source links. A permalink is a navigation aid, not an access-control boundary.
 
-**Capture each final answer as a new response file in the evaluation-series PR, not as a comment.** Reserve a unique path for each run, for example `responses/AWF-001/condition-A.md`. The tested agent may add exactly that response file to the evaluation-series branch/PR. It must not edit or replace its prompt, the manifest, source fixtures, rubric, evaluator-only acceptance criteria, or any other file; it must not commit changes to the source repository, push unrelated changes, or merge the PR. The response file should contain the complete answer verbatim and a small metadata header: experiment-series ID, stable scenario ID, condition, prompt path, model/settings if known, and run date. Do not edit the response after submission except to correct transport/formatting errors, which must be recorded. If the tested agent cannot write to the evaluation-series PR, the coordinator may add the exact response text as a new response file on the user's behalf; do not silently fall back to a comment.
+**Capture each final answer as a new response file in the experiment-series PR, not as a comment.** Reserve a unique path for each run, for example `responses/AWF-001/condition-A.md`. The tested agent may add exactly that response file to the experiment-series branch/PR. It must not edit or replace its prompt, the manifest, source fixtures, rubric, evaluator-only acceptance criteria, or any other file; it must not commit changes to the source repository, push unrelated changes, or merge the PR. The response file should contain the complete answer verbatim and a small metadata header: experiment-series ID, stable scenario ID, condition, prompt path, model/settings if known, and run date. Do not edit the response after submission except to correct transport/formatting errors, which must be recorded. If the tested agent cannot write to the experiment-series PR, the coordinator may add the exact response text as a new response file on the user's behalf; do not silently fall back to a comment.
 
-Any proposed diff belongs inside the response file only when the task calls for a concrete change or a diff is needed to represent it unambiguously. Do not require a diff for analysis, decision, or recommendation-only tasks. Treat claims of repository edits without verifiable evidence as unsupported. The only permitted repository write by the tested agent is the commit that adds its one designated response file to the evaluation-series PR. It must not edit existing files, add any other files, write to the source repository, or merge the PR.
+Any proposed diff belongs inside the response file only when the task calls for a concrete change or a diff is needed to represent it unambiguously. Do not require a diff for analysis, decision, or recommendation-only tasks. Treat claims of repository edits without verifiable evidence as unsupported. The only permitted repository write by the tested agent is the commit that adds its one designated response file to the experiment-series PR. It must not edit existing files, add any other files, write to the source repository, or merge the PR.
 
 ## Evaluate
 
@@ -144,7 +144,7 @@ For each run, assess which parts of the supplied project instructions appear to 
 
 Include a concise instruction-effect table in the report with: instruction file/heading and blob SHA; intended behavior; observed evidence; classification; confidence/limitations. Also summarize the most useful instruction elements to retain, clarify, revise, or add. Keep this analysis evaluator-only.
 
-## Experimental conditions and run ledger
+## Experiment conditions and run ledger
 
 When the user wants to measure the effect of project instructions, define controlled conditions within the experiment series using the same scenario task and, where feasible, the same task-relevant repository snapshot under these conditions:
 
@@ -155,18 +155,18 @@ When the user wants to measure the effect of project instructions, define contro
 - **B — Previous instructions:** provide the previous version of the project instruction set, pinned by exact SHA/blob SHAs.
 - **C — Current instructions:** provide the current version, pinned by exact SHA/blob SHAs.
 
-Keep the task wording, factual source snapshot, rubric, model, and settings constant wherever possible. If old instructions depend on old versions of other source files, record the mismatch and treat it as a limitation rather than silently changing the task. Do not assume every series must run all three conditions: agree the run matrix with the user. A small pilot on two or three informative scenarios may precede a broader comparison. The unit of comparison is the same stable scenario ID across conditions; a run is one execution of that scenario under one condition. Compare per-scenario evidence; do not infer a general effect from a small sample.
+Keep the task wording, factual source snapshot, rubric, model, and settings constant wherever possible. If old instructions depend on old versions of other source files, record the mismatch and treat it as a limitation rather than silently changing the task. Do not assume every experiment series must run all three conditions: agree the run matrix with the user. A small pilot on two or three informative scenarios may precede a broader comparison. The unit of comparison is the same stable scenario ID across conditions; a run is one execution of that scenario under one condition. Compare per-scenario evidence; do not infer a general effect from a small sample.
 
-Maintain the experiment-series ledger in the evaluation-series PR and this coordinator conversation; do not ask the user to fill out a separate report. For each experiment series, keep the scenario-set assessment from **Assess the scenario set**: capability importance, relative difficulty, overlap/redundancy, and coverage gaps. The experiment-series manifest should include source repository/full SHA, evaluation repository/PR, instruction condition and exact versions, scenario and rubric blob SHAs (the scenario file includes its evaluator-only acceptance criteria), model/settings, run order, response-file paths, and run status. For each run, record:
+Maintain the experiment-series ledger in the experiment-series PR and this coordinator conversation; do not ask the user to fill out a separate report. For each experiment series, keep the scenario-set assessment from **Assess the scenario set**: capability importance, relative difficulty, overlap/redundancy, and coverage gaps. The experiment-series manifest should include source repository/full SHA, evaluation repository/PR, instruction condition and exact versions, scenario and rubric blob SHAs (the scenario file includes its evaluator-only acceptance criteria), model/settings, run order, response-file paths, and run status. For each run, record:
 
-- experiment experiment experiment-series ID, stable scenario ID/title, repository, full SHA, scenario and rubric blob SHAs (the scenario file includes its evaluator-only acceptance criteria), setup verdict, and date;
+- experiment-series ID, stable scenario ID/title, repository, full SHA, scenario and rubric blob SHAs (the scenario file includes its evaluator-only acceptance criteria), setup verdict, and date;
 - model and settings, if known;
 - five scores, total, result, critical errors, concise evidence, and instruction-effect classifications with evidence;
 - whether a diff was proposed and its review outcome.
 
 Show individual scenario results, not only averages. Preserve the first result on reruns. Start a new experiment series if the repository snapshot, scenario (including its evaluator-only acceptance criteria), rubric, tested model, or materially relevant settings change, and state what changed.
 
-If this conversation is lost, reconstruct only from the evaluation-series PR, available PR metadata, immutable source links, and preserved complete responses; label reconstructed entries.
+If this conversation is lost, reconstruct only from the experiment-series PR, available PR metadata, immutable source links, and preserved complete responses; label reconstructed entries.
 
 ## Boundaries
 
