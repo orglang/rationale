@@ -24,7 +24,7 @@ Check the changed section and places that rely on it. Keep the canonical contrac
 
 ### Examples and scenarios
 
-Check that affected examples use defined terms, illustrate permitted outcomes, and do not imply unsupported guarantees. Update or remove stale examples. Treat examples as non-normative unless the specification says otherwise; do not use them to settle open questions silently.
+Check that affected examples use defined terms, illustrate permitted outcomes, and do not imply unsupported guarantees. Keep them consistent with relevant tables, diagrams, and summaries. Update or remove stale examples. Treat examples as non-normative unless the specification says otherwise; do not use them to settle open questions silently.
 
 When behavior changes, examine representative scenarios relevant to the affected contract: inputs, boundaries, exceptions, transitions, and adjacent rules where applicable. Add executable tests when a suitable harness exists; otherwise record concise expected outcomes and the rules supporting them.
 
@@ -36,7 +36,7 @@ When prior behavior or guarantees may be affected:
 - state whether migration, versioning, or a compatibility note is needed, or why not;
 - preserve focused regression cases when practical.
 
-If an expected result changes, explain whether the contract intentionally changed, the old test was incorrect, or the behavior was previously unspecified.
+If an expected result changes, explain whether the contract intentionally changed, the old test was incorrect, or the behavior was previously unspecified. Do not change expected results merely to make a test pass.
 
 ### Implementation evidence
 
