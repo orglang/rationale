@@ -43,9 +43,9 @@ For each planned run:
 1. Copy the complete `Задание` section from the selected scenario into a new Run Issue body; exclude evaluator-only sections.
 2. Add only the exact source materials available to the tested agent, preferably as an isolated sanitized snapshot. Do not include evaluation/Run IDs, run condition label, rubric, or coordinator-only metadata.
 3. Validate the body and the complete Issue surface (title, body, labels, comments, attachments): no placeholders, missing materials, false access claims, evaluator leakage, parent references, or sibling-run references.
-4. Create the Run Issue in the isolated run repository. Retain its exact URL and a private canonical copy of the prompt in the coordinator-only Evaluation record.
+4. Create the Run Issue in the agreed evaluation repository. Retain its exact URL and a canonical copy of the prompt in the coordinator's Evaluation record.
 5. Follow the response-capture and agent-handoff protocol in `skills/behavior-evaluation/SKILL.md`. Keep those operational instructions outside the Run Issue prompt body.
 
-The coordinator-only Evaluation record may link to Run Issues. **The reverse must never occur:** no Run Issue may link to, mention, identify, or otherwise reveal its parent Evaluation or any sibling Run. Do not put the parent and child tickets in the same repository when a true blind boundary is required. A child ticket without a parent link is not itself proof of access isolation: repository permissions apply beyond an individual Issue.
+The coordinator's Evaluation record may link to Run Issues. **The reverse must never occur:** no Run Issue may link to, mention, identify, or otherwise reveal its parent Evaluation or any sibling Run. Run Issues and the Evaluation record are kept in the same agreed repository; repository permissions apply beyond an individual Issue, so this arrangement does not provide access isolation or a genuinely blind run. Record this visibility limitation and keep evaluator-only material out of Run Issues.
 
-Use a fresh independent session per run. Do not create repositories or change their access settings without the user's authorization.
+Use a fresh independent session per run. Do not create additional repositories or change repository access settings as part of this workflow.
