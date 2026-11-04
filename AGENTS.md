@@ -12,13 +12,13 @@ This bootstrap file is the exception: it is always loaded but does not activate 
 
 ## Retrospective note capture
 
-When the user marks a note with #retro, immediately publish that note as its own top-level comment on the relevant pull request. Do not wait for a retrospective, combine notes, or put them in commit messages. If the relevant pull request is unclear, ask which one to use.
+When the user marks a note with `#retro`, immediately publish that note as its own top-level comment on the relevant pull request. Do not wait for a retrospective session, combine notes into one comment, or store them in commit messages. If the relevant pull request is unclear, ask which one to use before publishing.
 
-The marker authorizes note publication only. It does not activate the retrospective workflow skill or authorize repository changes.
+The `#retro` marker authorizes note publication only. It does not activate the retrospective workflow skill or authorize repository changes.
 
 ## Scope and precedence
 
-Instructions apply only within their stated scope and current task unless they explicitly say otherwise. Activation does not change instruction precedence or grant additional permissions. Follow the host instruction hierarchy. Surface unresolved material conflicts rather than silently choosing.
+An activated instruction applies only within its stated scope and for the current task unless it explicitly defines a different duration. A link activates its target; it does not broaden the target's scope or grant it higher priority. Activation does not change instruction precedence or grant additional permissions. Follow the host instruction hierarchy: project instructions cannot override higher-priority instructions or authorize actions beyond the user's request and permissions. Resolve conflicts according to that hierarchy and surface material conflicts that remain unresolved.
 
 ## Runtime limitations
 
