@@ -106,7 +106,14 @@ For each run, the tested agent receives only the immutable permalink to its comp
 
 ## Run and capture responses
 
-Use a fresh, independent tested-agent context for every run (one scenario under one condition). Keep model and relevant settings identical across compared conditions unless the evaluation explicitly tests those variables.
+Use a fresh, independent tested-agent context for every run (one scenario under one condition). Each run is one-shot: provide the complete prompt once, do not conduct follow-up turns, clarify the task, or coach the tested agent. The run ends when the agent returns its final answer or when the attempt terminates without one. Keep model and relevant settings identical across compared conditions unless the evaluation explicitly tests those variables.
+
+Track **run completeness** separately from **grading completeness** in `assessment.md`:
+
+- **Run completeness** describes execution and capture, not answer quality. Mark `complete` when the planned one-shot attempt used the intended prompt/context and the complete final response was captured verbatim. A refusal or an incorrect/empty-but-explicit final answer can still be a complete run. Mark `incomplete` when execution or capture was interrupted, the wrong prompt/context was used, the response is truncated/corrupted, or no final answer was obtained. State the concrete reason; do not repair an incomplete run by prompting the agent again. A retry is a new run with a new `RUN-*` ID.
+- **Grading completeness** describes whether the coordinator finished a defensible assessment. Mark `complete` only after all five rubric criteria have scores and evidence, all applicable scenario-specific and cross-scenario checks have dispositions, and the result/critical-failure rules have been applied. Mark `incomplete` while any required assessment work remains outstanding; explain what is missing.
+- A complete run can receive an incomplete grade while assessment is underway. An incomplete run is normally `not evaluable`; do not turn an execution/capture failure into a behavioral fail or a zero score. If partial evidence still supports limited conclusions, preserve them explicitly without presenting a final rubric result.
+- Missing evidence in the agent's answer is not, by itself, an incomplete run or incomplete grading. Assess the response as received, record relevant checks as `not verifiable` where appropriate, and score the demonstrated omission under the rubric. Do not confuse an agent's failure to provide evidence with a failure to collect its response.
 
 Capture each final answer as `response.md` inside its `RUN-*` directory, never as a comment. The tested agent may add exactly that file and nothing else. It must not edit `prompt.md`, `manifest.md`, fixtures, rubric, evaluator-only criteria, other files, or the source repository, and must not merge the PR.
 
@@ -125,7 +132,7 @@ Evaluate against the pinned full scenario (including its evaluator-only acceptan
 - Review any proposed diff for consistency with the pinned snapshot, justified/minimal scope, contract preservation, appropriate files, and truthful verification claims. The tested agent must not modify the source repository or its working tree; its only permitted repository write is the new `response.md` in the evaluation repository.
 - Apply the pinned rubric thresholds and critical-failure rules. Keep severe semantic failures visible even when the total is high.
 
-Write an English run-level assessment to `assessment.md` with scenario ID/title, repository and SHA, fixture versions and setup verdict, model/settings if known, five scores and evidence, total /10 and rubric result, critical errors/missing evidence, instruction-effect analysis, diff assessment (or explicit no-diff statement), and concrete rerun recommendations. Do not rewrite the response before scoring. Human review is required for borderline outcomes and material failures.
+Write an English run-level assessment to `assessment.md` with scenario ID/title, repository and SHA, fixture versions and setup verdict, model/settings if known, **Run completeness** (`complete`/`incomplete`, with reason) and **Grading completeness** (`complete`/`incomplete`, with outstanding work), five scores and evidence when grading is complete, total /10 and rubric result, critical errors/missing evidence, instruction-effect analysis, diff assessment (or explicit no-diff statement), and concrete rerun recommendations. Use `not evaluable` rather than `fail` when an incomplete run prevents a defensible behavioral assessment. Do not rewrite the response before scoring. Human review is required for borderline outcomes and material failures.
 
 ### Cross-scenario post-checks
 
