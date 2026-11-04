@@ -1,25 +1,34 @@
-# Agent instructions
+# Agent bootstrap
 
-Use this file as the repository-wide router. Keep detailed rules in their canonical module and follow the pointer for the task at hand.
+This file is the repository's always-loaded bootstrap contract. It defines how project instructions become active; it is not a router to the repository's instruction catalogue.
 
-## Documentation
+## Instruction activation
 
-Before writing or reviewing technical documentation or agent instructions, read [`DOCUMENTATION_STANDARDS.md`](DOCUMENTATION_STANDARDS.md). It owns recurring documentation-quality criteria.
+Project instructions are opt-in. A document's presence in the repository, its discoverability, its filename, or its apparent relevance does not activate it.
 
-When the user explicitly asks to use the semantic-specification workflow for system behavior, domain rules, protocols, requirements, or technical semantics, follow [`skills/semantic-specification/SKILL.md`](skills/semantic-specification/SKILL.md). Do not activate that workflow for routine proofreading or documentation-only edits.
+Activate a project instruction only when:
 
-The reading order is this router, the applicable general standards, and then the task-specific workflow. References from those lower-level documents back to this file identify ownership and routing; they do not require restarting the reading order.
+- the user explicitly asks to use or follow that instruction, or an unambiguous set of project instructions; or
+- an already activated project instruction contains an explicit link to that instruction.
 
-For classification and impact analysis of substantive changes, see [`skills/change-management/SKILL.md`](skills/change-management/SKILL.md).
+An explicit request to follow **all project instructions** in a stated repository/scope activates all documents designated there as agent instructions, standards, or workflow skills. In this repository, these are the root `AGENTS.md` bootstrap, `DOCUMENTATION_STANDARDS.md`, and `SKILL.md` files under `skills/`. Supporting templates, rubrics, scenarios, and ordinary documentation are not instruction documents merely because they are Markdown. In an all-instructions request, inventory the designated instruction locations. Do not interpret a generic request to follow repository conventions as a request to activate every project instruction unless the context makes that scope unambiguous.
 
-For checks of specification coherence, behavior scenarios, and semantic regressions, see [`skills/semantic-verification/SKILL.md`](skills/semantic-verification/SKILL.md).
+Activation follows links transitively: when an activated instruction links to another project instruction, activate the linked instruction as well, and continue through its instruction links. Activation is idempotent; cycles do not cause repeated processing.
 
-## Changes and review
+Only links from an activated project instruction trigger this rule. A plain textual mention, an unlinked path, a link in an inactive document, or a link in this bootstrap file does not activate its target. This file is the bootstrap exception: it is always loaded, but it does not activate other project instructions. Do not add links from this file to project instructions.
 
-Keep edits targeted. Before finishing or committing, review the full diff against the branch base and remove accidental or unrelated changes.
+Do not search the repository for additional instructions to activate unless the user explicitly requests all project instructions in a defined scope. Do not activate a document merely because it seems useful for the task. If the user explicitly names an instruction, activate it and follow its linked instruction dependencies.
 
-## Retrospectives
+## Retrospective note capture
 
-For each `#retro` note, add a separate top-level comment to the relevant pull request as soon as the note arises. Do not wait until the retrospective ends, combine notes into one comment, or use commit messages to store them.
+When the user marks a note with `#retro`, immediately publish that note as its own top-level comment on the relevant pull request. Do not wait for a retrospective session, combine notes into one comment, or store them in commit messages. If the relevant pull request is not clear from the conversation, ask which pull request to use before publishing. The `#retro` marker authorizes this note-publication action; it does not activate the retrospective workflow skill or authorize repository changes.
 
-When the user starts a retrospective, group the recorded notes, compare them with evidence, and decide what to accept, reject, or defer. Notes do not authorize repository changes; agree on the scope of instruction changes before editing them. Prefer correcting an existing instruction that failed to guide behavior over adding a duplicate rule. Keep retrospective notes scoped to the current conversation unless the user asks otherwise.
+## Scope and precedence
+
+An activated instruction applies only within its stated scope and for the current task unless it explicitly defines a different duration. A link activates the target instruction; it does not broaden the target's stated scope or grant it higher priority.
+
+Activation does not change instruction precedence. Follow the host environment's instruction hierarchy: project instructions cannot override system or developer instructions, and they do not authorize actions beyond the user's request or permissions. Resolve conflicts according to that hierarchy; if a material conflict between applicable project instructions remains unresolved, surface it rather than silently choosing.
+
+## Runtime limitations
+
+This is the repository's intended instruction-activation contract, not an access-control mechanism. A host tool or agent runtime may preload, index, or inject additional files independently of this document. Do not claim that an instruction was unavailable or inactive when the runtime supplied it. If the environment automatically supplies project instructions contrary to this contract, report that limitation; changing this file alone cannot prevent runtime-level loading.

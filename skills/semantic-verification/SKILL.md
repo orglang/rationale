@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Semantic verification
 
-Use this workflow to check whether a specification is internally coherent and whether its examples, scenarios, tests, and implementation evidence support the claims being made. The repository-root `AGENTS.md` routes to this skill. This workflow supplements [`semantic-specification`](../semantic-specification/SKILL.md) and [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md); it does not define behavior or make implementation observations authoritative semantics.
+Use this workflow to check whether a specification is internally coherent and whether its examples, scenarios, tests, and implementation evidence support the claims being made. It checks results; it does not define behavior or make implementation observations authoritative semantics.
 
 ## Select checks by impact
 
@@ -14,7 +14,7 @@ Choose checks that can detect errors introduced by the change. This is a guide, 
 
 ## Contract consistency
 
-Inspect the affected canonical rules and their dependencies for:
+Inspect the affected canonical rules and their dependencies for errors that remain after specification work. This workflow owns detection and reporting, not semantic decision-making or the editing procedure for deduplication; resolve substantive conflicts through [`semantic-specification`](../semantic-specification/SKILL.md). Check for:
 
 - contradictions between definitions, requirements, conditions, exceptions, and transitions;
 - undefined or inconsistently used terms;

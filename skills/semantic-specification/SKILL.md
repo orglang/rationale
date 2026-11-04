@@ -1,12 +1,11 @@
 ---
 name: semantic-specification
 description: Iterative, user-led workflow for specifying system behavior and technical semantics.
-disable-model-invocation: true
 ---
 
 # Specification workflow
 
-Use this workflow only when the user explicitly asks for it. The repository-root [`AGENTS.md`](../../AGENTS.md) routes the task here; after that routing, read [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md) for general documentation-quality criteria. This skill owns the user-led semantic workflow and does not send the reader back through repository routing.
+Use this workflow when a task requires defining, changing, or resolving system behavior, domain rules, protocols, requirements, or technical semantics. This skill owns the user-led semantic workflow: derive what follows from accepted decisions, but do not make consequential semantic decisions on the user's behalf. Routine proofreading and documentation-only edits do not activate this workflow.
 
 ## Workflow
 
@@ -14,7 +13,7 @@ Use this workflow only when the user explicitly asks for it. The repository-root
 2. **Resolve consequential ambiguity.** First derive consequences from the agreed model and apply agreed rules by analogy where their scope permits. Ask only when materially different interpretations remain and cannot be resolved from the agreed decisions or available evidence, and the answer could change behavior, guarantees, compatibility, or another consequential part of the model. Otherwise, record the uncertainty at the appropriate level and continue independent work. If the user defers a question, keep it open and continue independent work.
 3. **Keep the right level of abstraction.** Work at the level of detail needed to make the contract coherent and checkable. Do not turn every unspecified detail, edge case, or possible implementation choice into a question or a new rule. Derive what follows from the current model; leave details that do not affect its meaning open or out of scope. Stop refining a point when further detail would not change the contract, its consequences, or how it can be checked.
 4. **Update the canonical contract.** Put each decision or open question where the concept belongs. Change its canonical explanation first, then align affected summaries, examples, tables, and links. Do not append conversation transcripts or silently resolve open questions.
-5. **Check relevant consequences.** Trace consequences far enough to catch contradictions or behavior that could change the meaning of the contract. Examine edge cases or operational details only when they could materially affect that behavior; this is not a checklist to expand every topic. Distinguish intended semantics from published claims and implementation evidence.
+5. **Reason through relevant consequences.** Trace consequences far enough to understand whether a proposed decision changes the contract or its dependent rules. Examine edge cases or operational details only when they could materially affect that behavior; this is not a checklist to expand every topic. This is semantic analysis, not an independent validation pass. Distinguish intended semantics from published claims and implementation evidence.
 6. **Review and report.** Review the full relevant diff. Check for semantic duplication, contradictions, stale examples, broken links, and unrelated edits. Run proportionate available checks. Report decisions, open questions and their impact, changes actually made, and validation actually performed.
 
 ## Related workflows
@@ -24,6 +23,8 @@ For substantive changes, use [`change-management`](../change-management/SKILL.md
 Use [`semantic-verification`](../semantic-verification/SKILL.md) to select proportionate checks for affected behavior and possible semantic regressions.
 
 ## Semantic deduplication
+
+This section owns the operational procedure for semantic deduplication. Other workflows may identify affected scope or check the resulting specification, but they do not repeat this procedure.
 
 Treat duplication as repeated claims, not just repeated wording. A rule may recur as prose, a table row, an example, or a transition description.
 
