@@ -23,3 +23,31 @@
 - Выбирает вариант интуитивно.
 - Задаёт широкие или повторяющиеся вопросы.
 - Блокирует несвязанную работу.
+
+---
+
+## Evaluator-only acceptance criteria
+
+> Coordinator use only. This section is not part of the tested-agent task and must never be copied into a prompt, exposed in a tested-agent context, or used as a source link in a blind run.
+
+
+**Primary acceptance**
+- Distinguishes a protocol-permitted one-sided operation that remains pending from an operation forbidden by the current endpoint protocol.
+- States that the common matching principle settles the former but does not decide how the latter is rejected or reported.
+- Identifies materially distinct choices (for example, static rejection versus runtime error) and their observable consequences without selecting one.
+- Asks one focused decision question or records the issue as open, while continuing independent analysis and identifying the canonical owner.
+
+**Objective post-checks**
+- Check whether the response names both cases and does not conflate them.
+- Check whether it makes an unapproved choice among the enforcement alternatives.
+- Check whether it identifies a canonical location for the unresolved rule.
+- No diff is expected or required unless the agent identifies an independent, already-settled change.
+
+**Expert review**
+- Are the alternatives genuinely distinct and grounded in the open question?
+- Does the response explain consequences without inventing implementation mechanics?
+- Is unrelated work continued rather than blocked?
+
+**Do not infer**
+- That merely asking a question is sufficient; the agent must first use the already-settled matching principle.
+- That more questions mean better uncertainty handling.
