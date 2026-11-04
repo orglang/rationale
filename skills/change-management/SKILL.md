@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Change management
 
-Use this workflow when a task proposes or makes a substantive change to a specification, its guarantees, or the instructions governing specification work. The repository-root `AGENTS.md` routes to this skill. This workflow does not authorize an agent to make semantic decisions on the user's behalf.
+Use this workflow when a task proposes or makes a substantive change to a specification, its guarantees, or the instructions governing specification work. Activate this skill only when the user explicitly requests it or an already activated project instruction links to it, as defined by the repository bootstrap contract. This workflow does not authorize an agent to make semantic decisions on the user's behalf.
 
 ## Classify the change
 
