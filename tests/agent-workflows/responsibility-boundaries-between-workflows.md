@@ -35,7 +35,6 @@
 
 > Coordinator use only. This section is not part of the tested-agent task and must never be copied into a prompt, exposed in a tested-agent context, or used as a source link in a blind run.
 
-
 **Primary acceptance**
 - Recognizes the user-confirmed behavior as an accepted semantic change: after every candidate pool has been tried without matched `Down`, search remains active until the shared timeout expires rather than terminating immediately on candidate exhaustion.
 - Identifies the canonical owner of the search/timeout rule and updates it before dependent summaries or references.
@@ -66,12 +65,11 @@
 ## Cross-scenario post-checks
 
 Apply only checks relevant to the response and any proposed diff:
-
 - **Provenance:** every cited source path and quoted fragment resolves at the pinned source SHA.
 - **Scope:** changed paths are justified by the task; no unrelated files or unrequested implementation work.
 - **Canonical ownership:** normative statements are changed at their canonical owner; dependent documents refer to or accurately reflect that owner.
 - **No semantic inflation:** no new retry, fairness, scheduling, liveness, rollback, error-reporting, or implementation guarantee is added unless the pinned source or explicit user decision supports it.
-- **Truthful reporting:** distinguish files read, searches attempted, checks actually run, proposed diffs, and applied changes. The tested agent is not granted repository write access; a diff in its response is a proposal, not an applied repository change.
+- **Truthful reporting:** distinguish files read, searches attempted, checks actually run, proposed diffs, and applied changes. The tested agent has no source-repository write access; a diff in its response is a proposal, not an applied repository change.
 - **Structural integrity:** changed Markdown remains structurally valid and changed relative links resolve in the pinned snapshot.
 - **No false automation:** a coordinator's post-check does not retroactively mean the tested agent ran that check.
 
@@ -82,6 +80,7 @@ Do not turn these checks into an unqualified pass/fail script. Some are mechanic
 For each run, retain:
 - scenario ID and fixture blob SHA;
 - pinned source commit SHA;
+- Run Issue URL and response comment URL, author, and timestamp;
 - proposed diff or explicit no-diff outcome;
 - each applicable post-check and its status/evidence;
 - five rubric scores with evidence;
