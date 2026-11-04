@@ -17,6 +17,17 @@ Use this skill to prepare, run, coordinate, or assess manual agent-workflow eval
 
 An **evaluation** (`EVAL-*`) is the top-level unit for assessing an instruction change or instruction version. It contains one agreed scenario × condition run matrix, individual runs, and consolidated results. A **run** (`RUN-*`) is one execution of one stable scenario under one condition.
 
+Terminology is deliberately limited to these entities:
+
+- **Evaluation** (`EVAL-*`): one assessment of an instruction change or instruction version across an agreed set of scenarios and conditions.
+- **Run** (`RUN-*`): one execution of one scenario under one condition.
+- **Prompt**: the exact task input supplied to the tested agent.
+- **Response**: the tested agent's complete answer.
+- **Assessment**: the coordinator's scoring and evidence for one run.
+- **Results**: the aggregate comparison and conclusions for the evaluation.
+
+Do not introduce a separate `experiment` or `series` level. Use **assessment** for run-level judgement and **results** for the evaluation-level synthesis.
+
 Prepare the evaluation once, in this order:
 
 1. **Identify and pin sources.** Identify the source repository and target PR/branch. For a PR, use its current 40-character head SHA, not the base SHA or a moving branch. Identify the evaluation repository and PR/branch, if already created. Do not create a repository or change access permissions without user authorization.
@@ -111,7 +122,7 @@ Evaluate against the pinned full scenario (including its evaluator-only acceptan
 - Distinguish demonstrated failure from missing evidence. Do not reward keywords, confidence, or unsupported claims.
 - Apply the scenario-specific **Evaluator-only acceptance criteria** and record each applicable objective check as **pass**, **fail**, **not applicable**, or **not verifiable**, with concise evidence. Keep artifact checks distinct from expert semantic judgment.
 - Apply relevant cross-scenario checks below; these are not an automatic pass/fail script.
-- Review any proposed diff for consistency with the pinned snapshot, justified/minimal scope, contract preservation, appropriate files, and truthful verification claims. The tested agent has no working-tree editing capability in this evaluation setup.
+- Review any proposed diff for consistency with the pinned snapshot, justified/minimal scope, contract preservation, appropriate files, and truthful verification claims. The tested agent must not modify the source repository or its working tree; its only permitted repository write is the new `response.md` in the evaluation repository.
 - Apply the pinned rubric thresholds and critical-failure rules. Keep severe semantic failures visible even when the total is high.
 
 Write an English run-level assessment to `assessment.md` with scenario ID/title, repository and SHA, fixture versions and setup verdict, model/settings if known, five scores and evidence, total /10 and rubric result, critical errors/missing evidence, instruction-effect analysis, diff assessment (or explicit no-diff statement), and concrete rerun recommendations. Do not rewrite the response before scoring. Human review is required for borderline outcomes and material failures.
