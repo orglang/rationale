@@ -34,6 +34,14 @@ Never include evaluator-only material: expected behavior, failure signals, rubri
 
 Формат ответа:
 Дай структурированный ответ, достаточный для понимания результата и обоснования. Укажи фактически выполненные проверки; не заявляй о невыполненных действиях.
+
+Публикация результата:
+После выполнения задания опубликуй свой полный финальный ответ новым top-level комментарием в этом GitHub Issue.
+- Опубликуй весь ответ целиком, без сокращений и пересказа.
+- Не заменяй публикацию ссылкой на другой документ, diff или сообщение в другом месте.
+- Не публикуй промежуточные рассуждения или черновики — только окончательный ответ.
+- После публикации не редактируй ответ без отдельного указания координатора.
+- Если у тебя нет возможности оставить комментарий в этом Issue, прямо сообщи об этом. Не имитируй публикацию и не считай запуск завершённым.
 ```
 
 ## Coordinator procedure
@@ -44,7 +52,7 @@ For each planned run:
 2. Add only the exact source materials available to the tested agent, preferably as an isolated sanitized snapshot. Do not include evaluation/Run IDs, run condition label, rubric, or coordinator-only metadata.
 3. Validate the body and the complete Issue surface (title, body, labels, comments, attachments): no placeholders, missing materials, false access claims, evaluator leakage, parent references, or sibling-run references.
 4. Create the Run Issue in the agreed evaluation repository. Retain its exact URL and a canonical copy of the prompt in the coordinator's Evaluation record.
-5. Follow the response-capture and agent-handoff protocol in `skills/behavior-evaluation/SKILL.md`. Keep those operational instructions outside the Run Issue prompt body.
+5. Use the publication block in the Run Issue body exactly as written in the template. Follow the remaining response-capture and agent-handoff protocol in `skills/behavior-evaluation/SKILL.md`.
 
 The coordinator's Evaluation record may link to Run Issues. **The reverse must never occur:** no Run Issue may link to, mention, identify, or otherwise reveal its parent Evaluation or any sibling Run. Run Issues and the Evaluation record are kept in the same agreed repository; repository permissions apply beyond an individual Issue, so this arrangement does not provide access isolation or a genuinely blind run. Record this visibility limitation and keep evaluator-only material out of Run Issues.
 
