@@ -40,7 +40,7 @@ Treat preparation as one ordered coordinator workflow. Fetch and pin source mate
    - `AGENTS.md`, `DOCUMENTATION_STANDARDS.md`;
    - `skills/change-management/SKILL.md`, `skills/semantic-specification/SKILL.md`, and `skills/semantic-verification/SKILL.md`;
    - **all** files under `tests/agent-workflows/` planned for the series, including their stable scenario IDs;
-   - `skills/behavior-evaluation/prompt-template.md`, `rubric.md`, and evaluator-only `scenario-acceptance.md`;
+   - `skills/behavior-evaluation/prompt-template.md` and `rubric.md`;
    - task-relevant canonical specifications, documentation, examples, diagrams, tables, and tests.
 3. Assess the scenario set as a whole (see **Assess the scenario set**) and agree the final run matrix with the user. This happens before generating any prompt files.
 
@@ -104,16 +104,32 @@ Any proposed diff belongs inside the response file only when the task calls for 
 
 ## Evaluate
 
-Evaluate in the coordinator conversation using the pinned full scenario, `rubric.md`, and the scenario-specific acceptance/post-check matrix in `scenario-acceptance.md`. Keep all evaluation material out of the tested agent's context; do not include it in prompt files or provide it to the tested agent.
+Evaluate in the coordinator conversation using the pinned full scenario (including its evaluator-only acceptance section) and `rubric.md`. Read the scenario's `Задание` section as the only task text eligible for a blind prompt. The evaluator-only acceptance section is coordinator material and must never be copied, linked, or exposed to the tested agent.
 
 - Score all five rubric criteria from 0–2.
 - Support each score with concrete evidence from the complete response. Explain every score below 2.
 - Distinguish demonstrated failure from missing evidence. Do not reward keywords, confidence, or unsupported claims.
-- Apply every relevant scenario-specific post-check and record it as **pass**, **fail**, **not applicable**, or **not verifiable**, with a concise evidence note. Keep objective artifact checks distinct from expert semantic judgment.
+- Apply the scenario-specific **Evaluator-only acceptance criteria** section and record each applicable objective post-check as **pass**, **fail**, **not applicable**, or **not verifiable**, with a concise evidence note. Keep objective artifact checks distinct from expert semantic judgment.
+- Apply the cross-scenario checks below where relevant; do not turn them into an unqualified pass/fail script. Some require expert judgment.
 - Review any proposed diff for consistency with the pinned snapshot, justified/minimal scope, contract preservation, appropriate files, and supported verification claims. In this evaluation setup, the tested agent has no working-tree editing capability: a returned diff is a proposal, not an applied change.
 - Apply the exact pinned rubric thresholds and critical-failure rules. Keep severe semantic failures visible even if the total is high.
 
 Return an English report with stable scenario ID/title, repository and SHA, fixture versions, setup verdict and concise setup findings, model/settings if known, five criterion scores and evidence, total /10 and rubric result, critical errors or missing evidence, instruction-effect analysis (see below), diff assessment (or explicit no-diff statement), and concrete rerun recommendations. Do not rewrite the agent response before scoring. Human review is required for borderline outcomes and material failures.
+
+
+### Cross-scenario post-checks
+
+Apply only checks relevant to the response and any proposed diff:
+
+- **Provenance:** every cited source path and quoted fragment resolves at the pinned source SHA.
+- **Scope:** changed paths are justified by the task; no unrelated files or unrequested implementation work.
+- **Canonical ownership:** normative statements are changed at their canonical owner; dependent documents refer to or accurately reflect that owner.
+- **No semantic inflation:** no new retry, fairness, scheduling, liveness, rollback, error-reporting, or implementation guarantee is added unless the pinned source or explicit user decision supports it.
+- **Truthful reporting:** distinguish files read, searches attempted, checks actually run, proposed diffs, and applied changes. A returned diff is a proposal, not an applied change.
+- **Structural integrity:** changed Markdown remains structurally valid and changed relative links resolve in the pinned snapshot.
+- **No false automation:** a coordinator's post-check does not retroactively mean the tested agent ran that check.
+
+Record each applicable check as **pass**, **fail**, **not applicable**, or **not verifiable**, with a short evidence note. Do not treat missing artifacts as failures when the scenario permits a justified no-diff outcome.
 
 ### Instruction-effect analysis (diagnostic, not an extra score)
 
