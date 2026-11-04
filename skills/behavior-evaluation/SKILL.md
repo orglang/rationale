@@ -66,7 +66,7 @@ Create exactly one Issue for each run. Its body contains the complete tested-age
 - A/B/C condition labels, model-comparison notes, and evaluation design;
 - expected behavior, failure signals, rubric, scores, evaluator-only criteria, and coordinator notes.
 
-Use neutral titles and labels that do not reveal the condition or evaluator metadata. Do not cross-link Run Issues. The tested agent is given only the URL of its own Run Issue and the minimum access needed to read the task and publish a comment.
+Use neutral titles and labels that do not reveal the condition or evaluator metadata. Do not cross-link Run Issues. The tested agent is given only the URL of its own Run Issue and the minimum access needed to read the task and publish a comment. Keep the operational handoff instruction separate from the Run Issue body: tell the agent to complete the task in the Issue and publish its complete final answer as a comment on that same Issue. Do not place this response-capture instruction in the tested-agent prompt template.
 
 ### GitHub visibility is repository-scoped, not Issue-scoped
 
