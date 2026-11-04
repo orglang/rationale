@@ -8,14 +8,16 @@ Project instructions are opt-in. A document's presence in the repository, its di
 
 Activate a project instruction only when:
 
-- the user explicitly asks to use or follow that instruction; or
+- the user explicitly asks to use or follow that instruction, or an unambiguous set of project instructions; or
 - an already activated project instruction contains an explicit link to that instruction.
+
+An explicit request to follow **all project instructions** in a stated repository/scope activates all documents designated there as agent instructions, standards, or workflow skills. In that case, inventory those instruction locations. Do not interpret a generic request to follow repository conventions as a request to activate every project instruction unless the context makes that scope unambiguous.
 
 Activation follows links transitively: when an activated instruction links to another project instruction, activate the linked instruction as well, and continue through its instruction links. Activation is idempotent; cycles do not cause repeated processing.
 
 Only links from an activated project instruction trigger this rule. A plain textual mention, an unlinked path, a link in an inactive document, or a link in this bootstrap file does not activate its target. This file is the bootstrap exception: it is always loaded, but it does not activate other project instructions. Do not add links from this file to project instructions.
 
-Do not search the repository for additional instructions to activate. Do not activate a document merely because it seems useful for the task. If the user explicitly names an instruction, activate it and follow its linked instruction dependencies. The user's explicit `#retro` marker activates `skills/retrospective/SKILL.md`.
+Do not search the repository for additional instructions to activate unless the user explicitly requests all project instructions in a defined scope. Do not activate a document merely because it seems useful for the task. If the user explicitly names an instruction, activate it and follow its linked instruction dependencies. The user's explicit `#retro` marker activates `skills/retrospective/SKILL.md`.
 
 ## Scope and precedence
 
