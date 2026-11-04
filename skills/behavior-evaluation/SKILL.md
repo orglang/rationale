@@ -40,7 +40,7 @@ Prepare the evaluation once, in this order:
 3. **Assess the scenario set** (see below) and agree the run matrix with the user before generating prompts.
 4. **Validate every selected scenario** against the pinned snapshot (see **Validate test setup**). Record its verdict and any correction. Do not prepare or run an Invalid scenario. If corrected, commit the fixture, pin the new source SHA and scenario blob SHA, then restart preparation against that snapshot.
 5. **Pin all relevant versions.** Record the full source SHA and blob SHAs for each scenario (including its evaluator-only criteria), instruction file, prompt template, rubric, and task-relevant canonical source. Record the planned model/settings and conditions.
-6. **Prepare all prompts** in one pass (see **Prepare blind prompt files**): exactly one complete Russian prompt per planned run in the evaluation repository.
+6. **Prepare all prompts** in one pass (see **Prepare blind prompt files**): exactly one complete Russian prompt per planned run. Store the coordinator's canonical copy in the evaluation repository; do not grant the tested agent access to that repository.
 7. **Create or update `manifest.md`.** Its run matrix has exactly three columns: `Run`, `Scenario`, and `Condition`. Do not add status, artifact-path, or metadata columns. Keep `rationale` as the source of truth for instructions, scenarios, expected behavior, failure signals, and rubric. The evaluation repository stores materialized prompts, verbatim responses, run assessments, and consolidated results.
 
 Use this directory layout for each evaluation:
@@ -56,8 +56,8 @@ EVAL-001/
         └── assessment.md
 ```
 
-`manifest.md` is only the three-column run matrix. `results.md` consolidates outcomes across runs. Each run's `prompt.md` is the exact tested-agent input, `response.md` is the complete unedited answer, and `assessment.md` is the coordinator-only evaluation and provenance record.
-8. **Pass the readiness gate** before any run: every planned run has one complete prompt; no placeholders remain; pinned links and SHAs resolve to intended content; A/B/C access conditions are accurate; evaluator-only material is absent; prompt permalinks open the correct files; and each run has a unique, initially absent response path.
+`manifest.md` is only the three-column run matrix. `results.md` consolidates outcomes across runs. Each run's `prompt.md` is the exact tested-agent input, `response.md` is the complete unedited answer captured and stored by the coordinator, and `assessment.md` is the coordinator-only evaluation and provenance record. The tested agent receives no access to these evaluation artifacts.
+8. **Pass the readiness gate** before any run: every planned run has one complete prompt; no placeholders remain; pinned source material resolves to intended content; A/B/C access conditions are accurate; evaluator-only material is absent from the tested agent's accessible materials; the tested agent cannot read the evaluation repository or the unsanitized source repository; and the coordinator has a unique, initially absent response path for each run.
 
 Use immutable GitHub links containing the full commit SHA. If required material cannot be fetched or verified, identify it and ask the user; do not improvise.
 
@@ -95,14 +95,14 @@ Assign **Valid**, **Valid with limitations**, or **Invalid**. Record concise evi
 Use `prompt-template.md` after scenario-set assessment, run-matrix agreement, fixture validation, and source pinning. Materialize one complete `prompt.md` per planned run in the evaluation repository. Each file must contain:
 
 - the full selected scenario's `Задание` section, not a link in its place;
-- only the exact immutable links and blob SHAs for source materials available to the tested agent;
+- only the exact immutable source materials available to the tested agent, preferably materialized in an isolated, sanitized snapshot that excludes evaluator-only sections and unrelated evaluation artifacts;
 - no evaluation ID, run condition label (A/B/C), rubric, evaluator-only criteria, or coordinator metadata.
 
 Keep task wording and task-relevant factual snapshot constant across conditions where possible. Exclude all evaluator-only material. Do not leave placeholders or require the tested agent to assemble a prompt from multiple files.
 
-Do not deliver prompt links proactively; wait until the user asks to prepare/show/provide them. A request for the whole evaluation authorizes providing all prepared links together.
+Do not give the tested agent a link to the evaluation repository, its prompt file, manifest, other runs, responses, assessments, rubric, or evaluator-only criteria. The coordinator supplies the exact prompt content in a fresh, independent context and makes only the allowlisted source materials available. Prefer a per-run sanitized snapshot containing only those materials; do not point the tested agent at the original source repository when it contains evaluator-only criteria or other withheld files.
 
-For each run, the tested agent receives only the immutable permalink to its complete prompt file and a short instruction to read and execute it. Do not paste the prompt package into chat, use the source scenario as the entry point, or send separate source links outside the prompt. All permitted materials must be linked inside it. A permalink is navigation, not access control; never claim it prevents browsing other files. If a permitted source is inaccessible, the agent must report that rather than substitute another version.
+A permalink is navigation, not access control. If the tested agent can browse the original public source repository, discover withheld instructions, or otherwise reach evaluator-only material, blindness is not guaranteed. Record the actual limitation and classify the setup as **Valid with limitations** or **Invalid** as appropriate; do not describe the run as blind. For A, use `A-restricted` only when the isolated snapshot and its access boundary are verified. Otherwise use `A-unrestricted` and say only that instructions were not explicitly supplied. If the platform cannot restrict access to the required snapshot, use coordinator-mediated delivery of the allowlisted file contents and record any remaining exposure risk.
 
 ## Run and capture responses
 
@@ -115,9 +115,9 @@ Track **run completeness** separately from **grading completeness** in `assessme
 - A complete run can receive an incomplete grade while assessment is underway. An incomplete run is normally `not evaluable`; do not turn an execution/capture failure into a behavioral fail or a zero score. If partial evidence still supports limited conclusions, preserve them explicitly without presenting a final rubric result.
 - Missing evidence in the agent's answer is not, by itself, an incomplete run or incomplete grading. Assess the response as received, record relevant checks as `not verifiable` where appropriate, and score the demonstrated omission under the rubric. Do not confuse an agent's failure to provide evidence with a failure to collect its response.
 
-Capture each final answer as `response.md` inside its `RUN-*` directory, never as a comment. The tested agent may add exactly that file and nothing else. It must not edit `prompt.md`, `manifest.md`, fixtures, rubric, evaluator-only criteria, other files, or the source repository, and must not merge the PR.
+The coordinator captures the tested agent's complete final answer verbatim and stores it as `response.md` inside its `RUN-*` directory, never as a comment. The tested agent has no read or write access to the evaluation repository or source repository. It cannot edit prompts, manifests, fixtures, rubric, evaluator-only criteria, other runs, or source files.
 
-The response file contains only the complete final answer verbatim. Keep coordinator-only run metadata and assessment provenance in `assessment.md`, not in the prompt or response. Do not edit the response after submission except for documented transport/formatting corrections. If the tested agent cannot write to the PR, the coordinator may add the exact response as a new file on the user's behalf; do not silently fall back to a comment.
+The response file contains only the complete final answer verbatim. Keep coordinator-only run metadata and assessment provenance in `assessment.md`, not in the prompt or response. Do not edit the response after capture except for documented transport/formatting corrections. Record any transport limitation that prevents verbatim capture; do not reconstruct missing response text.
 
 Include a proposed diff in the response file only when the task requests a concrete change or a diff is needed to represent it unambiguously. Do not require diffs for analysis/decision/recommendation tasks. Treat unverified claims of repository edits as unsupported. A returned diff is a proposal, not an applied change.
 
@@ -129,7 +129,7 @@ Evaluate against the pinned full scenario (including its evaluator-only acceptan
 - Distinguish demonstrated failure from missing evidence. Do not reward keywords, confidence, or unsupported claims.
 - Apply the scenario-specific **Evaluator-only acceptance criteria** and record each applicable objective check as **pass**, **fail**, **not applicable**, or **not verifiable**, with concise evidence. Keep artifact checks distinct from expert semantic judgment.
 - Apply relevant cross-scenario checks below; these are not an automatic pass/fail script.
-- Review any proposed diff for consistency with the pinned snapshot, justified/minimal scope, contract preservation, appropriate files, and truthful verification claims. The tested agent must not modify the source repository or its working tree; its only permitted repository write is the new `response.md` in the evaluation repository.
+- Review any proposed diff for consistency with the pinned snapshot, justified/minimal scope, contract preservation, appropriate files, and truthful verification claims. The tested agent has no repository write access; any diff in its response is a proposal, not an applied change.
 - Apply the pinned rubric thresholds and critical-failure rules. Keep severe semantic failures visible even when the total is high.
 
 Write an English run-level assessment to `assessment.md` with scenario ID/title, repository and SHA, fixture versions and setup verdict, model/settings if known, **Run completeness** (`complete`/`incomplete`, with reason) and **Grading completeness** (`complete`/`incomplete`, with outstanding work), five scores and evidence when grading is complete, total /10 and rubric result, critical errors/missing evidence, instruction-effect analysis, diff assessment (or explicit no-diff statement), and concrete rerun recommendations. Use `not evaluable` rather than `fail` when an incomplete run prevents a defensible behavioral assessment. Do not rewrite the response before scoring. Human review is required for borderline outcomes and material failures.
