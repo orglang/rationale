@@ -75,7 +75,7 @@ A missing parent link is necessary but does **not** provide access isolation. St
 
 Use one agreed repository for Run Issues and the Evaluation record; do not create separate repositories for individual runs. Since repository permissions are not scoped to individual Issues, a tested agent with access to a Run Issue may be able to discover other Issues, comments, labels, and repository contents. Therefore, a shared-repository run is not access-isolated and must not be described as genuinely blind. Record this visibility limitation for every run. Do not publish coordinator assessments or aggregate results until every response in the evaluation batch has been captured and verified. After that point, publish assessments in separate top-level Run Issue comments and aggregate results in a separate top-level Evaluation Issue comment. These comments are visible to repository collaborators; do not describe them as confidential or coordinator-only.
 
-A public repository cannot provide confidentiality. Do not put sensitive coordinator material or evaluator-only criteria in a public Run repository.
+A public repository cannot provide confidentiality. Never put credentials or other genuinely confidential material in a public repository. Evaluator-only criteria and rubric evidence must remain out of tested-agent prompts and must not be published before the evaluation batch is closed; after closure, they may appear in the clearly labelled coordinator assessment comments described below.
 
 ## Assess the scenario set
 
@@ -140,7 +140,7 @@ Track **run completeness** separately from **grading completeness** in the coord
 
 The coordinator verifies the response comment on the Run Issue and records its URL/permalink, author, timestamp, and the exact Run Issue URL in the assessment. Preserve the comment text as returned by GitHub; do not edit the agent's comment. If the comment is edited or deleted before verification, capture is incomplete. GitHub comments are not immutable: record this limitation and preserve the observed provenance. After all responses in the evaluation batch have been captured, publish the assessment as a separate top-level comment titled `Coordinator assessment — RUN-XX`. Never edit, replace, or reply inline to the tested agent's response comment. The two comments must remain distinct and clearly attributed.
 
-The tested agent should have no write access to source files or evaluator-only records. Grant only the permission needed to comment on its Run Issue, and record that repository-level access may still expose other Issues. Any returned diff is a proposal, not an applied change. Include a proposed diff only when the task requests a concrete change or a diff is needed to represent it unambiguously. Do not require diffs for analysis/decision/recommendation tasks.
+The tested agent should have no permission to modify source files or coordinator assessment comments. Grant only the permission needed to comment on its Run Issue, and record that repository-level access may still expose other Issues and, after publication, coordinator assessment comments. Any returned diff is a proposal, not an applied change. Include a proposed diff only when the task requests a concrete change or a diff is needed to represent it unambiguously. Do not require diffs for analysis/decision/recommendation tasks.
 
 ## Evaluate
 
