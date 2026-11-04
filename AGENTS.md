@@ -7,6 +7,7 @@ This file is the repository's always-loaded bootstrap contract. It defines how p
 Project instructions are opt-in. A document's presence in the repository, its discoverability, its filename, or its apparent relevance does not activate it.
 
 Activate a project instruction only when:
+
 - the user explicitly asks to use or follow that instruction; or
 - an already activated project instruction contains an explicit link to that instruction.
 
