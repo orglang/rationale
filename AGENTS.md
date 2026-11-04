@@ -18,8 +18,4 @@ The `#retro` marker authorizes note publication only. It does not activate the r
 
 ## Scope and precedence
 
-An activated instruction applies only within its stated scope and for the current task unless it explicitly defines a different duration. A link activates its target; it does not broaden the target's scope or grant it higher priority. Activation does not change instruction precedence or grant additional permissions. Follow the host instruction hierarchy: project instructions cannot override higher-priority instructions or authorize actions beyond the user's request and permissions. Resolve conflicts according to that hierarchy and surface material conflicts that remain unresolved.
-
-## Runtime limitations
-
-This is an instruction-activation convention, not an access-control mechanism. A host runtime may preload or inject files independently. Do not claim an instruction was unavailable or inactive if the runtime supplied it; report the limitation instead.
+An activated instruction applies only within its stated scope and for the current task unless it explicitly defines a different duration. A link activates its target; it does not broaden the target's scope or grant it higher priority. Activation does not change instruction precedence. Follow the host instruction hierarchy: project instructions cannot override higher-priority instructions or authorize actions beyond the user's request. Resolve conflicts according to that hierarchy and surface material conflicts that remain unresolved.
