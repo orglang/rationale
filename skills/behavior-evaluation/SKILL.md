@@ -13,9 +13,9 @@ Use when the user asks to prepare, run, coordinate, or assess the repository's m
 - Coordinator instructions, explanations, run summaries, and reports: English.
 - Tested-agent prompts and scenario task statements: Russian. Preserve the task wording and meaning.
 
-## Validate test setup
+## Coordinator-only setup gate
 
-Before preparing or running a series, prepare the entire planned scenario set in one coordinator pass and validate every planned fixture against the exact pinned repository snapshot. Do not repeat repository fetches or fixture checks for each individual run unless a relevant source changes. This is a coordinator-only quality gate; never expose its findings, expected behavior, failure signals, or rubric to the tested agent.
+Fixture validation is performed once during series preparation, after suite selection and before prompt generation. See the dedicated **Validate test setup** section below. Keep all findings and evaluator materials out of the tested agent's context.
 
 Check all of the following:
 
