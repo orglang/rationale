@@ -33,7 +33,7 @@
 
 ## Evaluator-only acceptance criteria
 
-> Coordinator use only. This section is not part of the tested-agent task and must never be copied into a prompt, exposed in a tested-agent context, or used as a source link in a blind run.
+> Coordinator use only. This section is not part of the tested-agent task and must never be copied into a prompt, exposed in a tested-agent context, or used as a source link in the tested-agent task prompt.
 
 **Primary acceptance**
 - Recognizes the user-confirmed behavior as an accepted semantic change: after every candidate pool has been tried without matched `Down`, search remains active until the shared timeout expires rather than terminating immediately on candidate exhaustion.
