@@ -17,3 +17,13 @@ Score each scenario on five criteria, from 0 to 2 points each (10 points maximum
 - **Fail:** 0–5 points, or silent invention/change of material behavior.
 
 For every score below 2, record concise evidence from the agent's actual response. Missing evidence is not automatically proof of failure, but it does not support full credit. Do not award points for terminology alone. Evaluate the response and proposed diff, if any; a justified decision not to propose a diff can receive full credit.
+
+
+## Run and grading completeness
+
+These statuses are independent of the numeric rubric result:
+
+- **Run completeness** concerns whether the planned one-shot attempt was executed with the intended prompt/context and its complete final response was captured verbatim. A refusal or incorrect answer is still a complete run. An interrupted attempt, wrong prompt/context, missing final answer, or truncated/corrupted response makes the run incomplete.
+- **Grading completeness** concerns whether the coordinator completed all five criterion scores with evidence, all applicable scenario-specific and cross-scenario checks, and the result/critical-failure rules. It is incomplete while any of that assessment remains outstanding.
+
+Do not assign a behavioral **Fail** or zero score merely because execution or response capture failed. If an incomplete run prevents a defensible assessment, report **not evaluable** and explain why; do not manufacture a rubric result. Conversely, missing evidence in an otherwise complete response is assessed as received: use **not verifiable** for checks that cannot be established and score the demonstrated omission under the relevant criterion. It does not make the run incomplete.
