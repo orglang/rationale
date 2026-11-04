@@ -56,4 +56,4 @@ For each planned run:
 
 Run Issues and the Evaluation record may be discoverable by anyone with repository access. Do not treat Issue structure, missing links, or prompt wording as an access-control boundary. Do not deliberately include evaluator-only criteria or another run's response in a tested-agent prompt. If an agent can discover other runs or instructions through its normal repository access, record that as an experimental limitation; do not claim the run was isolated. Publish coordinator assessments and aggregate results after the planned response collection is complete, and keep them clearly attributed as coordinator material.
 
-Use a fresh session per run where practical. Do not create additional repositories or change repository access settings as part of this workflow.
+Use a fresh session per run where practical.
