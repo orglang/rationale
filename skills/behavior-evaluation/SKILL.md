@@ -91,7 +91,7 @@ Use `prompt-template.md` after scenario-set assessment, run-matrix agreement, fi
 
 Keep task wording and task-relevant factual snapshot constant across conditions where possible. Exclude all evaluator-only material. Do not leave placeholders or require the tested agent to assemble a prompt from multiple files.
 
-The Run Issue body is the canonical delivered prompt. The coordinator retains an exact copy in the coordinator's evaluation record for provenance. Do not send the tested agent a parent link, another Run link, or a link to the Evaluation record. A permalink is navigation, not access control. If the tested agent can browse the source repository or discover other instructions or runs, record that limitation. Do not claim the run was isolated or blind. This exposure does not by itself invalidate a run; assess whether it materially confounded the comparison. For A, use `A-restricted` only when the tested agent's actual execution environment is demonstrably limited to the approved snapshot and cannot browse optional project instructions. A GitHub Issue in a shared repository does not establish that boundary. Otherwise use `A-unrestricted` and say only that instructions were not explicitly activated by the task.
+The Run Issue body is the canonical delivered prompt. The coordinator retains an exact copy in the coordinator's evaluation record for provenance. Do not send the tested agent a parent link, another Run link, or a link to the Evaluation record. A permalink is navigation, not access control. If the tested agent can browse the source repository or discover other instructions or runs, record that limitation. Do not claim the run was isolated or blind. This exposure does not by itself invalidate a run; assess whether it materially confounded the comparison. For A, describe only which optional instructions were not explicitly activated by the task. If the agent can access them through its repository or runtime, record that exposure; do not claim they were unavailable.
 
 ## Run and capture responses
 
@@ -124,13 +124,13 @@ For tasks with a no-write instruction, record observable effective permissions a
 
 ## Evaluate
 
-Evaluate against the pinned full scenario (including its evaluator-only acceptance section) and `rubric.md`. Only the scenario's `Задание` section is eligible for the blind prompt; never copy, link, or expose evaluator-only material to the tested agent.
+Evaluate against the pinned full scenario (including its evaluator-only acceptance section) and `rubric.md`. Only the scenario's `Задание` section is eligible for the task prompt; never copy evaluator-only material into the prompt.
 
 - Score all five rubric criteria from 0–2. Support each score with evidence from the complete response comment and explain every score below 2.
 - Distinguish demonstrated failure from missing evidence. Do not reward keywords, confidence, or unsupported claims.
 - Apply the scenario-specific **Evaluator-only acceptance criteria** and record each applicable objective check as **pass**, **fail**, **not applicable**, or **not verifiable**, with concise evidence. Keep artifact checks distinct from expert semantic judgment.
 - Apply relevant cross-scenario checks below; these are not an automatic pass/fail script.
-- Review any proposed diff for consistency with the pinned snapshot, justified/minimal scope, contract preservation, appropriate files, and truthful verification claims. A no-source-write condition is established only by the mandatory permission preflight and its recorded evidence; otherwise state the actual effective capability and do not claim that a no-write boundary held. Any diff in the response is a proposal unless independently verified as applied.
+- Review any proposed diff for consistency with the pinned snapshot, justified/minimal scope, contract preservation, appropriate files, and truthful verification claims. State observable permissions and their limits. Do not make permission preflight a universal condition of a run. Any diff in the response is a proposal unless independently verified as applied.
 - Apply the pinned rubric thresholds and critical-failure rules. Keep severe semantic failures visible even when the total is high.
 
 Write an English run-level assessment and publish it as a separate top-level comment on the corresponding Run Issue, titled `Coordinator assessment — RUN-XX`. Include scenario ID/title, repository and SHA, fixture versions and setup verdict, model/settings if known, Run Issue URL, response comment URL/author/timestamp, **Run completeness** (`complete`/`incomplete`, with reason), **Grading completeness** (`complete`/`incomplete`, with outstanding work), five scores and evidence when grading is complete, total /10 and rubric result, critical errors/missing evidence, instruction-effect analysis, diff assessment (or explicit no-diff statement), and concrete rerun recommendations. Preserve the full assessment; do not place it in or rewrite the tested agent's response. Use `not evaluable` rather than `fail` when an incomplete run prevents a defensible behavioral assessment. Human review is required for borderline outcomes and material failures. Publish only after all responses in the evaluation batch are captured. The assessment comment is visible according to repository permissions.
@@ -166,7 +166,7 @@ Include a concise report table with instruction file/heading and blob SHA, inten
 When measuring project-instruction effects, use the same scenario task and, where feasible, the same task-relevant repository snapshot under these conditions:
 
 - **A — Optional project instructions not explicitly activated:** the bootstrap `AGENTS.md` may be loaded, but it does not activate other project instructions. Provide the task and necessary domain/source material without explicitly activating optional project instructions/skills.
-  - If the agent or runtime can access optional instructions, record that exposure. Do not describe the condition as restricted or claim that those instructions were unavailable.
+  - Record any known exposure of optional instructions through repository access or runtime preloading. Do not claim that they were unavailable.
   - This does not remove system/developer instructions or built-in model capabilities.
 - **B — Previous instructions:** explicitly activate the agreed previous-version entrypoint instruction(s), pinned by exact SHA/blob SHAs; follow only their transitive instruction links.
 - **C — Current instructions:** explicitly activate the agreed current-version entrypoint instruction(s), pinned by exact SHA/blob SHAs; follow only their transitive instruction links.
