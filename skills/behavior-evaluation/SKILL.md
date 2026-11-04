@@ -13,13 +13,13 @@ Use this skill to prepare, run, coordinate, or assess manual agent-workflow eval
 - Coordinator instructions, explanations, run summaries, and reports: English.
 - Tested-agent prompts and scenario task statements: Russian. Preserve task wording and meaning.
 
-## Experiment-series workflow
+## Evaluation workflow
 
-An **experiment series** is the top-level unit: one research purpose, one agreed scenario × condition run matrix, one manifest, and one report. Do not add a nested `experiment` entity unless a future protocol requires independently governed experiments.
+An **evaluation** (`EVAL-*`) is the top-level unit for assessing an instruction change or instruction version. It contains one agreed scenario × condition run matrix, individual runs, and consolidated results. A **run** (`RUN-*`) is one execution of one stable scenario under one condition.
 
-Prepare the series once, in this order:
+Prepare the evaluation once, in this order:
 
-1. **Identify and pin sources.** Identify the source repository and target PR/branch. For a PR, use its current 40-character head SHA, not the base SHA or a moving branch. Identify the experiment-series repository and PR/branch, if already created. Do not create a repository or change access permissions without user authorization.
+1. **Identify and pin sources.** Identify the source repository and target PR/branch. For a PR, use its current 40-character head SHA, not the base SHA or a moving branch. Identify the evaluation repository and PR/branch, if already created. Do not create a repository or change access permissions without user authorization.
 2. **Fetch source material once** from that SHA:
    - `AGENTS.md`, `DOCUMENTATION_STANDARDS.md`;
    - `skills/change-management/SKILL.md`, `skills/semantic-specification/SKILL.md`, and `skills/semantic-verification/SKILL.md`;
@@ -29,15 +29,30 @@ Prepare the series once, in this order:
 3. **Assess the scenario set** (see below) and agree the run matrix with the user before generating prompts.
 4. **Validate every selected scenario** against the pinned snapshot (see **Validate test setup**). Record its verdict and any correction. Do not prepare or run an Invalid scenario. If corrected, commit the fixture, pin the new source SHA and scenario blob SHA, then restart preparation against that snapshot.
 5. **Pin all relevant versions.** Record the full source SHA and blob SHAs for each scenario (including its evaluator-only criteria), instruction file, prompt template, rubric, and task-relevant canonical source. Record the planned model/settings and conditions.
-6. **Prepare all prompts** in one pass (see **Prepare blind prompt files**): exactly one complete Russian prompt per planned scenario × condition in the experiment-series repository.
-7. **Create or update the manifest.** Include the run matrix, immutable source references, prompt and response paths, model/settings, conditions, and run status. The evaluation repository stores experiment records (manifest, complete prompts, responses, scores, analyses, report); `rationale` remains the source of truth for instructions, scenarios, expected behavior, failure signals, and rubric. Copy source files only when needed to preserve a historical artifact, and label each copy with its source SHA.
+6. **Prepare all prompts** in one pass (see **Prepare blind prompt files**): exactly one complete Russian prompt per planned run in the evaluation repository.
+7. **Create or update `manifest.md`.** Its run matrix has exactly three columns: `Run`, `Scenario`, and `Condition`. Do not add status, artifact-path, or metadata columns. Keep `rationale` as the source of truth for instructions, scenarios, expected behavior, failure signals, and rubric. The evaluation repository stores materialized prompts, verbatim responses, run assessments, and consolidated results.
+
+Use this directory layout for each evaluation:
+
+```text
+EVAL-001/
+├── manifest.md
+├── results.md
+└── runs/
+    └── RUN-001/
+        ├── prompt.md
+        ├── response.md
+        └── assessment.md
+```
+
+`manifest.md` is only the three-column run matrix. `results.md` consolidates outcomes across runs. Each run's `prompt.md` is the exact tested-agent input, `response.md` is the complete unedited answer, and `assessment.md` is the coordinator-only evaluation and provenance record.
 8. **Pass the readiness gate** before any run: every planned run has one complete prompt; no placeholders remain; pinned links and SHAs resolve to intended content; A/B/C access conditions are accurate; evaluator-only material is absent; prompt permalinks open the correct files; and each run has a unique, initially absent response path.
 
 Use immutable GitHub links containing the full commit SHA. If required material cannot be fetched or verified, identify it and ask the user; do not improvise.
 
-Scenario identity is its explicit stable ID in the scenario file, never its filename, heading, or ordinal position. Use it in manifests, prompt metadata, response paths, reports, and evaluator-only criteria. Never change or reuse an assigned ID after a rename; assign a new ID only to a genuinely new scenario and keep retired IDs reserved.
+Scenario identity is its explicit stable ID in the scenario file, never its filename, heading, or ordinal position. Use it in the manifest, run directory names, assessments, results, and evaluator-only criteria. Never change or reuse an assigned ID after a rename; assign a new ID only to a genuinely new scenario and keep retired IDs reserved.
 
-A scenario, its evaluator-only acceptance criteria, or the rubric changing requires a new experiment series. Never silently repair a fixture only in the coordinator's interpretation.
+A scenario, its evaluator-only acceptance criteria, or the rubric changing requires a new evaluation. Never silently repair a fixture only in the coordinator's interpretation.
 
 ## Assess the scenario set
 
@@ -66,25 +81,25 @@ Assign **Valid**, **Valid with limitations**, or **Invalid**. Record concise evi
 
 ## Prepare blind prompt files
 
-Use `prompt-template.md` after scenario-set assessment, run-matrix agreement, fixture validation, and source pinning. Materialize one complete prompt file per scenario × condition in the experiment-series repository. Each file must contain:
+Use `prompt-template.md` after scenario-set assessment, run-matrix agreement, fixture validation, and source pinning. Materialize one complete `prompt.md` per planned run in the evaluation repository. Each file must contain:
 
 - the full selected scenario's `Задание` section, not a link in its place;
-- experiment-series ID, stable scenario ID, condition, reserved response path, and pinned source SHA;
-- exact condition definition and immutable links plus blob SHAs for every permitted source material.
+- only the exact immutable links and blob SHAs for source materials available to the tested agent;
+- no evaluation ID, run condition label (A/B/C), rubric, evaluator-only criteria, or coordinator metadata.
 
 Keep task wording and task-relevant factual snapshot constant across conditions where possible. Exclude all evaluator-only material. Do not leave placeholders or require the tested agent to assemble a prompt from multiple files.
 
-Do not deliver prompt links proactively; wait until the user asks to prepare/show/provide them. A request for the whole experiment series authorizes providing all prepared links together.
+Do not deliver prompt links proactively; wait until the user asks to prepare/show/provide them. A request for the whole evaluation authorizes providing all prepared links together.
 
 For each run, the tested agent receives only the immutable permalink to its complete prompt file and a short instruction to read and execute it. Do not paste the prompt package into chat, use the source scenario as the entry point, or send separate source links outside the prompt. All permitted materials must be linked inside it. A permalink is navigation, not access control; never claim it prevents browsing other files. If a permitted source is inaccessible, the agent must report that rather than substitute another version.
 
 ## Run and capture responses
 
-Use a fresh, independent tested-agent context for every run (one scenario under one condition). Keep model and relevant settings identical across compared conditions unless the series explicitly tests those variables.
+Use a fresh, independent tested-agent context for every run (one scenario under one condition). Keep model and relevant settings identical across compared conditions unless the evaluation explicitly tests those variables.
 
-Capture each final answer as a **new response file** in the experiment-series PR, never as a comment. Reserve a unique path per run, such as `responses/AWF-001/condition-A.md`. The tested agent may add exactly that file and nothing else. It must not edit prompts, the manifest, fixtures, rubric, evaluator-only criteria, other files, or the source repository, and must not merge the PR.
+Capture each final answer as `response.md` inside its `RUN-*` directory, never as a comment. The tested agent may add exactly that file and nothing else. It must not edit `prompt.md`, `manifest.md`, fixtures, rubric, evaluator-only criteria, other files, or the source repository, and must not merge the PR.
 
-The response file contains the complete answer verbatim and metadata: experiment-series ID, stable scenario ID, condition, prompt path, model/settings if known, and run date. Do not edit it after submission except for documented transport/formatting corrections. If the tested agent cannot write to the PR, the coordinator may add the exact response as a new file on the user's behalf; do not silently fall back to a comment.
+The response file contains only the complete final answer verbatim. Keep coordinator-only run metadata and assessment provenance in `assessment.md`, not in the prompt or response. Do not edit the response after submission except for documented transport/formatting corrections. If the tested agent cannot write to the PR, the coordinator may add the exact response as a new file on the user's behalf; do not silently fall back to a comment.
 
 Include a proposed diff in the response file only when the task requests a concrete change or a diff is needed to represent it unambiguously. Do not require diffs for analysis/decision/recommendation tasks. Treat unverified claims of repository edits as unsupported. A returned diff is a proposal, not an applied change.
 
@@ -99,7 +114,7 @@ Evaluate against the pinned full scenario (including its evaluator-only acceptan
 - Review any proposed diff for consistency with the pinned snapshot, justified/minimal scope, contract preservation, appropriate files, and truthful verification claims. The tested agent has no working-tree editing capability in this evaluation setup.
 - Apply the pinned rubric thresholds and critical-failure rules. Keep severe semantic failures visible even when the total is high.
 
-Return an English report with scenario ID/title, repository and SHA, fixture versions and setup verdict, model/settings if known, five scores and evidence, total /10 and rubric result, critical errors/missing evidence, instruction-effect analysis, diff assessment (or explicit no-diff statement), and concrete rerun recommendations. Do not rewrite the response before scoring. Human review is required for borderline outcomes and material failures.
+Write an English run-level assessment to `assessment.md` with scenario ID/title, repository and SHA, fixture versions and setup verdict, model/settings if known, five scores and evidence, total /10 and rubric result, critical errors/missing evidence, instruction-effect analysis, diff assessment (or explicit no-diff statement), and concrete rerun recommendations. Do not rewrite the response before scoring. Human review is required for borderline outcomes and material failures.
 
 ### Cross-scenario post-checks
 
@@ -128,7 +143,7 @@ For each run, assess which supplied project instructions helped, failed to help,
 
 Include a concise report table with instruction file/heading and blob SHA, intended behavior, observed evidence, classification, and confidence/limitations. Summarize instruction elements to retain, clarify, revise, or add. Keep this analysis evaluator-only.
 
-## Experiment conditions and run ledger
+## Conditions and run ledger
 
 When measuring project-instruction effects, use the same scenario task and, where feasible, the same task-relevant repository snapshot under these conditions:
 
@@ -139,13 +154,13 @@ When measuring project-instruction effects, use the same scenario task and, wher
 - **B — Previous instructions:** provide the previous instruction version, pinned by exact SHA/blob SHAs.
 - **C — Current instructions:** provide the current instruction version, pinned by exact SHA/blob SHAs.
 
-Keep task wording, factual snapshot, rubric, model, and settings constant where possible. Record mismatches when old instructions depend on older source versions. Not every series needs all three conditions; agree the matrix with the user. A pilot of two or three informative scenarios may precede a broader comparison. The comparison unit is the same stable scenario ID across conditions; a run is one execution of that scenario under one condition. Do not infer a general effect from a small sample.
+Keep task wording, factual snapshot, rubric, model, and settings constant where possible. Record mismatches when old instructions depend on older source versions. Not every evaluation needs all three conditions; agree the matrix with the user. A pilot of two or three informative scenarios may precede a broader comparison. The comparison unit is the same stable scenario ID across conditions; a run is one execution of that scenario under one condition. Do not infer a general effect from a small sample.
 
-Maintain the ledger in the experiment-series PR and this coordinator conversation. The manifest records source repository/full SHA, evaluation repository/PR, conditions and exact instruction versions, scenario/rubric blob SHAs, model/settings, run order, prompt/response paths, and status. Preserve the scenario-set assessment (capability importance, difficulty, overlap, coverage gaps).
+Maintain the run matrix in `manifest.md` and the operational ledger in this coordinator conversation. `manifest.md` contains only the `Run`, `Scenario`, and `Condition` columns. Record source pins, scenario/rubric blob SHAs, model/settings, run date, scores, and other coordinator-only provenance in each run's `assessment.md`. Preserve the scenario-set assessment (capability importance, difficulty, overlap, coverage gaps) in `results.md`.
 
 For each run, record stable scenario ID/title, source SHA, scenario/rubric blob SHAs, setup verdict, date, model/settings if known, five scores and total, result, critical errors, concise evidence, instruction-effect classifications, and diff/review outcome. Show individual scenario results, not only averages. Preserve initial results on reruns.
 
-Start a new experiment series if the source snapshot, scenario (including evaluator-only criteria), rubric, tested model, or materially relevant settings change; state what changed. If the conversation is lost, reconstruct only from the experiment-series PR, PR metadata, immutable source links, and preserved complete responses, and label reconstructed entries.
+Start a new evaluation if the source snapshot, scenario (including evaluator-only criteria), rubric, tested model, or materially relevant settings change; state what changed. If the conversation is lost, reconstruct only from the evaluation PR, PR metadata, immutable source links, and preserved complete responses, and label reconstructed entries.
 
 ## Boundaries
 
