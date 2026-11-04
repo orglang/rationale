@@ -17,7 +17,11 @@ Activation follows links transitively: when an activated instruction links to an
 
 Only links from an activated project instruction trigger this rule. A plain textual mention, an unlinked path, a link in an inactive document, or a link in this bootstrap file does not activate its target. This file is the bootstrap exception: it is always loaded, but it does not activate other project instructions. Do not add links from this file to project instructions.
 
-Do not search the repository for additional instructions to activate unless the user explicitly requests all project instructions in a defined scope. Do not activate a document merely because it seems useful for the task. If the user explicitly names an instruction, activate it and follow its linked instruction dependencies. The user's explicit `#retro` marker activates `skills/retrospective/SKILL.md`.
+Do not search the repository for additional instructions to activate unless the user explicitly requests all project instructions in a defined scope. Do not activate a document merely because it seems useful for the task. If the user explicitly names an instruction, activate it and follow its linked instruction dependencies.
+
+## Retrospective note capture
+
+When the user marks a note with `#retro`, immediately publish that note as its own top-level comment on the relevant pull request. Do not wait for a retrospective session, combine notes into one comment, or store them in commit messages. If the relevant pull request is not clear from the conversation, ask which pull request to use before publishing. The `#retro` marker authorizes this note-publication action; it does not activate the retrospective workflow skill or authorize repository changes.
 
 ## Scope and precedence
 
