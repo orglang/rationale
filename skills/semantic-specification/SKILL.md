@@ -1,12 +1,11 @@
 ---
 name: semantic-specification
 description: Iterative, user-led workflow for specifying system behavior and technical semantics.
-disable-model-invocation: true
 ---
 
 # Specification workflow
 
-Use this workflow only when the user explicitly asks for it. This skill owns the user-led semantic workflow.
+Use this workflow when a task requires defining, changing, or resolving system behavior, domain rules, protocols, requirements, or technical semantics. This skill owns the user-led semantic workflow: derive what follows from accepted decisions, but do not make consequential semantic decisions on the user's behalf. Routine proofreading and documentation-only edits do not activate this workflow.
 
 ## Workflow
 
