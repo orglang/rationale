@@ -69,11 +69,11 @@ Record mismatches explicitly; treat similarly named concepts as equivalent only 
 
 ### 2. Core concepts
 
-Use the [OrgLang glossary](../GLOSSARY.md) for shared definitions of processes, declarations and definitions, incarnations, channel placeholders, and session types. The abstract channel and endpoint model is defined in [Incarnations and channels, Section 3](../about-incarnations-and-channels/README.md#3-channels-and-endpoints); process-specific provider/client roles and channel cardinality are defined in this document.
+Use the [OrgLang glossary](../GLOSSARY.md) for shared definitions of processes, **term declarations** and **term definitions**, incarnations, channel placeholders, and session types. The abstract channel and endpoint model is defined in [Incarnations and channels, Section 3](../about-incarnations-and-channels/README.md#3-channels-and-endpoints); process-specific provider/client roles and channel cardinality are defined in this document.
 
 Named-process invocation and incarnation creation are specified canonically in [Calls and spawns](../about-calls-and-spawns/README.md). Every incarnation receives a never-reused identity; this is a model-wide identity policy. An environment or substitution associates channel placeholders with the relevant channel resources or endpoints.
 
-For session types, the provider endpoint supplies the reference perspective; checking the client endpoint accounts for the complementary actions it permits. The request/response example and the evolution of the residual protocol are introduced in Section 3.
+For session types, the **provider endpoint** supplies the reference perspective; checking the **client endpoint** accounts for the complementary actions it permits. The request/response example and the evolution of the residual protocol are introduced in Section 3.
 
 **Linearity** is the channel usage/ownership discipline. **Model invariant:** channel bindings are non-aliasing: distinct bound channel placeholders refer to distinct channel identities. Consequently, distinct formal channel parameters supplied to a call must map to distinct existing channel identities. The no-alias property is a global assumption of the OrgLang model. `InternalCall` transfers every binding in the environment, so completeness is determined by the full environment. More generally, **normal completion** of a process is permitted only when its channel protocols permit completion and all linear obligations have been discharged; the inspected type checker rejects a normal-completion attempt while a provider-channel protocol remains unfinished; this is an implementation observation, not yet a complete formal language rule. This is distinct from `InternalCall`, whose agreed semantics terminate the old incarnation by transferring its complete channel environment to a replacement incarnation. That transition is not evidence that the transferred protocols are finished. The full linearity invariant and its application across constructs remain open; do not infer them solely from `InternalCall`.
 
@@ -147,7 +147,7 @@ The repository also contains AST constructors for `Spawn`, `Acqure`, `Accept`, `
 
 ### 6. Session types: the protocol for a channel
 
-A session type describes the allowed protocol from the provider endpoint's point of view; the type checker accounts for the client role when checking the other endpoint (Section 2). For the request/response example and residual session types, see Section 3.
+A session type describes the allowed **protocol** from the provider endpoint's point of view; the type checker accounts for the client role when checking the other endpoint (Section 2). For the request/response example and residual session types, see Section 3.
 
 A protocol can also pass a channel between processes. The sender gives the other process a channel it can use to communicate; the receiver gains access to that channel for the rest of its process. The implementation names the relevant session-type forms `Tensor` and `Lolli`. At a high level, these are the two complementary forms used to describe channel transfer together with the protocol that remains after the transfer. Section 9 records the observed polarity assignments and checker coverage; Section 10 describes the typing interface.
 

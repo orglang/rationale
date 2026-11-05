@@ -8,7 +8,7 @@
 
 ### 1. Incarnations and execution state
 
-An **incarnation** is one concrete runtime instance of an executing entity. It has its own execution state and local namespace. Two incarnations may originate from the same declaration or description while remaining distinct runtime instances.
+An **incarnation** is one concrete runtime instance of an executing entity. It has its own **execution state** and local namespace. Two incarnations may originate from the same declaration or description while remaining distinct runtime instances.
 
 An incarnation is not an identifier, a term, or a channel. An identifier may refer to a runtime resource; a term describes an action or expression; a channel provides a communication relation between endpoints.
 
@@ -16,7 +16,7 @@ An incarnation is not an identifier, a term, or a channel. An identifier may ref
 
 An **identifier** names or refers to a runtime resource. In the abstract notation below, identifiers are written with early Latin letters such as *a*, *b*, and *c*.
 
-A **placeholder** is a syntactic name whose runtime referent is supplied by substitution. Placeholders are written with late Latin letters such as *x*, *y*, and *z*. A placeholder is not itself the resource to which it is bound: after substitution, the identifier occupies that syntactic position.
+A **placeholder** is a syntactic name whose runtime referent is supplied by **substitution**. Placeholders are written with late Latin letters such as *x*, *y*, and *z*. A placeholder is not itself the resource to which it is bound: after substitution, the identifier occupies that syntactic position.
 
 This distinction is important for channel references. A placeholder is local to an expression or continuation; an identifier denotes the channel or other resource referred to at runtime.
 
@@ -38,9 +38,9 @@ The abstract term forms are:
 | *c*.*V* | Publish value *V* on channel *c*. |
 | `case` *c* *K* | Subscribe on channel *c* with continuation *K*. |
 
-Publication and subscription are complementary endpoint actions. A publication that has no matching subscription remains pending; a subscription that has no matching publication also remains pending. The communication interaction takes effect when the corresponding actions match. Matching makes the received value available to the subscription's continuation; it does not imply that both incarnations execute simultaneously.
+**Publication** and **subscription** are complementary endpoint actions. A publication that has no matching subscription remains pending; a subscription that has no matching publication also remains pending. The communication interaction takes effect when the corresponding actions match. Matching makes the received value available to the subscription's continuation; it does not imply that both incarnations execute simultaneously.
 
-The concrete values, permitted protocol actions, and continuation obligations are defined by the domain-specific model using the channel.
+The concrete values, permitted **protocol** actions, and continuation obligations are defined by the domain-specific model using the channel.
 
 ### 5. Values and continuations
 
@@ -60,7 +60,7 @@ The exact matching relation between values and patterns, and the substitutions p
 
 ### 7. Types and constraints
 
-Type expressions may be composed using connectives of different arities: unary, binary, or n-ary. A type expression may also carry a constraint or refinement that restricts the states or values for which an interaction is permitted.
+Type expressions may be composed using connectives of different arities: unary, binary, or n-ary. A type expression may also carry a **constraint** or **refinement** that restricts the states or values for which an interaction is permitted.
 
 This section establishes only the general vocabulary of type expressions, connectives, constraints, and refinements. Concrete constructors, duality rules, and typing judgments are defined by the domain-specific models.
 

@@ -21,7 +21,7 @@ The following contract is the canonical statement of intended language-level beh
 
 The rules below are the **working OrgLang contract adopted for this research draft**, independent of any current implementation. The detailed preconditions and commit-boundary rules follow in the operation-specific sections. This summary makes the shared model and the distinction between the two call forms explicit.
 
-A call is not merely a jump to a named body. It resolves a process definition, creates a fresh incarnation on success, and establishes which existing channel identities that incarnation owns. A channel's identity and residual protocol state are preserved when its binding is transferred; the transition changes which incarnation owns a binding, not the identity of the channel itself.
+A call is not merely a jump to a named body. It resolves a process definition, creates a fresh incarnation on success, and establishes which existing channel identities that incarnation owns. A channel's identity and **residual protocol state** are preserved when its binding is transferred; the transition changes which incarnation owns a binding, not the identity of the channel itself.
 
 | Property | `ExternalCall` | `InternalCall` |
 |---|---|---|

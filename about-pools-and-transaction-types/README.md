@@ -2,7 +2,7 @@
 
 # Pools and transaction types
 
-> **Status: preliminary semantic research.** This document owns the pool and transaction-type model, including the transaction-specific protocol, agreement state, and negotiation lifecycle. It distinguishes intended semantics from publication rules and implementation observations; its conclusions remain research findings pending a normative specification.
+> **Status: preliminary semantic research.** This document owns the pool and transaction-type model, including the transaction-specific **protocol**, agreement state, and negotiation lifecycle. It distinguishes intended semantics from publication rules and implementation observations; its conclusions remain research findings pending a normative specification.
 
 **Scope and document boundaries**
 
@@ -28,9 +28,9 @@ Use the [OrgLang glossary](../GLOSSARY.md) for shared term definitions. This sec
 
 A transaction is the pool-to-pool interaction; its transaction type is the protocol governing that interaction; the agreement is the committed allocation state (the value of `Q`) associated with the logical transaction channel. A transaction identifier and a process channel identity refer to distinct resources. Their precise mapping remains **Open** pending evidence from the language contract or a verified execution path.
 
-The public and private transaction channels are physically distinct representations of one logical transaction channel. They share its logical identity and transaction type, but have distinct physical identities. A matched `Up` creates a new private physical channel; matched `Down` commits its allocation state. The detailed matching, commit, and cancellation lifecycle is specified in [Incarnations and channels](../about-incarnations-and-channels/README.md#4-publication-subscription-and-matching) and Section 2.1 below.
+The **public channel** and **private channel** (the public and private transaction channels) are physically distinct representations of one logical transaction channel. They share its logical identity and transaction type, but have distinct physical identities. A matched `Up` creates a new private physical channel; matched `Down` commits its allocation state. The detailed matching, commit, and cancellation lifecycle is specified in [Incarnations and channels](../about-incarnations-and-channels/README.md#4-publication-subscription-and-matching) and Section 2.1 below.
 
-The provider/client endpoints are the two participant-relative sides of the shared transaction channel. Do not conflate the pool's public transaction channel with a process incarnation's provider channel; the latter is defined in [Calls and spawns](../about-calls-and-spawns/README.md#1-intended-semantics-of-named-process-calls).
+The **provider endpoint** and **client endpoint** are the two participant-relative sides of the shared transaction channel. Do not conflate the pool's public transaction channel with a process incarnation's provider channel; the latter is defined in [Calls and spawns](../about-calls-and-spawns/README.md#1-intended-semantics-of-named-process-calls).
 
 The exact OrgLang syntax, checking rules, and runtime enforcement for transaction-type refinements remain **Open**. The current project direction is that the public channel type does not use refinements, while the private channel type may use refinement session types.
 
