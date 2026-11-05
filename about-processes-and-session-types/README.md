@@ -193,7 +193,7 @@ For every allowed row, the rule and tests should establish that the interaction 
 
 #### Operation index
 
-The intended contracts are specified in the operation-specific subsections above: [`ExternalCall`](#externalcall), [`InternalCall`](#internalcall), and [`Fwd`](#fwd). Part II records publication context; Part III records implementation evidence. Neither evidence section replaces the language-level contracts.
+The intended contracts are specified in the operation-specific subsections above: [`ExternalCall`](../about-calls-and-spawns/README.md#externalcall), [`InternalCall`](../about-calls-and-spawns/README.md#internalcall), and [`Fwd`](#fwd). Part II records publication context; Part III records implementation evidence. Neither evidence section replaces the language-level contracts.
 
 ## Part II. Semantics and relation to prior work
 
