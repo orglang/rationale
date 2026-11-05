@@ -44,7 +44,7 @@ The concrete values, permitted interactions, and continuation obligations are de
 
 ### 5. Values and continuations
 
-*V* is a metavariable for a value supplied by a domain-specific model. *K* is a metavariable for a continuation. In the abstract notation, a continuation may be represented as a collection of value-pattern/continuation pairs:
+*V* is a metavariable for a value supplied by a domain-specific model. *K* is a metavariable for a **term continuation**: a continuation that selects the next term after a value is matched and applied. This is distinct from a **process continuation**, which becomes eligible for execution, and a **type continuation**, which describes the interactions permitted after the current interaction. In the abstract notation, a term continuation may be represented as a collection of value-pattern/continuation pairs:
 
 `K ::= (V ⇒ P) | (V₁ ⇒ P₁, …, Vₙ ⇒ Pₙ)`
 
