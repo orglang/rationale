@@ -69,31 +69,15 @@ Record mismatches explicitly; treat similarly named concepts as equivalent only 
 
 ## 2. Core concepts
 
-OrgLang processes communicate through **channels**. The shared participant and channel model—including provider/client roles, endpoints, and channel cardinality—is defined canonically in [Incarnations and channels, Section 3](../about-incarnations-and-channels/README.md#3-participants-and-channels). The two named-process call forms are **`ExternalCall`** and **`InternalCall`**. Both create a fresh process incarnation, but transfer channels in different directions relative to that incarnation.
+Use the [OrgLang glossary](../GLOSSARY.md) for shared definitions of processes, declarations and definitions, incarnations, channel placeholders, and session types. The shared participant and channel model—including provider/client roles, endpoints, and channel cardinality—is specified in [Incarnations and channels, Section 3](../about-incarnations-and-channels/README.md#3-participants-and-channels).
 
-**Process** is the general umbrella term in this document; its precise referent follows context. A **named process** is the process identified by a name. A **process declaration** describes its interface, while a **process definition** supplies its behavior. Each start creates a concrete running copy called a **process incarnation**. Every process incarnation receives an identity that is never reused: once an identity has been allocated, no later incarnation may receive it, even after the original incarnation terminates. This is a model-wide identity policy, not an `InternalCall`-specific condition. A **channel placeholder** is a syntactic name in an expression or process interface that stands for a channel. An environment or substitution associates the name with the relevant channel resource or endpoint. The implementation may represent these layers with different Go types; their mapping requires verification.
+The two named-process call forms are **`ExternalCall`** and **`InternalCall`**. Both create a fresh process incarnation, but transfer channels in different directions relative to that incarnation. Every incarnation receives a never-reused identity; this is a model-wide identity policy, not an `InternalCall`-specific condition. An environment or substitution associates channel placeholders with the relevant channel resources or endpoints. The implementation may represent these layers with different Go types; their mapping requires verification.
 
-A **session type** describes the allowed protocol from the provider endpoint's point of view. When checking the client endpoint, the type checker accounts for the client role and the complementary actions it permits. A **residual session type** is the remaining part of that protocol after prior interaction steps. The request/response example and the meaning of a **residual session type** are introduced in Section 3.
+For session types, the provider endpoint supplies the reference perspective; checking the client endpoint accounts for the complementary actions it permits. The request/response example and the evolution of the residual protocol are introduced in Section 3.
 
 **Linearity** is the channel usage/ownership discipline. **Model invariant:** channel bindings are non-aliasing: distinct bound channel placeholders refer to distinct channel identities. Consequently, distinct formal channel parameters supplied to a call must map to distinct existing channel identities. The no-alias property is a global assumption of the OrgLang model. `InternalCall` transfers every binding in the environment, so completeness is determined by the full environment. More generally, **normal completion** of a process is permitted only when its channel protocols permit completion and all linear obligations have been discharged; the inspected type checker rejects a normal-completion attempt while a provider-channel protocol remains unfinished; this is an implementation observation, not yet a complete formal language rule. This is distinct from `InternalCall`, whose agreed semantics terminate the old incarnation by transferring its complete channel environment to a replacement incarnation. That transition is not evidence that the transferred protocols are finished. The full linearity invariant and its application across constructs remain open; do not infer them solely from `InternalCall`.
 
-### Quick glossary
-
-| Term | Meaning in this document |
-|---|---|
-| Channel and endpoint roles | Defined in [Incarnations and channels, Section 3](../about-incarnations-and-channels/README.md#3-participants-and-channels). |
-| Process | General umbrella term; use context to identify whether it refers to a named process or a running incarnation. |
-| Named process | A process referred to by name. |
-| Process declaration | The process interface, including its provider-role and client-role channel placeholders. |
-| Process definition | The body or expression specifying process behavior. |
-| Process incarnation | One running instance of a process. |
-| Channel placeholder | A syntactic name intended to be associated with a channel; not the channel resource itself. |
-| Session type | The allowed channel protocol, described from the provider endpoint's point of view; type checking accounts for the client role. |
-| Residual session type | The part of that protocol still to be performed at the current point. |
-| Linearity | Channel usage/ownership discipline. The model disallows aliasing between distinct channel bindings; distinct formal parameters supplied to a call therefore map to distinct existing channel identities. Process completion requires all linear obligations to be discharged. |
-| Polarity | An implementation-level positive/negative/neutral classification used by the type checker; operational consequences are documented separately. |
-| Snapshot | An implementation concept that may relate to the publication's `configuration` and `environment`; the exact mapping remains open. |
-| Turn | The implementation uses turn-like records for pending communication/exchange state; their language-level status and precise semantics remain open. |
+The shared definitions of these terms are maintained in the [OrgLang glossary](../GLOSSARY.md). This section focuses on process-model properties that are important to the semantics: incarnation identity is never reused; channel bindings are non-aliasing; and a process may complete normally only after its channel protocols and linear obligations permit completion. The implementation-specific notions of polarity, snapshots, and turns are discussed with their evidence in Part III rather than treated as OrgLang vocabulary.
 
 ### Terminology correspondence: OrgLang, publication, and implementation
 
