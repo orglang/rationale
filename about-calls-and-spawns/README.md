@@ -149,6 +149,40 @@ These tests should exercise the adapter, type checker, executor, and persistence
 
 Process invocation and incarnation creation are distinct from the pool mechanism that services a provider channel. Calls describe named-process and channel effects, while the pool's `Up … Down` protocol describes interaction through the pool's public channel. The pool's public channel belongs to the pool. Pool association, selection, and eligibility are pool-level concerns documented in [Pools and transaction types, Section 2.1](../about-pools-and-transaction-types/README.md#21-negotiation-protocol-and-established-agreement) and [Section 5](../about-pools-and-transaction-types/README.md#5-the-pools-public-transaction-channel). The discovery of an existing agreement and negotiation of a new one are described in [Pools and transaction types, Section 2.1](../about-pools-and-transaction-types/README.md#21-negotiation-protocol-and-established-agreement); the detailed negotiation protocol, reservation semantics, failure behavior when no eligible pool exists, and resource provisioning remain underspecified.
 
+#### Abstract `ExternalCall` state at the process–pool boundary
+
+This representation-independent view makes the state boundaries of `ExternalCall` explicit. It complements, and does not replace, the canonical call, ownership, and delivery contract above or the pool-selection and negotiation rules in [Pools and transaction types, Section 2.1](../about-pools-and-transaction-types/README.md#21-negotiation-protocol-and-established-agreement).
+
+| Phase | State represented | Observable boundary |
+|---|---|---|
+| Admission | The caller's live incarnation and current channel bindings; the resolved target process and validated client-channel mapping. | Admission creates neither a target incarnation nor a fresh provider channel. A failed admission leaves the caller's bindings unchanged. |
+| Agreement search | The target process name and the logical transaction channels eligible for discovery. | Search reads only the latest committed allocation state for each logical transaction channel. It does not mutate that state or create an incarnation/provider channel. |
+| Candidate negotiation | The candidate pool and the active private attempt for its logical transaction channel, including its uncommitted allocation state. | The preceding committed private channel remains the search basis. The active attempt is not an established agreement before matched `Down`. Its initialization, commit, cancellation, and rollback rules are owned by [Pools and transaction types, Section 2.1](../about-pools-and-transaction-types/README.md#21-negotiation-protocol-and-established-agreement). |
+| Agreement ready | A suitable existing committed agreement, or a newly committed agreement after matched `Down`, and the selected servicing pool. | The search-and-negotiation timeout no longer governs the call. Incarnation preparation and delivery follow; the call has not yet committed by delivery. |
+| Delivery committed | The fresh incarnation, fresh provider channel, selected servicing pool, and transferred endpoint bindings. | One indivisible delivery gives the provider channel to the caller and the corresponding bindings to the pool and incarnation. This delivery is the `ExternalCall` commit point; partial delivery is not observable. |
+| Servicing | The live incarnation associated with the selected pool and the provider channel received by the caller. | The caller's continuation and pool servicing may proceed in either order or interleave, subject to channel protocols and linearity. |
+
+The transitions preserve these boundaries:
+
+1. **Admission → search:** resolve the target and validate the supplied channel mapping. Failure leaves the caller's existing bindings unchanged.
+2. **Search → agreement ready:** select a suitable committed agreement if one is found. Search alone does not create an incarnation or provider channel.
+3. **Search → candidate negotiation:** if no suitable committed agreement is found, try candidate pools under the single timeout. A matched `Up` starts a fresh private attempt initialized from that candidate pool's `Q⁰`; it does not copy the previous committed allocation state. The previous committed private channel remains current for search until matched `Down`.
+4. **Candidate negotiation → agreement ready:** only matched `Down` commits the prepared allocation state and makes the negotiated agreement current. Cancellation, candidate exhaustion, or timeout before this point ends the attempt/call without creating the target incarnation or fresh provider channel. Supplied client channels remain with the caller.
+5. **Agreement ready → delivery committed:** prepare the fresh incarnation and provider channel, then atomically deliver the provider channel to the caller together with the corresponding endpoint bindings to the selected pool and incarnation. Delivery, not agreement readiness or incarnation preparation, commits the call.
+6. **Delivery committed → servicing:** both caller and selected pool may take their first protocol actions without waiting for the other side's first action.
+
+**Required state separation:** the active uncommitted negotiation attempt, the latest committed agreement, the prepared-but-not-delivered incarnation, and the delivered live incarnation are distinct states. An active attempt cannot be used as an established agreement; a prepared incarnation is not yet a successfully delivered call.
+
+**Conformance scenarios:** implementation tests should inspect observable state at each boundary, not merely whether an operation returned successfully.
+
+- If a suitable committed agreement already exists, search selects it without changing its allocation state or creating a negotiation attempt, incarnation, or provider channel.
+- If `Coop` or `Isol` changes an active candidate's uncommitted state, that state remains invisible to agreement search until matched `Down`. Before that match, cancellation discards the attempt and preserves the preceding committed agreement.
+- Matching provider `detach` with client `release` at `Down` commits the prepared allocation state and makes the candidate private channel the latest committed private channel.
+- If no suitable agreement is found and negotiation is canceled, candidates are exhausted, or the shared timeout expires before agreement readiness, no target incarnation or fresh provider channel is created; the caller retains the supplied client-channel identities and protocol states.
+- Delivery exposes the fresh provider channel and corresponding pool/incarnation bindings as one atomic transition. After delivery, either side may perform its first protocol action first.
+
+**Deliberately unresolved interval:** the contract does not yet determine recovery if the engine fails after an agreement becomes ready but before delivery commits. The implementation may later choose discard, retry, or recovery semantics; this model does not assert one of those outcomes as language conformance.
+
 ## 2. Process spawning and the pool protocol
 
 The word **spawn** appears in the pool transaction-type model and in several implementation representations. These must not be conflated with the two named-process call forms.
