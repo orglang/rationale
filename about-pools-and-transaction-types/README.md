@@ -11,6 +11,8 @@
 - [What is a transaction?](../about-transaction/README.md) provides the accessible introduction.
 - [Processes and session types](../about-processes-and-session-types/README.md) owns process expressions and the intended semantics of `ExternalCall` and `InternalCall`.
 
+**Shared terminology:** see the [OrgLang glossary](../GLOSSARY.md).
+
 ## 1. Scope, evidence, and status
 
 This research draft keeps language-level intended semantics, claims made by the supplied publication, and implementation observations separate. A normative language specification remains future work.
@@ -199,9 +201,9 @@ The initial comparison should cover:
 
 **Open:** whether these publication constructs correspond one-to-one to OrgLang constructs. Similar names or matching notation are not sufficient evidence.
 
-## 8. Implementation evidence
+## 8. Implementation concretization and evidence
 
-Implementation conformance has not been established by this document. The following are **implementation observations only** from the inspected source snapshot; they do not establish that the language contract must have identical semantics.
+Implementation conformance has not been established by this document. This section records **implementation concretizations**: observed correspondences between pool/transaction model concepts and `go-engine` structures or execution paths. They are specific to the inspected source snapshot and do not make implementation details normative or establish complete semantic conformance.
 
 | Path / symbol | Observed behavior | What this establishes | What remains unverified |
 |---|---|---|---|
