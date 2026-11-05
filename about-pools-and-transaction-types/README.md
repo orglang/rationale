@@ -13,13 +13,15 @@
 
 **Shared terminology:** see the [OrgLang glossary](../GLOSSARY.md).
 
-## 1. Scope, evidence, and status
+## Part I. Conceptual model
+
+### 1. Scope, evidence, and status
 
 This research draft keeps language-level intended semantics, claims made by the supplied publication, and implementation observations separate. A normative language specification remains future work.
 
 Use the claim-status vocabulary from [Processes and session types, Section 1](../about-processes-and-session-types/README.md#1-scope-and-evidence): **Confirmed**, **Inferred**, and **Open**. Record the source and what it establishes for substantial or disputed claims. Implementation coverage is a separate dimension and should be recorded only when the relevant code path or test has been inspected.
 
-## 2. Core model relationships
+### 2. Core model relationships
 
 Use the [OrgLang glossary](../GLOSSARY.md) for shared term definitions. This section records the distinctions and project decisions that are specific to the pool/transaction model rather than maintaining a second glossary.
 
@@ -31,7 +33,7 @@ The provider/client endpoints are the two participant-relative sides of the shar
 
 The exact OrgLang syntax, checking rules, and runtime enforcement for transaction-type refinements remain **Open**. The current project direction is that the public channel type does not use refinements, while the private channel type may use refinement session types.
 
-## 2.1 Negotiation protocol and established agreement
+##### 2.1 Negotiation protocol and established agreement
 
 The current model has three related concepts:
 
@@ -76,13 +78,15 @@ The grammar in the [transaction introduction](../about-transaction/README.md) gi
 
 
 
-## 3. Pool model
+### 3. Pool model
 
 **Scope decision:** transaction channels exist only at the pool level. Process incarnations have process channels, which are distinct from pool transaction channels.
 
 **Inferred working model:** a pool is represented by a pool term/state and exposes a public transaction channel through which other pools interact according to a transaction type. The provider/client endpoints and matching principle are defined in [Incarnations and channels](../about-incarnations-and-channels/README.md#2-common-matching-principle); the channel-local process allocation function is defined in [What is a transaction?](../about-transaction/README.md#типы-ограничения-уточнения). The process's provider channel is a distinct resource. Pool lifecycle and behavior when a pool cannot service a request remain **Open**.
 
-## 4. Transaction types
+## Part II. Semantics and conformance
+
+### 4. Transaction types
 
 The companion [transaction introduction](../about-transaction/README.md) presents the candidate transaction-type grammar, including termination, directional `Up` and `Down`, choice, `Coop`, `Isol`, and process spawning. The formal representation and transitions of the per-channel process allocation function `Q` are defined there; this document focuses on pool roles, negotiation, and agreements.
 
@@ -101,7 +105,7 @@ The function `Q` is associated with each logical transaction channel, not with t
 
 For a fixed provider/client pair, the working model permits only one established agreement, regardless of which process name is called. Consequently, that pair does not require a choice among several agreements or channels. Discovery may still select among suitable agreements offered by different provider/client pairs; the discovery and negotiation procedure is specified in [Incarnations and channels, Sections 5.3–5.5](../about-incarnations-and-channels/README.md#53-search-and-agreement-negotiation).
 
-## 5. The pool's public transaction channel
+### 5. The pool's public transaction channel
 
 **Inferred:** the pool's public transaction channel is part of the current explanatory pool model. Whether individual processes should have public channels remains **Open**.
 
@@ -111,11 +115,11 @@ The lifecycle of `Q`, including initialization, updates during private-channel a
 
 This pool-level protocol is distinct from a process's provider channel and from channels mapped to a new incarnation's client-role parameters in `ExternalCall`. Process creation, pool selection, and the start of servicing are described in [Incarnations and channels](../about-incarnations-and-channels/README.md).
 
-## 6. Intended semantics and formal rules
+### 6. Intended semantics and formal rules
 
 This section records the agreed minimal language-level decisions for matching and continuation behavior, while leaving a complete operational semantics unfinished. The decisions below specify when the protocol transition counts as occurring; they do not establish implementation correctness, complete typing rules, failure semantics, or every state transition.
 
-### 6.1 Minimal transaction-type constructors
+##### 6.1 Minimal transaction-type constructors
 
 **Status: Project semantic decisions, with formalization still open.** The matching points, shared channel-identity rules, and participant-specific continuation obligations recorded below are adopted language-level requirements. Their complete typing judgments, operational rules, and implementation conformance are not yet established; this research document is not itself the normative language specification.
 
@@ -129,7 +133,7 @@ A transaction type describes the protocol exposed by a pool through its public t
 
 The operation names above are implementation identifiers, not proposed surface syntax. The pool-side operation declarations are in [`pool/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/main/pool/termexp/core/core.go); the process-side declarations are in [`proc/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/termexp/core/core.go). These declarations support the provider/client operation mapping, but by themselves do not establish the runtime transition order or full language semantics.
 
-### 6.2 Matched transitions, continuations, and channel identity
+##### 6.2 Matched transitions, continuations, and channel identity
 
 The general paired-interaction principle is defined in [Incarnations and channels](../about-incarnations-and-channels/README.md#2-common-matching-principle). This section specifies its pool-specific consequences:
 
@@ -140,13 +144,13 @@ Each side of `Up A` and `Down A` carries its own participant-specific continuati
 
 The logical placeholder persists across the public/private transition: matched `Up` binds it to a newly created private physical channel, and matched `Down` restores the public physical binding after committing the private channel's allocation state. If the active access is cancelled before matched `Down`, runtime terminates the private-channel access and restores the public physical binding without committing its allocation state. The logical identity and shared transaction type remain unchanged; every private channel has its own physical identity. `One` has a separate shared-identity rule. Matching imposes no additional ordering between participant continuations. Search uses the `Q` associated with the latest committed private channel and does not modify it; how search obtains `Q` remains **Open**. A later `Down` replaces that channel as the current committed private channel. Whether terminated or superseded private-channel resources are physically reclaimed, and when, remains **Open**. The initialization and update rules for `Q` and `Q'` are defined in [Section 2.1](#21-negotiation-protocol-and-established-agreement).
 
-#### Continuation correspondence: dual endpoint views
+##### Continuation correspondence: dual endpoint views
 
 **Decision recorded from semantic review:** `A` describes the provider-side continuation protocol; the client-side continuation must be checked against the corresponding client-side protocol type. For brevity, this document uses `dual(A)` as a provisional notation for that client-side type. This notation is introduced here for explanatory purposes only: it is not an established OrgLang grammar constructor or operation, and no definition or derivation rule for it is assumed. The participant-specific continuation expressions need not be textually identical, but each must satisfy the typing obligation for its own endpoint. Matching the operation pair and binding the appropriate shared channel identity do not, by themselves, make arbitrary `ContExp` values valid.
 
 This decision establishes the intended endpoint relationship, not the complete typing judgment. The formal representation of the client-side type, the typing rules, and how the continuation channel identity is substituted into each participant's continuation remain to be specified and tested.
 
-#### Initial conformance examples
+##### Initial conformance examples
 
 These examples translate the decisions in Section 6.2 into acceptance criteria for future tests; they are not claims that tests already exist or pass:
 
@@ -166,7 +170,7 @@ For each rule adopted in this section, record:
 
 Until these points are settled, keep only the corresponding unresolved detail explicitly **Open** and link to the relevant question in Section 9. Do not downgrade the adopted matching, identity, or continuation requirements recorded in Section 6.2.
 
-## 7. Publication correspondence
+### 7. Publication correspondence
 
 The [transaction introduction](../about-transaction/README.md) presents the OrgLang working transaction model. Its Table 4 assigns `grant`-send behavior to `↑ A` and `revoke`-receive behavior to `↓ A`, with continuation as `A`. This table is part of the project's model; it is not a table reproduced from the publication. The publication supplies the process-channel session-type framework and the corresponding continuation/application ideas: its continuation grammar and the definition of `V ▷ K` explain how a received value selects a continuation and substitutes an identifier for a placeholder.
 
@@ -192,7 +196,9 @@ The initial comparison should cover:
 
 **Open:** whether these publication constructs correspond one-to-one to OrgLang constructs. Similar names or matching notation are not sufficient evidence.
 
-## 8. Implementation mapping and evidence
+## Part III. Implementation evidence and open questions
+
+### 8. Implementation mapping and evidence
 
 Implementation conformance has not been established by this document. This section records **implementation mappings**: observed correspondences between pool/transaction model concepts and `go-engine` structures or execution paths. They are specific to the inspected source snapshot and do not make implementation details normative or establish complete semantic conformance.
 
@@ -209,7 +215,7 @@ These paths suggest that the implementation has a **pending registration** stage
 
 The [`TestPool` / `waitClose` example](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/test/e2e/pool_test.go) defines the type-level continuation as `Down { ContExp: Link{TypeQN: poolTypeQN} }`, but its runtime `ReleaseSpec` and `DetachSpec` literals supply only `CommChnlPH`. This is consistent with the operation-spec declarations above and exposes the same implementation gap: the example does not encode the two required participant-specific `ContExp` values. The test's final `close`/`wait` sequence and outcome assertion are commented out, so it is partial evidence only; it does not validate the complete lifecycle.
 
-## 9. Open questions and next tests
+### 9. Open questions and next tests
 
 | Open question | Behavior/decision affected | Evidence or test needed |
 |---|---|---|
