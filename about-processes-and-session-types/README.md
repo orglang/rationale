@@ -7,7 +7,7 @@
 **Document structure:** Part I describes the language model and intended operation semantics; Part II compares the model with the publication; Part III records implementation evidence and open questions.
 
 **Contents**
-- [Part I — Language model](#part-i-language-model): [core concepts and glossary](#2-core-concepts), [protocol example](#3-a-small-example-following-a-channel), [session types](#6-session-types-the-protocol-for-a-channel), and [intended operation semantics](#7-intended-semantics-of-named-process-calls).
+- [Part I — Language model](#part-i-language-model): [core concepts and model invariants](#2-core-concepts), [protocol example](#3-a-small-example-following-a-channel), [session types](#6-session-types-the-protocol-for-a-channel), and [intended operation semantics](#7-intended-semantics-of-named-process-calls).
 - [Part II — Comparison with the publication](#part-ii-comparison-with-the-publication): publication rules and forwarding trace.
 - [Part III — Implementation evidence and open questions](#part-iii-implementation-evidence-and-open-questions): [implementation map](#9-implementation-map-process-declarations-and-definitions), [typing](#10-typing-interface), [execution](#11-execution-and-communication), [AST and serialization gaps](#12-ast-and-serialization-gaps), and [open questions](#14-open-questions-and-next-tests).
 
@@ -77,7 +77,6 @@ For session types, the provider endpoint supplies the reference perspective; che
 
 **Linearity** is the channel usage/ownership discipline. **Model invariant:** channel bindings are non-aliasing: distinct bound channel placeholders refer to distinct channel identities. Consequently, distinct formal channel parameters supplied to a call must map to distinct existing channel identities. The no-alias property is a global assumption of the OrgLang model. `InternalCall` transfers every binding in the environment, so completeness is determined by the full environment. More generally, **normal completion** of a process is permitted only when its channel protocols permit completion and all linear obligations have been discharged; the inspected type checker rejects a normal-completion attempt while a provider-channel protocol remains unfinished; this is an implementation observation, not yet a complete formal language rule. This is distinct from `InternalCall`, whose agreed semantics terminate the old incarnation by transferring its complete channel environment to a replacement incarnation. That transition is not evidence that the transferred protocols are finished. The full linearity invariant and its application across constructs remain open; do not infer them solely from `InternalCall`.
 
-The shared definitions of these terms are maintained in the [OrgLang glossary](../GLOSSARY.md). This section focuses on process-model properties that are important to the semantics: incarnation identity is never reused; channel bindings are non-aliasing; and a process may complete normally only after its channel protocols and linear obligations permit completion. The implementation-specific notions of polarity, snapshots, and turns are discussed with their evidence in Part III rather than treated as OrgLang vocabulary.
 
 ### Terminology correspondence: OrgLang, publication, and implementation
 
