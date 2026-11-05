@@ -11,6 +11,8 @@
 - [Part II — Comparison with the publication](#part-ii-comparison-with-the-publication): publication rules and forwarding trace.
 - [Part III — Implementation evidence and open questions](#part-iii-implementation-evidence-and-open-questions): [implementation map](#9-implementation-map-process-declarations-and-definitions), [typing](#10-typing-interface), [execution](#11-execution-and-communication), [AST and serialization gaps](#12-ast-and-serialization-gaps), and [open questions](#14-open-questions-and-next-tests).
 
+**Shared terminology:** see the [OrgLang glossary](../GLOSSARY.md).
+
 ## Part I. Language model
 
 ## 1. Scope and evidence
@@ -53,9 +55,9 @@ An AST constructor establishes syntax support. Runtime support requires evidence
 
 For substantial or disputed claims, record the claim, source, evidence status, implementation status (when relevant), and any limitation or next verification step. Use three statement categories: **Language rule** (established for OrgLang), **Implementation observation** (found in the inspected implementation), and **Candidate rule** (awaiting verification or a design decision).
 
-### Terminology mappings
+### Implementation concretization: terminology correspondence
 
-The terminology table tracks correspondence among OrgLang, publication, and implementation identifiers. Mapping status reports correspondence strength; claim evidence and implementation coverage are tracked separately.
+The table records observed or proposed correspondences among OrgLang concepts, publication notation, and implementation identifiers. These mappings concretize model concepts for the inspected implementation; they do not define language semantics. Mapping status reports correspondence strength, while claim evidence and implementation coverage remain separate.
 
 Use **Confirmed**, **Provisional**, or **Unresolved** for mappings:
 
