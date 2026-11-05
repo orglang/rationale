@@ -6,72 +6,44 @@ disable-model-invocation: true
 
 # Semantic verification
 
-Use this workflow to check whether a specification is internally coherent and whether its examples, scenarios, tests, and implementation evidence support the claims being made. The repository-root `AGENTS.md` routes to this skill. This workflow supplements [`semantic-specification`](../semantic-specification/SKILL.md) and [`DOCUMENTATION_STANDARDS.md`](../../DOCUMENTATION_STANDARDS.md); it does not define behavior or make implementation observations authoritative semantics.
+Use this workflow to check whether a specification is coherent and whether examples, scenarios, tests, and implementation evidence support its claims. It checks the result; it does not define behavior or make semantic decisions.
 
-## Select checks by impact
+## Select proportionate checks
 
-Choose checks that can detect errors introduced by the change. This is a guide, not a mandatory checklist: omit irrelevant checks and explain material gaps when a useful check cannot be performed.
+Choose checks that can detect errors introduced by the change. This is guidance, not a mandatory checklist. Omit irrelevant checks and explain material gaps.
 
-## Contract consistency
+### Contract consistency
 
-Inspect the affected canonical rules and their dependencies for:
-
+Inspect the changed canonical rules and relevant dependencies for:
 - contradictions between definitions, requirements, conditions, exceptions, and transitions;
 - undefined or inconsistently used terms;
-- incompatible constraints or missing preconditions;
-- qualifications that were lost or broadened;
-- duplicated claims that can drift across prose, tables, examples, or transition descriptions.
+- lost or broadened qualifications and incompatible constraints;
+- duplicate claims across prose, tables, examples, or transition descriptions.
 
-Check both the changed section and the places that rely on it. Keep the canonical contract distinct from summaries, evidence, and implementation notes.
+Check the changed section and places that rely on it. Keep the canonical contract distinct from summaries, evidence, and implementation notes. Resolve substantive conflicts through [semantic-specification](../semantic-specification/SKILL.md).
 
-## Examples and explanatory material
+### Examples and scenarios
 
-Check that affected examples:
+Check that affected examples use defined terms, illustrate permitted outcomes, and do not imply unsupported guarantees. Keep them consistent with relevant tables, diagrams, and summaries. Update or remove stale examples. Treat examples as non-normative unless the specification says otherwise; do not use them to settle open questions silently.
 
-- illustrate the canonical rule and use defined terminology;
-- show outcomes permitted by the contract;
-- do not imply guarantees or restrictions absent from the contract;
-- remain consistent with relevant tables, diagrams, and summaries.
+When behavior changes, examine representative scenarios relevant to the affected contract: inputs, boundaries, exceptions, transitions, and adjacent rules where applicable. Add executable tests when a suitable harness exists; otherwise record concise expected outcomes and the rules supporting them.
 
-Update or remove stale examples. Treat examples as non-normative unless the specification explicitly says otherwise. Do not use an example to silently settle an open question.
+### Compatibility and regression
 
-## Scenarios, boundaries, and transitions
-
-Where behavior changes, examine representative scenarios selected for the affected contract. Depending on scope, these may include:
-
-- valid and invalid inputs or operations;
-- boundary conditions and relevant exceptions;
-- state transitions, including their preconditions and observable results;
-- interactions with adjacent rules that could change the outcome.
-
-Add or update executable tests when a suitable test harness exists. Otherwise, record concise, reviewable scenarios with expected outcomes and the contract rule that supports each outcome.
-
-## Compatibility and regression
-
-When a change may affect prior behavior or guarantees:
-
-- compare the changed contract with previously documented guarantees and representative scenarios;
-- identify affected consumers or interactions where evidence permits;
-- state whether migration, versioning, or a compatibility note is needed, or why it is not;
+When prior behavior or guarantees may be affected:
+- compare the new contract with documented guarantees and representative scenarios;
+- identify affected consumers where evidence permits;
+- state whether migration, versioning, or a compatibility note is needed, or why not;
 - preserve focused regression cases when practical.
 
-If an expected result changes, explain whether this reflects an intentional contract change, an incorrect old test, or behavior that was previously unspecified. Do not change expected results merely to make a test pass.
+If an expected result changes, explain whether the contract intentionally changed, the old test was incorrect, or the behavior was previously unspecified. Do not change expected results merely to make a test pass.
 
-## Implementation evidence
+### Implementation evidence
 
-Report separately:
+Report separately what the specification requires, what implementation behavior was inspected, what relevant tests exercise and their results, and what remains unverified. A passing test establishes only the behavior it exercises in the tested environment. Names, structure, or current implementation behavior do not by themselves prove intended semantics.
 
-- what the specification requires;
-- what the implementation currently does, if inspected;
-- what relevant tests exercise and pass or fail;
-- what remains unverified.
+## Validation and report
 
-A passing test establishes only the behavior exercised by that test in the tested environment. Implementation structure, names, or current behavior do not by themselves prove the intended contract.
+Run relevant available checks and inspect their results. If no executable check is suitable, perform a manual review and state that limitation. Do not claim conformance or verification beyond the evidence.
 
-## Validation discipline
-
-Run relevant available checks and inspect their results. If no executable check is suitable, perform a manual review of the selected scenarios and state that limitation. Do not claim tests were run, conformance was established, or behavior was verified unless the evidence supports that exact claim.
-
-## Completion report
-
-Summarize the contracts and scenarios examined, checks performed and their results, inconsistencies found or corrected, and material gaps or unverified claims. Keep the report proportionate to the change.
+Summarize the contract and scenarios examined, checks and results, inconsistencies found or corrected, and material gaps. Keep the report proportionate to the change.
