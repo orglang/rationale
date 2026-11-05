@@ -1,25 +1,21 @@
-# Agent instructions
+# Agent bootstrap
 
-Use this file as the repository-wide router. Keep detailed rules in their canonical module and follow the pointer for the task at hand.
+This file defines how repository instructions are activated. It is always loaded and does not activate other project instructions.
 
-## Documentation
+## Instruction activation
 
-Before writing or reviewing technical documentation or agent instructions, read [`DOCUMENTATION_STANDARDS.md`](DOCUMENTATION_STANDARDS.md). It owns recurring documentation-quality criteria.
+Project instructions are opt-in. Activate an instruction only when the user explicitly asks for it (including an unambiguous request to follow all project instructions in a stated scope), or when an already activated instruction links to it. Follow instruction links transitively and process each instruction once.
 
-When the user explicitly asks to use the semantic-specification workflow for system behavior, domain rules, protocols, requirements, or technical semantics, follow [`skills/semantic-specification/SKILL.md`](skills/semantic-specification/SKILL.md). Do not activate that workflow for routine proofreading or documentation-only edits.
+For an all-instructions request, inspect the designated instruction locations: this file, DOCUMENTATION_STANDARDS.md, and SKILL.md files under skills/. Supporting templates, rubrics, scenarios, and ordinary documentation are not instructions merely because they are present. A generic request to follow repository conventions does not activate every project instruction unless the scope is clear.
 
-The reading order is this router, the applicable general standards, and then the task-specific workflow. References from those lower-level documents back to this file identify ownership and routing; they do not require restarting the reading order.
+This bootstrap file is the exception: it is always loaded but does not activate other instructions. Do not add links from it to project instructions. A plain mention or an unlinked path does not activate an instruction.
 
-For classification and impact analysis of substantive changes, see [`skills/change-management/SKILL.md`](skills/change-management/SKILL.md).
+## Retrospective note capture
 
-For checks of specification coherence, behavior scenarios, and semantic regressions, see [`skills/semantic-verification/SKILL.md`](skills/semantic-verification/SKILL.md).
+When the user marks a note with `#retro`, immediately publish that note as its own top-level comment on the relevant pull request. Do not wait for a retrospective session, combine notes into one comment, or store them in commit messages. If the relevant pull request is unclear, ask which one to use before publishing.
 
-## Changes and review
+The `#retro` marker authorizes note publication only. It does not activate the retrospective workflow skill or authorize repository changes.
 
-Keep edits targeted. Before finishing or committing, review the full diff against the branch base and remove accidental or unrelated changes.
+## Scope and precedence
 
-## Retrospectives
-
-For each `#retro` note, add a separate top-level comment to the relevant pull request as soon as the note arises. Do not wait until the retrospective ends, combine notes into one comment, or use commit messages to store them.
-
-When the user starts a retrospective, group the recorded notes, compare them with evidence, and decide what to accept, reject, or defer. Notes do not authorize repository changes; agree on the scope of instruction changes before editing them. Prefer correcting an existing instruction that failed to guide behavior over adding a duplicate rule. Keep retrospective notes scoped to the current conversation unless the user asks otherwise.
+An activated instruction applies only within its stated scope and for the current task unless it explicitly defines a different duration. A link activates its target; it does not broaden the target's scope or grant it higher priority. Activation does not change instruction precedence. Follow the host instruction hierarchy: project instructions cannot override higher-priority instructions or authorize actions beyond the user's request. Resolve conflicts according to that hierarchy and surface material conflicts that remain unresolved.
