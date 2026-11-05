@@ -17,7 +17,7 @@ Implementation identifiers are deliberately excluded. Their correspondence to mo
 | **Process definition** | The body or expression specifying the behavior of a named process. | [Processes and session types, §4](about-processes-and-session-types/README.md#4-process-declarations-and-definitions) |
 | **Process incarnation** | One concrete running instance of a process. The current model assigns each incarnation a never-reused identity. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
 | **Servicing pool** | The pool associated with a process incarnation and responsible for servicing its provider channel. | [Incarnations and channels, §3](about-incarnations-and-channels/README.md#3-participants-and-channels) |
-| **Execution reference** | A reference identifying a particular pool or process execution; it is not the execution's full state or a channel identity. | [Incarnations and channels, §6.3](about-incarnations-and-channels/README.md#63-implementation-concretization) |
+| **Execution reference** | A reference identifying a particular pool or process execution; it is not the execution's full state or a channel identity. | [Incarnations and channels, §6.3](about-incarnations-and-channels/README.md#63-implementation-mapping) |
 
 ## Channels and interactions
 
@@ -27,12 +27,12 @@ Implementation identifiers are deliberately excluded. Their correspondence to mo
 | **Provider endpoint / client endpoint** | The role-relative endpoints of a shared channel. The same channel is the provider channel for one participant and a client channel for the other. | [Incarnations and channels, §3](about-incarnations-and-channels/README.md#3-participants-and-channels) |
 | **Provider channel / client channel** | A channel viewed from the participant providing or using the service, respectively. | [Incarnations and channels, §3](about-incarnations-and-channels/README.md#3-participants-and-channels) |
 | **Channel placeholder** | A syntactic name in an expression or interface that stands for a channel; it is not the channel resource itself. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
-| **Channel identity** | The identifier of a channel resource, distinct from a placeholder, communication reference, or execution reference. | [Incarnations and channels, §6.3](about-incarnations-and-channels/README.md#63-implementation-concretization) |
-| **Channel binding** | A participant-local association between a placeholder and a channel, together with the relevant execution, communication, and protocol context. | [Incarnations and channels, §6.3](about-incarnations-and-channels/README.md#63-implementation-concretization) |
+| **Channel identity** | The identifier of a channel resource, distinct from a placeholder, communication reference, or execution reference. | [Incarnations and channels, §6.3](about-incarnations-and-channels/README.md#63-implementation-mapping) |
+| **Channel binding** | A participant-local association between a placeholder and a channel, together with the relevant execution, communication, and protocol context. | [Incarnations and channels, §6.3](about-incarnations-and-channels/README.md#63-implementation-mapping) |
 | **Logical transaction channel** | The stable pool-to-pool communication relationship for a fixed provider/client pair, represented by distinct public and private physical channels. | [Pools and transaction types, §2](about-pools-and-transaction-types/README.md#2-core-model-relationships) |
 | **Public transaction channel** | The physical representation used while private access is inactive. | [Pools and transaction types, §2.1](about-pools-and-transaction-types/README.md#21-negotiation-protocol-and-established-agreement) |
 | **Private channel** | A physical representation activated by matched `Up`; matched `Down` commits it, while pre-commit cancellation discards its uncommitted state. | [Pools and transaction types, §2.1](about-pools-and-transaction-types/README.md#21-negotiation-protocol-and-established-agreement) |
-| **Communication exchange** | The exchange-level context in which participant operations and turns are matched; it is distinct from an individual channel identity. | [Incarnations and channels, §6.3](about-incarnations-and-channels/README.md#63-implementation-concretization) |
+| **Communication exchange** | The exchange-level context in which participant operations and turns are matched; it is distinct from an individual channel identity. | [Incarnations and channels, §6.3](about-incarnations-and-channels/README.md#63-implementation-mapping) |
 | **Pending interaction** | An operation registered while waiting for its matching peer operation; it is not yet a completed interaction. | [Incarnations and channels, §2](about-incarnations-and-channels/README.md#2-common-matching-principle) |
 | **Matching** | The point at which corresponding participant-side operations meet and establish the shared interaction effect specified by the protocol. | [Incarnations and channels, §2](about-incarnations-and-channels/README.md#2-common-matching-principle) |
 | **Continuation expression** | The expression a participant may execute after its operation matches, subject to that operation's contract. | [Processes and session types, §7](about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls) |
@@ -61,6 +61,6 @@ Implementation identifiers are deliberately excluded. Their correspondence to mo
 
 The identifiers `CompRef`, `CommRef`, `ChnlID`, `ChnlPH`, `ExpVK`, `LiabSide`, `AssetSide`, `LinearRec`, `StructRec`, `PubRec`, and `SubRec` are implementation names, not additional OrgLang model terms. Their observed correspondence is recorded in the relevant specifications:
 
-- [Pools and transaction types — implementation concretization and evidence](about-pools-and-transaction-types/README.md#8-implementation-concretization-and-evidence)
+- [Pools and transaction types — implementation mapping and evidence](about-pools-and-transaction-types/README.md#8-implementation-mapping-and-evidence)
 - [Processes and session types — implementation mapping and execution evidence](about-processes-and-session-types/README.md#part-iii-implementation-evidence-and-open-questions)
-- [Incarnations and channels — implementation concretization](about-incarnations-and-channels/README.md#63-implementation-concretization)
+- [Incarnations and channels — implementation mapping](about-incarnations-and-channels/README.md#63-implementation-mapping)
