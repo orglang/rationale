@@ -2,43 +2,39 @@
 
 # Pools and transaction types
 
-> **Status: preliminary semantic research.** This document is a technical companion to [What is a transaction?](../about-transaction/README.md). It collects the language-level model of pools and transaction types, distinguishes intended semantics from publication rules and implementation observations, and records unresolved questions. Its conclusions remain research findings pending a normative specification.
+> **Status: preliminary semantic research.** This document owns the pool and transaction-type model, including the transaction-specific **protocol**, agreement state, and negotiation lifecycle. It distinguishes intended semantics from publication rules and implementation observations; its conclusions remain research findings pending a normative specification.
 
 **Scope and document boundaries**
 
 - This document owns the technical model of pools and transaction types, including the pool's public transaction channel and its protocol.
-- [Incarnations and channels](../about-incarnations-and-channels/README.md) owns the shared participant/channel model, pool eligibility, search order, process-incarnation creation, pool binding, and the start of servicing.
-- [What is a transaction?](../about-transaction/README.md) provides the accessible introduction.
-- [Processes and session types](../about-processes-and-session-types/README.md) owns process expressions and the intended semantics of `ExternalCall` and `InternalCall`.
+- [Processes and session types](../about-processes-and-session-types/README.md) owns process declarations, definitions, and process-channel protocols.
+- [Calls and spawns](../about-calls-and-spawns/README.md) owns named-process invocation, process-incarnation creation, channel transfer, and the generic creation semantics at the boundary with pool-level spawning.
+- The root [README](../README.md) provides an accessible introduction and motivating example.
+- [Calls and spawns](../about-calls-and-spawns/README.md) owns the intended semantics of `ExternalCall` and `InternalCall`; this document retains the pool-selection and transaction-protocol rules those calls rely on.
 
-## 1. Scope, evidence, and status
+**Shared terminology:** see the [OrgLang glossary](../GLOSSARY.md).
+
+## Part I. Conceptual model
+
+### 1. Scope, evidence, and status
 
 This research draft keeps language-level intended semantics, claims made by the supplied publication, and implementation observations separate. A normative language specification remains future work.
 
 Use the claim-status vocabulary from [Processes and session types, Section 1](../about-processes-and-session-types/README.md#1-scope-and-evidence): **Confirmed**, **Inferred**, and **Open**. Record the source and what it establishes for substantial or disputed claims. Implementation coverage is a separate dimension and should be recorded only when the relevant code path or test has been inspected.
 
-## 2. Core concepts and terminology
+### 2. Core model relationships
 
-The following working definitions are inferred from the current model described in [What is a transaction?](../about-transaction/README.md).
+Use the [OrgLang glossary](../GLOSSARY.md) for shared term definitions. This section records the distinctions and project decisions that are specific to the pool/transaction model rather than maintaining a second glossary.
 
-| Term | Working meaning | Status and limitation |
-|---|---|---|
-| Pool | A participant that can communicate with other pools and may service a process incarnation under an agreement. | **Inferred** from the explanatory model and the current process–pool model. Each process incarnation is bound to a specific servicing pool; pool lifecycle and internal state remain **Open**. |
-| Pool term | An executable expression describing a pool's communication or state transition. | **Inferred** from the companion model's distinction between terms, values, and continuations. Its runtime representation in OrgLang is **Open**. |
-| Logical transaction channel | The pool-to-pool communication relationship between a fixed provider/client pair. It has one logical identity and one transaction type, and is represented by distinct public and private physical channels. | **Agreed project decision:** public and private channels are physically distinct representations of the same logical transaction channel; they share its transaction type and logical identity. Their physical identities are distinct. The matching and representation-switching principle is defined in [Incarnations and channels](../about-incarnations-and-channels/README.md#2-common-matching-principle). |
-| Public transaction channel | The physical channel representation used while private access is inactive; it exposes the provider and client endpoints for the logical transaction channel. | **Agreed project decision:** physically distinct from the private channel, while representing the same logical transaction channel and carrying the same transaction type. |
-| Private channel | A physical channel representation created by a matched `Up` for the logical transaction channel; the active access ends either when matched `Down` commits it or when runtime cancellation terminates the uncommitted access. | **Agreed project decision:** each matched `Up` creates a new private physical channel. It represents the same logical transaction channel, with the same logical identity and transaction type, but has its own physical identity. |
-| Agreement | The committed allocation state (the value of the process allocation function `Q`) associated with a logical transaction channel for a provider/client pair. | **Agreed working model:** agreement identity is the logical transaction channel identity, not either physical representation's identity. The committed allocation state is the value held by that logical channel's latest committed private channel; an uncommitted allocation state is not yet the established agreement. |
-| Transaction identifier | An identifier used to refer to a pool transaction or its channel in the pool model. | **Inferred**. Its concrete representation and allocation/uniqueness guarantees are **Open**; the agreement state itself is identified by the transaction channel `c`. |
-| Transaction type | The protocol by which pools interact to establish and modify the agreement state; it governs permitted messages and transitions. | **Agreed project direction:** the public channel type does not use refinements; the private channel type may use refinement session types. Exact OrgLang syntax, checking rules, and runtime enforcement remain **Open**. |
-| Provider/client endpoint roles | The provider and client own their respective endpoints of one shared transaction channel. | **Agreed project decision** for endpoint ownership; lifecycle and failure rules remain **Open**. |
-| Process provider channel | The channel on which a process incarnation provides its named-process service. | Defined in [Incarnations and channels, Section 3](../about-incarnations-and-channels/README.md#3-participants-and-channels). It is distinct from the pool's public transaction channel. |
+A transaction is the pool-to-pool interaction; its transaction type is the protocol governing that interaction; the agreement is the committed allocation state (the value of `Q`) associated with the logical transaction channel. A transaction identifier and a process channel identity refer to distinct resources. Their precise mapping remains **Open** pending evidence from the language contract or a verified execution path.
 
-A transaction identifier and a process channel identity refer to distinct resources. Their precise mapping remains **Open** pending evidence from the language contract or a verified execution path.
+The **public channel** and **private channel** (the public and private transaction channels) are physically distinct representations of one logical transaction channel. They share its logical identity and transaction type, but have distinct physical identities. A matched `Up` creates a new private physical channel; matched `Down` commits its allocation state. The detailed matching, commit, and cancellation lifecycle is specified in [Incarnations and channels](../about-incarnations-and-channels/README.md#4-publication-subscription-and-matching) and Section 2.1 below.
 
-A **transaction** is the pool-to-pool interaction; its **transaction type** is the governing protocol; the **agreement** is the committed allocation state (the value of `Q`) of the logical transaction channel. A **transaction identifier** refers to the transaction or its channel. The logical channel identity is stable across the public/private representation switch; the two physical channel identities remain distinct.
+The **provider endpoint** and **client endpoint** are the two participant-relative sides of the shared transaction channel. Do not conflate the pool's public transaction channel with a process incarnation's provider channel; the latter is defined in [Calls and spawns](../about-calls-and-spawns/README.md#1-intended-semantics-of-named-process-calls).
 
-## 2.1 Negotiation protocol and established agreement
+The exact OrgLang syntax, checking rules, and runtime enforcement for transaction-type refinements remain **Open**. The current project direction is that the public channel type does not use refinements, while the private channel type may use refinement session types.
+
+#### 2.1 Negotiation protocol and established agreement
 
 The current model has three related concepts:
 
@@ -46,22 +42,22 @@ The current model has three related concepts:
 2. **Negotiation interaction:** the pool-to-pool exchange governed by that protocol over the shared transaction channel. Its detailed operational representation remains unspecified.
 3. **Agreement:** the committed allocation state (the value of the process allocation function `Q`) for the shared transaction channel `c`, accepted by the participating pools. Once established, this state can be found and reused by a later `ExternalCall`; finding it is distinct from negotiating or modifying it.
 
-For the discovery and negotiation sequence, including the point at which incarnation creation may begin, see [Incarnations and channels, Sections 5.3–5.4](../about-incarnations-and-channels/README.md#53-search-and-agreement-negotiation).
+For the discovery and negotiation sequence, including the point at which incarnation creation may begin, see [Section 2.1](#21-negotiation-protocol-and-established-agreement).
 
-### What the formal transaction-type model establishes
+##### What the formal transaction-type model establishes
 
-The grammar in the [transaction introduction](../about-transaction/README.md) gives evidence for a **state-indexed protocol**:
+The pool-specific grammar in [Section 4](#4-transaction-types) defines a **state-indexed protocol**:
 
 - The type constructors describe interactions such as `grant`, `revoke`, `choice`, `coop`, `isol`, and `spawn`.
 - The `Coop` and `Isol` constructors change the process-allocation-function value during the current private-channel access; `Q'` and `Q''` denote the values before and after an operation. They are not separate functions or stored fields. The current value becomes committed when the matching `Down` occurs.
 - The spawn constructor requires positive allocation weight for the named process on that channel: `Q(q) > 0`; its continuation retains the stated `Q`.
 - The type grammar also places a continuation `A` after these state constraints and transitions.
 
-`Q` is the process allocation function associated with the logical transaction channel. Its current value is determined by that channel's latest committed private channel. The term **allocation state** denotes the value of this function for that logical channel at a particular point in the access lifecycle; it does not denote a separate function or stored object. `Q'` denotes the **uncommitted allocation state**: the current value of the same function during a private-channel access, before that value is committed. A **committed allocation state** is the value held by the latest committed private channel. Matched `Down` commits the current uncommitted allocation state. If the private-channel access is cancelled before that match, runtime discards the uncommitted allocation state. The function itself is not committed or replaced. Search uses the `Q` associated with the latest committed private channel only to check suitability conditions and select candidates; it does not modify `Q` or the committed channel. How search obtains `Q`—for example, by copying it, referring to it, or another mechanism—remains **Open**. An uncommitted private channel does not replace the current committed channel until its matching `Down`. The function's interpretation and transition rules are defined canonically in [What is a transaction?](../about-transaction/README.md#типы-ограничения-уточнения).
+`Q` is the process allocation function associated with the logical transaction channel. Its current value is determined by that channel's latest committed private channel. The term **allocation state** denotes the value of this function for that logical channel at a particular point in the access lifecycle; it does not denote a separate function or stored object. `Q'` denotes the **uncommitted allocation state**: the current value of the same function during a private-channel access, before that value is committed. A **committed allocation state** is the value held by the latest committed private channel. Matched `Down` commits the current uncommitted allocation state. If the private-channel access is cancelled before that match, runtime discards the uncommitted allocation state. The function itself is not committed or replaced. Search uses the `Q` associated with the latest committed private channel only to check suitability conditions and select candidates; it does not modify `Q` or the committed channel. How search obtains `Q`—for example, by copying it, referring to it, or another mechanism—remains **Open**. An uncommitted private channel does not replace the current committed channel until its matching `Down`. The function's interpretation and transition rules are defined canonically in [Formal grammar and state-indexed rules](#formal-grammar-and-state-indexed-rules).
 
 **Agreed working model:** the public channel type has no refinements; the private channel type may express refinements, with `Q` as the runtime value providing evidence for a relevant condition (for example, `Q(q) > 0`). `Q` exists in the context of private channels and changes with the corresponding channel's process-allocation-function value. `Q'` is only notation for that value during an uncommitted private-channel access, not a separate function or stored field. How `Q` is physically stored or associated with a private channel remains **Open**.
 
-### Agreement lifecycle: current contract and missing rules
+##### Agreement lifecycle: current contract and missing rules
 
 | Stage | Current project contract | Still unspecified |
 |---|---|---|
@@ -74,7 +70,17 @@ The grammar in the [transaction introduction](../about-transaction/README.md) gi
 | Service activation | Only after a suitable existing agreement is found or a new one is successfully established does the engine create the incarnation and deliver the provider channel. | Resource reservation/consumption semantics and failure handling between agreement establishment and channel delivery. |
 
 
-### Questions required to complete the agreement model
+##### Discovery, candidate selection, and timeout
+
+For an `ExternalCall`, discovery examines discoverable logical transaction channels using, for each provider/client pair, the latest private channel committed through `Down`. It selects the first suitable logical channel encountered in the existing selection order; the rules defining that order remain **Open**. An uncommitted newer private channel does not replace the current search target.
+
+If automatic discovery finds no suitable committed agreement, a participant of the calling pool selects candidate pools for negotiation. Candidate pools are tried in an unspecified order; selecting a candidate does not itself establish or modify an agreement. The process being called is fixed throughout one `ExternalCall`, and each candidate pool may be selected at most once during that call. Each matched `Up` creates a new private physical channel for the existing logical transaction channel and initializes its allocation state from `Q⁰`, irrespective of an earlier committed state. The previous committed private channel remains the search basis during negotiation. A negotiation succeeds only when provider `detach` and client `release` match at `Down`.
+
+If either participant or the external search controller cancels an attempt before matched `Down`, runtime terminates the private channel, both participants detect termination, discard its uncommitted allocation state, and restore their active bindings to the public channel. The previous committed private channel remains current. The search controller may try another candidate not yet tried while the overall timeout remains in force. Candidate exhaustion terminates the search without a result immediately; it does not wait for timeout expiry.
+
+One timeout supplied by the calling pool covers the complete discovery-and-negotiation procedure. It starts when automatic discovery begins and is not restarted for another candidate. Expiry before a suitable agreement is found or committed terminates the operation without a result. Once a suitable existing agreement has been found or a new agreement has been committed, the timeout no longer governs subsequent incarnation creation and channel delivery. Failure-reporting details remain unspecified; the proposed convention that `0` means infinity remains **Open**.
+
+##### Questions required to complete the agreement model
 
 - How is `Q` physically represented or associated with a private channel? The current model does not decide whether it is stored within the channel or represented separately.
 - What exact formal syntax and typing judgment express the transaction type's protocol and its dependent state index `Q`?
@@ -83,15 +89,100 @@ The grammar in the [transaction introduction](../about-transaction/README.md) gi
 
 
 
-## 3. Pool model
+### 3. Pool model
 
 **Scope decision:** transaction channels exist only at the pool level. Process incarnations have process channels, which are distinct from pool transaction channels.
 
-**Inferred working model:** a pool is represented by a pool term/state and exposes a public transaction channel through which other pools interact according to a transaction type. The provider/client endpoints and matching principle are defined in [Incarnations and channels](../about-incarnations-and-channels/README.md#2-common-matching-principle); the channel-local process allocation function is defined in [What is a transaction?](../about-transaction/README.md#типы-ограничения-уточнения). The process's provider channel is a distinct resource. Pool lifecycle and behavior when a pool cannot service a request remain **Open**.
+**Inferred working model:** a pool is represented by a pool term/state and exposes a public transaction channel through which other pools interact according to a transaction type. The provider/client endpoints and general matching principle are defined in [Incarnations and channels](../about-incarnations-and-channels/README.md#4-publication-subscription-and-matching); the channel-local process allocation function is defined in [Formal grammar and state-indexed rules](#formal-grammar-and-state-indexed-rules). The process's provider channel is a distinct resource. Pool lifecycle and behavior when a pool cannot service a request remain **Open**.
 
-## 4. Transaction types
+## Part II. Semantics and conformance
 
-The companion [transaction introduction](../about-transaction/README.md) presents the candidate transaction-type grammar, including termination, directional `Up` and `Down`, choice, `Coop`, `Isol`, and process spawning. The formal representation and transitions of the per-channel process allocation function `Q` are defined there; this document focuses on pool roles, negotiation, and agreements.
+### 4. Transaction types
+
+#### Formal grammar and state-indexed rules
+
+The following grammar records the pool-specific values, continuations, and transaction-type constructors. The abstract term syntax, identifiers, placeholders, and publication/subscription mechanism are defined in [Incarnations and channels](../about-incarnations-and-channels/README.md).
+
+| Значение *V*  | Семантика |
+| :-----------  | :-------- |
+| close          | Терминальный токен без какой-либо полезной информации. |
+| grant(*c*) | Трансакция *c*, помеченная как grant. |
+| revoke(*c*) | Трансакция *c*, помеченная как revoke. |
+| choice(*c*) { *l* }   | Трансакция *c*, помеченная как choice, с классом *l*. |
+| coop(*c*) { *w*·*q* } | Трансакция *c*, помеченная как coop, с весом распределения (*allocation weight*) *w* для именованного процесса *q*. |
+| isol(*c*) { *w*·*q* } | Трансакция *c*, помеченная как isol, с весом распределения (*allocation weight*) *w* для именованного процесса *q*. |
+| spawn(*c*)&nbsp;{&nbsp;*q*(&nbsp;*a*,&nbsp;*b*<sub>1</sub>,&nbsp;*b*<sub>2</sub>,...&nbsp;} | Трансакция *c*, помеченная как spawn, с вызовом именованного процесса *q* и аргументами *a*, *b*<sub>1</sub>, *b*<sub>2</sub>,... |
+<p align="center"><sub>Таблица 1. Грамматика для значений</sub></p>
+
+| Продолжение *K* | Семантика |
+| :-------------- | :-------- |
+| (close ⇒ *P*) | При получении терминального значения close продолжить как *P*. |
+| (grant(*x*) ⇒ *P*) | При получении значения grant(*c*) продолжить как *P*[*c*/*x*]. Происходит связывание плейсхолдера *x* в рамках терма *P*. |
+| (revoke(*x*) ⇒ *P*) | При получении значения revoke(*c*) продолжить как *P*[*c*/*x*]. Происходит связывание плейсхолдера *x* в рамках терма *P*. |
+| (choice(*x*<sub>*𝚓*</sub>)&nbsp;{&nbsp;*𝚓*&nbsp;}&nbsp;⇒&nbsp;*P*<sub>*𝚓*</sub>)<sub>&nbsp;*𝚓*&nbsp;∈&nbsp;*𝙹*</sub> | При получении значения choice(*c*){*l*} для некоторого класса *l* ∈ *𝙹* продолжить как *P*<sub>*l*&nbsp;</sub>[*c*/*x*<sub>*𝚓*</sub>]. Происходит связывание плейсхолдера *x*<sub>*𝚓*</sub> в рамках терма *P*<sub>*𝚓*&nbsp;</sub> для каждого паттерна *𝚓* ∈ *𝙹*. |
+| (coop(*x*) { *w*·*q* } ⇒ *P*) | При получении значения coop(*c*){*w*·*q*} продолжить как *P*[*c*/*x*]. Происходит связывание плейсхолдера *x* в рамках терма *P* и увеличение веса распределения для *q*. |
+| (isol(*x*) { *w*·*q* } ⇒ *P*) | При получении значения isol(*c*){*w*·*q*} продолжить как *P*[*c*/*x*]. Происходит связывание плейсхолдера *x* в рамках терма *P* и уменьшение веса распределения для *q*. |
+| (spawn(*x*) { q } ⇒ *P*) | При получении значения spawn(*c*){*q*(*a*, *b*<sub>1</sub>, *b*<sub>2</sub>,...} продолжить как *P*[*c*/*x*], если на канале *c* вес распределения процесса *q* положителен (*Q(q) > 0*). Происходит связывание плейсхолдера *x* в рамках терма *P* и порождение процесса *q*. |
+<p align="center"><sub>Таблица 2. Грамматика для продолжений</sub></p>
+
+#### Применение значений к продолжениям
+
+Операция *V* ▷ *K* применяет полученное значение к соответствующему пуловому продолжению:
+
+> close⠀▷⠀(close ⇒ *P*)⠀≜⠀P  
+> grant(*c*)⠀▷⠀(grant(*x*) ⇒ *P*)⠀≜⠀*P*[*c*/*x*]  
+> revoke(*c*)⠀▷⠀(revoke(*x*) ⇒ *P*)⠀≜⠀*P*[*c*/*x*]  
+> choice(*c*) { *l* }⠀▷⠀(choice(*x*<sub>*𝚓*</sub>) { *𝚓* } ⇒ *P*<sub>*𝚓*</sub>)<sub>*𝚓* ∈ *𝙹*</sub>⠀≜⠀*P*<sub>*l*</sub>[*c*/*x*<sub>*l*</sub>]  
+> coop(*c*) { *w*·*q* }⠀▷⠀(coop(*x*) { *w*·*q* } ⇒ *P*)⠀≜⠀*P*[*c*/*x*]  
+> isol(*c*) { *w*·*q* }⠀▷⠀(isol(*x*) { *w*·*q* } ⇒ *P*)⠀≜⠀*P*[*c*/*x*]  
+> spawn(*c*) { *q*(*a*, *b*₁, *b*₂,...) }⠀▷⠀(spawn(*x*) { *q* } ⇒ *P*)⠀≜⠀*P*[*c*/*x*], если *Q(q) > 0*
+
+Для остальных комбинаций *V* и *K* операция *V* ▷ *K* не определена. Условие *Q(q) > 0* для `spawn` проверяется на том же логическом трансакционном канале; сама операция не изменяет *Q*.
+
+#### Типы, ограничения, уточнения
+
+Выражения типов соединяются при помощи *связующих*, которые могут быть унарными (например, up `￪`), бинарными (например, lolli `⊸`) или n-арными (например, external choice `&{...}`). Cлева от связующего в квадратных скобках может быть определено *ограничение*, а справа - *уточнение*.
+
+Мы интерпретируем идентификаторы как приватные трансакции между пулами, в рамках которых осуществляется обмен сообщениями. Пул 1 может опубликовать значение и/или подписать продолжение в рамках трансакции, так что данные сообщения будут получены пулом 2 на другом конце трансакции. Значение *V* может быть опубликовано в трансакцию *a* при помощи конструкции *a*.*V*. Данное сообщение затем будет получено подпиской case *a* *K*, которая подаст полученное значение *V* в продолжение *K* для определения дальнейшего развития событий.
+
+> *y*<sub>1</sub> : *B*<sub>1</sub>,...,*y*<sub>*n*</sub> : *B*<sub>*n*</sub> ⊢ *P* :: (*z* : *A*)
+
+Пул *P* может *использовать* трансакции *y*<sub>1</sub>,...,*y*<sub>*n*</sub> для коммуникации с другими пулами согласно типам *B*<sub>1</sub>,...,*B*<sub>*n*</sub> соответственно и *предоставляет* трансакцию *z* типа *A*, в рамках которой с ним могут коммуницировать другие.
+
+| Тип трансакции T | Семантика |
+| :--------------- | :-------- |
+| 𝟏  | Отправить токен close без продолжения. |
+| ￪ *A* | Отправить токен grant. Продолжить как *A*. |
+| ￬ *A* | Принять токен revoke. Продолжить как *A*. |
+| [*l* ∈ *L*] ⨁{ *l* : *A*<sub>*l*</sub> } | Отправить токен choice с классом *l* ∈ *L*. Продолжить как *A*<sub>*l*</sub>. |
+| [*l* ∈ *L*] &{ *l* : *A*<sub>*l*</sub> } | Принять токен choice с классом *l* ∈ *L*. Сопоставить класс с паттерном и продолжить как *A*<sub>*l*</sub>. |
+| [*q* ∈ dom(*Q'*) ∧ *w* ∈ ℕ⁺] ⇱ [*Q''*] *A* | Отправить токен coop с именем процесса *q* и положительным целочисленным весом распределения *w*. Увеличить текущее значение веса: *Q''* = *Q'*[*q* ↦ *Q'*(*q*) + *w*]. Продолжить как [*Q''*] *A*. |
+| [*q* ∈ dom(*Q'*) ∧ *w* ∈ ℕ⁺ ∧ *Q'*(*q*) ≥ *w*] ⇲ [*Q''*] *A* | Принять токен isol с именем процесса *q* и положительным целочисленным весом распределения *w*. Уменьшить текущее значение веса: *Q''* = *Q'*[*q* ↦ *Q'*(*q*) − *w*]. Продолжить как [*Q''*] *A*. |
+| *q*(*a*, *b*₁, *b*₂,...) [*Q*(*q*) > 0] ⊸ [*Q*] *A* | Принять токен `spawn` с именем процесса *q* и каналами *a*, *b*₁, *b*₂,... Породить *q*, если его вес распределения на данном канале положителен. Продолжить как [*Q*] *A*. |
+<p align="center"><sub>Таблица 4. Грамматика для типов</sub></p>
+
+В текущей модели *Q* — **функция распределения процессов** (*process allocation function*) логического трансакционного канала: частичное отображение *Q* : 𝒫 ⇀ ℕ₀, где 𝒫 — множество имён процессов. Для данного логического трансакционного канала область определения *Q* совпадает с множеством компетенций *C* его provider pool; каждому имени процесса *q* функция сопоставляет относительный вес при распределении вызовов `ExternalCall` между фиксированной парой пулов. Значение *Q(q)* — вес процесса *q*, а не вероятность и не число уже выполненных вызовов. У каждого логического трансакционного канала своё текущее значение *Q*; оно определяется последним закоммиченным приватным каналом этого логического канала. Начальное значение определяется единым правилом: для каждого логического трансакционного канала область определения *Q⁰* равна множеству компетенций *C* его provider pool, а *Q⁰(q) = 0* для всех *q* ∈ *C*. Поэтому начальные функции разных каналов могут иметь разные области определения. Начальное значение *Q⁰* для negotiation с кандидатом определяется компетенциями соответствующего provider pool: его область определения равна *C*, а *Q⁰(q) = 0* для всех *q* ∈ *C*. Каждый совпавший `Up`, начинающий negotiation с кандидатом, создаёт новый приватный физический канал того же логического трансакционного канала и инициализирует allocation state этой попытки значением *Q⁰*, даже если у логического канала уже есть ранее закоммиченное allocation state. Одновременно у одного логического трансакционного канала может быть не более одного незакоммиченного приватного канала. Единственная точка commit этого доступа — совпавший `Down`, который коммитит текущее значение *Q*. Семантика отмены доступа до commit, включая восстановление публичных связываний, отбрасывание незакоммиченного *Q*, инициаторов отмены, обнаружение прекращения второй стороной и продолжение поиска только с ещё не испробованным пулом-кандидатом, определена в [Pools and transaction types, Section 2.1](../about-pools-and-transaction-types/README.md#21-negotiation-protocol-and-established-agreement) и [Section 2.1](#21-negotiation-protocol-and-established-agreement). Кратко: отмена — runtime-обработка, а не конструктор трансакционного типа; каждый пул-кандидат пробуется не более одного раза за `ExternalCall`, а исчерпание кандидатов завершает вызов без результата, не дожидаясь общего timeout. Общий timeout ограничивает весь поиск и переговоры; его истечение также завершает `ExternalCall` и не допускает следующего кандидата. Внутри приватного канала *Q* может изменяться произвольное число раз, в том числе ни разу, только операциями `Coop` и `Isol`: первая увеличивает вес, вторая уменьшает его. Обозначение *Q'* используется для значения *Q* в ходе текущего незакоммиченного приватного канала, а *Q''* — для значения после конкретной операции; это обозначения разных моментов изменения одной функции, а не утверждение о существовании отдельных функций или хранимых полей. Совпавший `Down` коммитит текущее значение *Q* и делает текущий приватный канал новым актуальным закоммиченным приватным каналом, замещая предыдущий. Сам `Down` не изменяет *Q* и не требует буквальной операции присваивания между *Q* и *Q'*. Физическое уничтожение или сохранение замещённого приватного канала остаётся открытой деталью. Область определения *Q* — компетенции *C* provider pool; нулевой вес означает, что компетенция объявлена, но не участвует в распределении. Вес *w* в `Coop` и `Isol` — строго положительное целое число (*w* ∈ ℕ⁺). Это описание жизненного цикла — проектное уточнение OrgLang, а не правило, автоматически приписываемое публикации.
+
+Отношение положительных весов задаёт **пропорцию распределения** (*allocation ratio*) между процессами. Например, *Q(q₁) = 1*, *Q(q₂) = 3* и *Q(q₃) = 1* задают пропорцию 1:3:1 между количествами выполненных `ExternalCall` для этих процессов на канале *c* за достаточно длительный промежуток времени. Это долгосрочная пропорция, а не требование точного совпадения на каждом коротком интервале. В текущей модели функция *Q* полностью задаёт соглашение по каналу *c*: она определяет относительное распределение, но не абсолютную мощность или скорость обслуживания (rate). Если позднее понадобится выразить такие параметры, модель соглашений можно будет расширить.
+
+#### Примеры
+
+```
+t0 = &{  
+    new : q(a, b1, b2,...) [Q(q) > 0] ⊸ [Q] t0,  
+    end : [∀q ∈ C. Q(q) = 0] ￬ 𝟏,  
+    more : t1,  
+    less : t2  
+}  
+
+t1 = ￪ ([q ∈ dom(Q') ∧ w ∈ ℕ⁺] ⇱ [Q'[q ↦ Q'(q) + w]] t0)
+
+t2 = ￪ ([q ∈ dom(Q') ∧ w ∈ ℕ⁺ ∧ Q'(q) ≥ w] ⇲ [Q'[q ↦ Q'(q) − w]] t0)
+```
+
+Где *C* — компетенции из декларации provider pool, *dom(Q⁰) = C*, а исходно *Q⁰(q) = 0* для всех *q* ∈ *C*. Здесь *Q⁰* — начальная функция для конкретного provider pool; правило инициализации общее, но области определения функций разных каналов могут различаться.
+
+В примерах *Coop* увеличивает текущее значение *Q(q)*, а *Isol* уменьшает его при условии, что результат неотрицателен; нулевой вес не удаляет *q* из области определения функции. Обе операции сохраняют множество компетенций и не затрагивают другие логические трансакционные каналы. Обозначение *Q'* показывает значение функции до операции, а *Q''* — после неё. Для `spawn` требуется только *Q(q) > 0* в действующей функции; само значение веса не передаётся как аргумент вызова. Полный жизненный цикл функции и точка коммита заданы выше.
 
 | Question | Current status | Why it matters | Evidence needed |
 |---|---|---|---|
@@ -100,29 +191,29 @@ The companion [transaction introduction](../about-transaction/README.md) present
 | How are pool-state constraints formalized in the type system? | **Agreed working model:** constraints expressed by transaction types are checked statically, using the current `Q` and accounting for preceding `Coop` and `Isol` transitions. | The exact typing judgment and formal rules remain to be specified. |
 
 
-### Per-channel allocation state
+#### Per-channel allocation state
 
-The transaction-type grammar is state-indexed: `Coop` and `Isol` transition the process allocation function associated with the shared transaction channel, while `spawn` requires a positive allocation weight for the requested process. The canonical definition of the function, its initialization, allocation weights, and transition side conditions are in [What is a transaction?](../about-transaction/README.md#типы-ограничения-уточнения).
+The transaction-type grammar is state-indexed: `Coop` and `Isol` transition the process allocation function associated with the shared transaction channel, while `spawn` requires a positive allocation weight for the requested process. The canonical definition of the function, its initialization, allocation weights, and transition side conditions are in [Formal grammar and state-indexed rules](#formal-grammar-and-state-indexed-rules).
 
 The function `Q` is associated with each logical transaction channel, not with the client pool globally. Each logical transaction channel has its own allocation state: the committed value is determined by its latest committed private channel, and an active private-channel access may carry an uncommitted value. `Up` gives the new private channel the committed allocation state of that same logical channel; matched `Down` commits the value prepared there and makes that private channel current. A pool may participate in logical transaction channels with different counterpart pools. No cross-channel summation rule is currently imposed.
 
-For a fixed provider/client pair, the working model permits only one established agreement, regardless of which process name is called. Consequently, that pair does not require a choice among several agreements or channels. Discovery may still select among suitable agreements offered by different provider/client pairs; the discovery and negotiation procedure is specified in [Incarnations and channels, Sections 5.3–5.5](../about-incarnations-and-channels/README.md#53-search-and-agreement-negotiation).
+For a fixed provider/client pair, the working model permits only one established agreement, regardless of which process name is called. Consequently, that pair does not require a choice among several agreements or channels. Discovery may still select among suitable agreements offered by different provider/client pairs; the discovery and negotiation procedure is specified in [Section 2.1](#21-negotiation-protocol-and-established-agreement).
 
-## 5. The pool's public transaction channel
+### 5. The pool's public transaction channel
 
 **Inferred:** the pool's public transaction channel is part of the current explanatory pool model. Whether individual processes should have public channels remains **Open**.
 
-The public transaction channel and private channels are physically distinct representations of one logical transaction channel. They have distinct physical identities, share one logical identity, and use the same transaction type. The provider and client pools each have their respective endpoint in these representations. Each matched `Up` creates a new private physical channel and makes it the active representation. Matched `Down` commits that private channel's current process-allocation-function value and restores the public channel as the active representation. If the active private-channel access is cancelled before matched `Down`, runtime terminates that access, discards its uncommitted state, and restores both participants' active bindings to the public channel. The latest committed private channel is the current committed channel for the logical transaction channel and supplies the `Q` used by search. Restoring the active binding to the public channel does not make the public channel the search target. The public channel type itself has no refinements. The exact matching points, participant continuations, and channel-identity rules are specified canonically in [Incarnations and channels](../about-incarnations-and-channels/README.md#2-common-matching-principle) and [Section 6.2](#62-matched-transitions-continuations-and-channel-identity); this section does not restate those rules.
+The public transaction channel and private channels are physically distinct representations of one logical transaction channel. They have distinct physical identities, share one logical identity, and use the same transaction type. The provider and client pools each have their respective endpoint in these representations. Each matched `Up` creates a new private physical channel and makes it the active representation. Matched `Down` commits that private channel's current process-allocation-function value and restores the public channel as the active representation. If the active private-channel access is cancelled before matched `Down`, runtime terminates that access, discards its uncommitted state, and restores both participants' active bindings to the public channel. The latest committed private channel is the current committed channel for the logical transaction channel and supplies the `Q` used by search. Restoring the active binding to the public channel does not make the public channel the search target. The public channel type itself has no refinements. The exact matching points, participant continuations, and channel-identity rules are specified canonically in [Incarnations and channels](../about-incarnations-and-channels/README.md#4-publication-subscription-and-matching) and [Section 6.2](#62-matched-transitions-continuations-and-channel-identity); this section does not restate those rules.
 
 The lifecycle of `Q`, including initialization, updates during private-channel access, and commit at matched `Down`, is defined in [Section 2.1](#21-negotiation-protocol-and-established-agreement). The logical/physical identity switch and participant-continuation rules are defined in [Section 6.2](#62-matched-transitions-continuations-and-channel-identity).
 
-This pool-level protocol is distinct from a process's provider channel and from channels mapped to a new incarnation's client-role parameters in `ExternalCall`. Process creation, pool selection, and the start of servicing are described in [Incarnations and channels](../about-incarnations-and-channels/README.md).
+This pool-level protocol is distinct from a process's provider channel and from channels mapped to a new incarnation's client-role parameters in `ExternalCall`. Process creation, pool selection, and the start of servicing are described in [Processes and session types](../about-processes-and-session-types/README.md).
 
-## 6. Intended semantics and formal rules
+### 6. Intended semantics and formal rules
 
 This section records the agreed minimal language-level decisions for matching and continuation behavior, while leaving a complete operational semantics unfinished. The decisions below specify when the protocol transition counts as occurring; they do not establish implementation correctness, complete typing rules, failure semantics, or every state transition.
 
-### 6.1 Minimal transaction-type constructors
+#### 6.1 Minimal transaction-type constructors
 
 **Status: Project semantic decisions, with formalization still open.** The matching points, shared channel-identity rules, and participant-specific continuation obligations recorded below are adopted language-level requirements. Their complete typing judgments, operational rules, and implementation conformance are not yet established; this research document is not itself the normative language specification.
 
@@ -136,9 +227,9 @@ A transaction type describes the protocol exposed by a pool through its public t
 
 The operation names above are implementation identifiers, not proposed surface syntax. The pool-side operation declarations are in [`pool/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/main/pool/termexp/core/core.go); the process-side declarations are in [`proc/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/termexp/core/core.go). These declarations support the provider/client operation mapping, but by themselves do not establish the runtime transition order or full language semantics.
 
-### 6.2 Matched transitions, continuations, and channel identity
+#### 6.2 Matched transitions, continuations, and channel identity
 
-The general paired-interaction principle is defined in [Incarnations and channels](../about-incarnations-and-channels/README.md#2-common-matching-principle). This section specifies its pool-specific consequences:
+The general paired-interaction principle is defined in [Incarnations and channels](../about-incarnations-and-channels/README.md#4-publication-subscription-and-matching). This section specifies its pool-specific consequences:
 
 - **`One`:** provider `close` matches client `wait`. Only the matched pair completes the transaction interaction and establishes one channel identity shared by both sides. Client-side `wait` may continue in its enclosing expression; provider-side `close` is terminal and has no executable continuation of its own.
 - **`Up A`:** provider `accept` matches client `acquire`. Access becomes active and both participants' logical channel bindings resolve to a newly created private physical channel. This channel has its own identity, distinct from the public channel and from any earlier private channel, while representing the same logical transaction channel and carrying the same transaction type. Allocation-state initialization and negotiation are defined in [Section 2.1](#21-negotiation-protocol-and-established-agreement).
@@ -147,13 +238,13 @@ Each side of `Up A` and `Down A` carries its own participant-specific continuati
 
 The logical placeholder persists across the public/private transition: matched `Up` binds it to a newly created private physical channel, and matched `Down` restores the public physical binding after committing the private channel's allocation state. If the active access is cancelled before matched `Down`, runtime terminates the private-channel access and restores the public physical binding without committing its allocation state. The logical identity and shared transaction type remain unchanged; every private channel has its own physical identity. `One` has a separate shared-identity rule. Matching imposes no additional ordering between participant continuations. Search uses the `Q` associated with the latest committed private channel and does not modify it; how search obtains `Q` remains **Open**. A later `Down` replaces that channel as the current committed private channel. Whether terminated or superseded private-channel resources are physically reclaimed, and when, remains **Open**. The initialization and update rules for `Q` and `Q'` are defined in [Section 2.1](#21-negotiation-protocol-and-established-agreement).
 
-#### Continuation correspondence: dual endpoint views
+##### Continuation correspondence: dual endpoint views
 
 **Decision recorded from semantic review:** `A` describes the provider-side continuation protocol; the client-side continuation must be checked against the corresponding client-side protocol type. For brevity, this document uses `dual(A)` as a provisional notation for that client-side type. This notation is introduced here for explanatory purposes only: it is not an established OrgLang grammar constructor or operation, and no definition or derivation rule for it is assumed. The participant-specific continuation expressions need not be textually identical, but each must satisfy the typing obligation for its own endpoint. Matching the operation pair and binding the appropriate shared channel identity do not, by themselves, make arbitrary `ContExp` values valid.
 
 This decision establishes the intended endpoint relationship, not the complete typing judgment. The formal representation of the client-side type, the typing rules, and how the continuation channel identity is substituted into each participant's continuation remain to be specified and tested.
 
-#### Initial conformance examples
+##### Initial conformance examples
 
 These examples translate the decisions in Section 6.2 into acceptance criteria for future tests; they are not claims that tests already exist or pass:
 
@@ -173,13 +264,13 @@ For each rule adopted in this section, record:
 
 Until these points are settled, keep only the corresponding unresolved detail explicitly **Open** and link to the relevant question in Section 9. Do not downgrade the adopted matching, identity, or continuation requirements recorded in Section 6.2.
 
-## 7. Publication correspondence
+### 7. Publication correspondence
 
-The [transaction introduction](../about-transaction/README.md) presents the OrgLang working transaction model. Its Table 4 assigns `grant`-send behavior to `↑ A` and `revoke`-receive behavior to `↓ A`, with continuation as `A`. This table is part of the project's model; it is not a table reproduced from the publication. The publication supplies the process-channel session-type framework and the corresponding continuation/application ideas: its continuation grammar and the definition of `V ▷ K` explain how a received value selects a continuation and substitutes an identifier for a placeholder.
+The pool-specific grammar in [Section 4](#4-transaction-types) assigns `grant`-send behavior to `↑ A` and `revoke`-receive behavior to `↓ A`, with continuation as `A`. This is part of the project's model, not a table reproduced from the publication. The publication supplies the general channel framework and continuation/application ideas: the abstract continuation grammar and the definition of `V ▷ K` are described in [Incarnations and channels](../about-incarnations-and-channels/README.md#6-substitution-and-continuation-application).
 
 The project uses those ideas as the basis for its transaction-type interpretation. The correspondence between the publication's channel actions and OrgLang's transaction operations is therefore a model-level analogy, not a rule stated directly by the publication. The OrgLang language-level operation model additionally requires each side of `Down`—provider-side `detach` and client-side `release`—to carry its own participant-specific `ContExp`. These expressions need not be identical: the provider continuation is checked against `A`, and the client continuation against the corresponding client-side protocol type. This is a language-level requirement, not a claim that the current runtime operation structs already expose those fields. The publication table's send/accept wording also should not be equated mechanically with the current runtime operation names (`accept`/`acquire`, `detach`/`release`) without an explicit role and polarity mapping.
 
-### Initial constructor/role correspondence table
+#### Initial constructor/role correspondence table
 
 The table below separates the publication model's token polarity from OrgLang's current provider/client operation names. It is a working correspondence, not a claim that the runtime implementation already conforms.
 
@@ -199,9 +290,11 @@ The initial comparison should cover:
 
 **Open:** whether these publication constructs correspond one-to-one to OrgLang constructs. Similar names or matching notation are not sufficient evidence.
 
-## 8. Implementation evidence
+## Part III. Implementation evidence and open questions
 
-Implementation conformance has not been established by this document. The following are **implementation observations only** from the inspected source snapshot; they do not establish that the language contract must have identical semantics.
+### 8. Implementation mapping and evidence
+
+Implementation conformance has not been established by this document. This section records **implementation mappings**: observed correspondences between pool/transaction model concepts and `go-engine` structures or execution paths. They are specific to the inspected source snapshot and do not make implementation details normative or establish complete semantic conformance.
 
 | Path / symbol | Observed behavior | What this establishes | What remains unverified |
 |---|---|---|---|
@@ -216,7 +309,7 @@ These paths suggest that the implementation has a **pending registration** stage
 
 The [`TestPool` / `waitClose` example](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/test/e2e/pool_test.go) defines the type-level continuation as `Down { ContExp: Link{TypeQN: poolTypeQN} }`, but its runtime `ReleaseSpec` and `DetachSpec` literals supply only `CommChnlPH`. This is consistent with the operation-spec declarations above and exposes the same implementation gap: the example does not encode the two required participant-specific `ContExp` values. The test's final `close`/`wait` sequence and outcome assertion are commented out, so it is partial evidence only; it does not validate the complete lifecycle.
 
-## 9. Open questions and next tests
+### 9. Open questions and next tests
 
 | Open question | Behavior/decision affected | Evidence or test needed |
 |---|---|---|
@@ -232,13 +325,13 @@ The [`TestPool` / `waitClose` example](https://github.com/orglang/go-engine/blob
 | How are transaction identifiers allocated and related to process channel identities? | Identity uniqueness, resource ownership, and safe continuation substitution. | Identity contract and source/test evidence for allocation and substitution. |
 | Which implementation paths establish conformance? | Confidence that intended protocol rules are executable. | Source-level trace and tests with observable assertions for each agreed rule. |
 
-### Minimum conformance test matrix
+#### Minimum conformance test matrix
 
 The following is an acceptance target for the adopted semantics, not a description of tests already present. Each pending case should be tested with both endpoint arrival orders, and each matched case should assert the observable post-state rather than only the absence of an API error.
 
 - **Pending boundary:** after only `accept` or `acquire` (and separately only `detach` or `release`), assert that no protocol transition has occurred, no continuation has become eligible, and no participant can observe a partially changed channel state.
-- **`Up` match:** after both `accept` and `acquire` match, assert one shared fresh private channel identity, the expected residual protocol state, and exactly one eligibility event for each non-null participant continuation. Use different provider/client continuation expressions to ensure they are not accidentally conflated.
-- **`Down` match:** after both `detach` and `release` match, assert restoration of the original public channel identity (not a newly allocated public identity), the expected residual protocol state, and exactly one eligibility event for each participant-specific continuation. Include distinct continuation expressions and positive/negative typing cases for each endpoint.
+- **`Up` match:** after both `accept` and `acquire` match, assert one shared fresh private channel identity, the expected current protocol state, and exactly one eligibility event for each non-null participant continuation. Use different provider/client continuation expressions to ensure they are not accidentally conflated.
+- **`Down` match:** after both `detach` and `release` match, assert restoration of the original public channel identity (not a newly allocated public identity), the expected current protocol state, and exactly one eligibility event for each participant-specific continuation. Include distinct continuation expressions and positive/negative typing cases for each endpoint.
 - **`One` match:** assert that a lone `close` or `wait` remains pending; after the pair matches, assert completion with one shared channel identity, no provider-side executable continuation, and eligibility of the client's enclosing continuation when present.
 - **Representation path:** round-trip every operation and continuation through AST, adapter, persistence, and executor representations. In particular, `Down` cannot pass the language-level continuation tests until both operation specs and their conversion paths can carry the required `ContExp` values.
 - **Linearity and isolation:** reject duplicate/aliased channel identities and invalid endpoint continuation types; verify that a pending or matched operation does not mutate unrelated channels or another participant's bindings.
