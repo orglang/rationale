@@ -85,7 +85,7 @@ One timeout supplied by the calling pool covers the complete discovery-and-negot
 - How is `Q` physically represented or associated with a private channel? The current model does not decide whether it is stored within the channel or represented separately.
 - What exact formal syntax and typing judgment express the transaction type's interaction rules and its dependent state index `Q`?
 - What operation or judgment distinguishes a negotiation that is still in progress from one whose agreement has been accepted by both parties?
-- How do channel discovery and `ExternalCall` search interact with type-continuation and allocation-state transitions and channel linearity, and what determines which channels are visible to a searching pool?
+- How do channel discovery and `ExternalCall` search interact with type-continuation transitions and allocation-state updates and channel linearity, and what determines which channels are visible to a searching pool?
 
 
 
@@ -217,7 +217,7 @@ This section records the agreed minimal language-level decisions for matching an
 
 **Status: Project semantic decisions, with formalization still open.** The matching points, shared channel-identity rules, and participant-specific continuation obligations recorded below are adopted language-level requirements. Their complete typing judgments, operational rules, and implementation conformance are not yet established; this research document is not itself the normative language specification.
 
-A transaction type describes the interactions permitted by a pool through its public transaction channel. A client's interactions must conform to this provider-side transaction type, evaluated against the current type continuation and allocation state. No separately declared client-side transaction type is required by this model.
+A transaction type describes the interactions permitted by a pool through its public transaction channel. A client's interactions must conform to this provider-side transaction type, evaluated against the current type continuation, including its allocation-state refinement. No separately declared client-side transaction type is required by this model.
 
 | Constructor | Provider-side operation | Client-side operation | Minimal intended meaning | Further detail |
 |---|---|---|---|---|
@@ -252,13 +252,13 @@ These examples translate the decisions in Section 6.2 into acceptance criteria f
 2. **`Up`:** a client cannot treat access as acquired unless the provider-side transaction type permits and matches the acquisition; both participants continue according to the continuation associated with `Up`.
 3. **`Down`:** after a valid detach/release match, the current private channel's process-allocation-function value is committed, both sides regain the public channel identity, and the current private channel replaces the preceding committed private channel for that logical transaction channel. A subsequent matched `Up` must create a different private physical channel identity. Tests should verify that suitability checks use the `Q` associated with the preceding committed private channel until `Down`, then use the `Q` associated with the newly committed channel, without requiring `Down` itself to modify `Q` or destroy the superseded physical channel.
 4. **Pre-commit cancellation:** when either participant or the external search controller cancels an active private-channel attempt before matched `Down`, verify that runtime termination of the private channel is detected by the peer, both active bindings return to the public channel, the uncommitted state (including changes to `Q`) is discarded, and the preceding committed private channel remains current. Verify that the search controller may try another candidate while the shared timeout remains in force.
-5. **Transaction-type conformance:** an operation that contradicts the current provider-side type continuation and allocation state is rejected or otherwise prevented according to a separately specified checking/enforcement rule; that enforcement mechanism is currently open.
+5. **Transaction-type conformance:** an operation that contradicts the current provider-side type continuation, including its allocation-state refinement is rejected or otherwise prevented according to a separately specified checking/enforcement rule; that enforcement mechanism is currently open.
 
 For each rule adopted in this section, record:
 
 1. **Preconditions:** the participant roles, channel/type state, and any agreement or resource prerequisites.
 2. **Action:** which participant sends, receives, selects, or applies a continuation.
-3. **Result:** the next type continuation and allocation state, the identity and ownership of any channel/resource, and any change to pool state.
+3. **Result:** the next type continuation and resulting allocation-state value, the identity and ownership of any channel/resource, and any change to pool state.
 4. **Observable state at a transition boundary:** where relevant, state the pre-state/post-state and ordering constraints needed to preserve interaction and resource invariants. Detailed error reporting, recovery, retries, and abnormal-termination semantics are outside this specification pass.
 5. **Evidence:** the source for the intended language rule, plus separate implementation-path/test evidence where conformance is claimed.
 
@@ -330,8 +330,8 @@ The [`TestPool` / `waitClose` example](https://github.com/orglang/go-engine/blob
 The following is an acceptance target for the adopted semantics, not a description of tests already present. Each pending case should be tested with both endpoint arrival orders, and each matched case should assert the observable post-state rather than only the absence of an API error.
 
 - **Pending boundary:** after only `accept` or `acquire` (and separately only `detach` or `release`), assert that no transaction-type transition has occurred, no continuation has become eligible, and no participant can observe a partially changed channel state.
-- **`Up` match:** after both `accept` and `acquire` match, assert one shared fresh private channel identity, the expected current type continuation and allocation state, and exactly one eligibility event for each non-null participant continuation. Use different provider/client continuation expressions to ensure they are not accidentally conflated.
-- **`Down` match:** after both `detach` and `release` match, assert restoration of the original public channel identity (not a newly allocated public identity), the expected current type continuation and allocation state, and exactly one eligibility event for each participant-specific continuation. Include distinct continuation expressions and positive/negative typing cases for each endpoint.
+- **`Up` match:** after both `accept` and `acquire` match, assert one shared fresh private channel identity, the expected current type continuation, including its allocation-state refinement, and exactly one eligibility event for each non-null participant continuation. Use different provider/client continuation expressions to ensure they are not accidentally conflated.
+- **`Down` match:** after both `detach` and `release` match, assert restoration of the original public channel identity (not a newly allocated public identity), the expected current type continuation, including its allocation-state refinement, and exactly one eligibility event for each participant-specific continuation. Include distinct continuation expressions and positive/negative typing cases for each endpoint.
 - **`One` match:** assert that a lone `close` or `wait` remains pending; after the pair matches, assert completion with one shared channel identity, no provider-side executable continuation, and eligibility of the client's enclosing continuation when present.
 - **Representation path:** round-trip every operation and continuation through AST, adapter, persistence, and executor representations. In particular, `Down` cannot pass the language-level continuation tests until both operation specs and their conversion paths can carry the required `ContExp` values.
 - **Linearity and isolation:** reject duplicate/aliased channel identities and invalid endpoint continuation types; verify that a pending or matched operation does not mutate unrelated channels or another participant's bindings.
