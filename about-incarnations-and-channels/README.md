@@ -10,7 +10,9 @@
 
 **Shared terminology:** see the [OrgLang glossary](../GLOSSARY.md).
 
-## 1. Purpose and mental model
+## Part I. Conceptual model
+
+### 1. Purpose and mental model
 
 When a process invokes `ExternalCall`, the language-level operation requests service for a named process. The engine may need to perform two distinct tasks: create a fresh process incarnation and arrange for a pool to service the new incarnation's provider channel.
 
@@ -35,7 +37,7 @@ Use the same claim-status vocabulary as the canonical [Processes and session typ
 
 Use **Evidence** to identify the source or observation supporting a claim; use **Confirmed**, **Inferred**, and **Open** for claim status. Keep implementation coverage separate from claim status. Treat issue comments as provisional discussion. A rule from the cited publication's calculus requires separate evidence before it can be treated as an OrgLang rule.
 
-## 2. Common matching principle
+### 2. Common matching principle
 
 **Language-level principle shared by process channels and pool transaction channels:** each participant performs its own protocol-permitted operation. An operation performed by only one side remains pending; it does not by itself complete the interaction or advance the shared protocol state. The interaction takes effect when the corresponding peer operations match. Matching establishes one shared channel identity and the protocol-state effect for both endpoints. Each participant may then proceed through its own continuation where the operation defines one; the continuation expressions need not be textually identical, and matching does not imply simultaneous execution.
 
@@ -43,25 +45,25 @@ For ordinary process-to-process communication, the provider and client endpoints
 
 Process-channel constructors and their typing rules are recorded in [Processes and session types, Sections 6–7](../about-processes-and-session-types/README.md#6-session-types-the-protocol-for-a-channel). Pre-commit cancellation is a runtime lifecycle event rather than a transaction-type constructor. The exact runtime notification mechanism, arbitration with a concurrent matched `Down`, and physical reclamation of the terminated private channel remain open.
 
-## 3. Participants and channels
+### 3. Participants and channels
 
 A **participant** is a process incarnation or pool taking part in a channel interaction. Each participant has exactly one provider channel and may have any number of client channels. This cardinality rule applies to all channels in the model. Provider and client describe the participant's role on a channel: the same channel is the provider channel for one participant and a client channel for the other.
 
 Use the [OrgLang glossary](../GLOSSARY.md) for the shared definitions of participant, process incarnation, endpoint, provider/client channel, and servicing pool. The key model relationship is role-relative: one physical channel connects two participants, and the same channel is the provider channel for one participant and the client channel for the other. The participant has exactly one provider channel and may have any number of client channels. A process incarnation's servicing pool is the pool responsible for servicing that incarnation's provider channel.
 
-### 3.1 The process–pool boundary
+#### 3.1 The process–pool boundary
 
 For `ExternalCall`, the current working model searches discoverable transaction channels for a suitable dependent agreement state and, if needed, negotiates over a candidate channel before creating a fresh incarnation. Only after a suitable transaction channel has been found or the parties have successfully negotiated its dependent agreement state does the engine create the fresh incarnation together with its fresh provider channel and associate it with the selected servicing pool. The engine creates the incarnation; the selected pool services its provider channel. The pool-selection mechanism and transaction-type model are documented in [Pools and transaction types](../about-pools-and-transaction-types/README.md) and Section 5 below.
 
 The relevant boundary detail is channel provenance and pool association: `ExternalCall` uses a fresh provider channel and selects an eligible pool, while `InternalCall` transfers existing channels and keeps the invoking incarnation's pool. The language-level contracts for both forms are maintained in [Section 7 of the canonical document](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
 
-## 4. Working model of `ExternalCall` and `InternalCall`
+### 4. Working model of `ExternalCall` and `InternalCall`
 
 The language-level contracts and the distinction between `ExternalCall` and `InternalCall` are defined in the [canonical Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). This section records only the pool-related consequences: `ExternalCall` invokes pool selection before a fresh incarnation is created and serviced; `InternalCall` creates the new incarnation in the invoking incarnation's existing pool, without pool selection. The `ExternalCall` selection and servicing sequence is specified as a working model in Section 5 below.
 
-## 5. Pool selection and servicing
+### 5. Pool selection and servicing
 
-### 5.1 Association with a pool
+#### 5.1 Association with a pool
 
 **Inferred:** `ExternalCall` requires a pool-selection mechanism to identify the servicing pool for the new incarnation.
 
@@ -69,17 +71,17 @@ The language-level contracts and the distinction between `ExternalCall` and `Int
 
 **Agreed working model:** each process incarnation is bound to a specific servicing pool. Whether that binding can change later remains **Open**.
 
-### 5.2 Agreement-suitability criterion
+#### 5.2 Agreement-suitability criterion
 
 **Agreed project decision:** a transaction channel `c` is suitable for a call of process `q` when its process name matches the call and the `Q` of the latest committed private channel for that logical transaction channel satisfies `Q(q) > 0`. Search uses this `Q` only to check suitability and select candidates; it does not modify the function or the committed channel. How search obtains `Q` remains **Open**. If no suitable committed private channel is found, the call may proceed to negotiation with a candidate pool. The interpretation of `Q` and the public/private transaction-type distinction are defined in [Pools and transaction types](../about-pools-and-transaction-types/README.md).
 
-### 5.3 Search and agreement negotiation
+#### 5.3 Search and agreement negotiation
 
 **Agreed project decisions:** `ExternalCall` supports discovery of a suitable committed private channel and negotiation that prepares an updated state on a newly created private channel. Automatic search examines discoverable logical transaction channels using, for each provider/client pair, the latest private channel committed through `Down`; it selects the first suitable logical channel encountered in the existing selection order. The rules defining that order remain open. An uncommitted newer private channel does not replace the current search target. Suitability is determined by the criterion in Section 5.2.
 
 If automatic search finds no suitable committed private channel, manual intervention follows. A participant of the calling process's pool selects candidate pools for negotiation. The available candidates are tried in an unspecified order; selecting a candidate does not itself establish or modify an agreement. The process being called is fixed throughout this `ExternalCall`. Each candidate pool may be selected at most once in this call. For each selected candidate, the provider/client pair performs matched `Up`, which creates a new private physical channel for the existing logical transaction channel and initializes the negotiation's allocation state from the initial function `Q⁰`, regardless of any allocation state committed by an earlier private channel for that logical transaction channel. The domain of `Q⁰` is the competencies `C` of the candidate provider pool, with `Q⁰(q) = 0` for every `q ∈ C`. The new private channel can change its own process-allocation-function value through any number of `Coop` and `Isol` operations; `Q'` denotes that uncommitted allocation state, not a separate function or stored field. The previously committed allocation state remains current for search throughout negotiation, but it is not the starting state of the new candidate negotiation. A negotiation is successful only when the provider's `detach` and the client's `release` match at `Down`; this matched `Down` is the commit boundary that commits the value prepared by the current private channel and makes that channel the current committed private channel, replacing the previous one for that logical channel. Protocol completion before the matched `Down` is not successful negotiation. If either participant or the external search controller cancels the current attempt before matched `Down`, runtime terminates the private channel; both participants detect the termination, discard the uncommitted allocation state, and restore their active bindings to the public channel. The previous committed private channel and its allocation state remain current. The search controller may then try another candidate pool that has not yet been tried, provided the overall search-and-negotiation timeout has not expired and the call has not otherwise been stopped. A cancellation of one candidate attempt does not itself commit an agreement or terminate the entire search. If every candidate pool has been tried without a matched `Down`, `ExternalCall` search-and-negotiation terminates without a result immediately; it does not wait for the shared timeout to expire. There is no second uncommitted private channel for the same logical channel. `Down` itself does not change the allocation function and does not imply physical destruction of the superseded private channel. The distinction between the allocation function and its committed or uncommitted allocation state is defined canonically in [Pools and transaction types, Section 2.1](../about-pools-and-transaction-types/README.md#21-negotiation-protocol-and-established-agreement).
 
-### 5.4 Creation and start of servicing after selection
+#### 5.4 Creation and start of servicing after selection
 
 After Section 5.3 either finds a suitable existing committed agreement or completes negotiation and matched `Down` has committed the prepared state with `Q(q) > 0`, `ExternalCall` proceeds as follows:
 
@@ -89,7 +91,7 @@ After Section 5.3 either finds a suitable existing committed agreement or comple
 
 The search-and-negotiation timeout and its pre-commit outcome are specified in Section 5.5.
 
-### 5.5 Search-and-negotiation timeout
+#### 5.5 Search-and-negotiation timeout
 
 **Agreed project decisions:** the timeout belongs to the `ExternalCall` search-and-negotiation mechanism, not to the transaction type. The calling pool supplies one shared timeout setting for all agreement searches and negotiations initiated by calls from that pool. It starts when automatic search begins and covers the complete procedure in Section 5.3, including candidate negotiations. Selecting another candidate does not restart it.
 
@@ -101,15 +103,17 @@ This is the intended process–pool contract, not a claim about implementation c
 
 **Open:** the convention that a value of `0` means an infinite timeout has been proposed but is not yet an agreed rule.
 
-## 6. Evidence and rationale
+## Part II. Relation to prior work
+
+### 6. Evidence and rationale
 
 This section records the evidence and reasoning behind the working model. Claim status and implementation coverage remain distinct, as defined in Section 1.
 
-### 6.1 Existing rationale for `ExternalCall`
+#### 6.1 Existing rationale for `ExternalCall`
 
 **Evidence:** [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls) records the current project contract for `ExternalCall`. Pool selection is specified separately in Section 5.
 
-### 6.2 Publication's cut/spawn rule
+#### 6.2 Publication's cut/spawn rule
 
 <a id="22-existing-rationale-publication-cutspawn-rule"></a>
 
@@ -122,7 +126,9 @@ Here `P` is the body of the process being spawned and `Q` is the original proces
 
 This rule establishes only the publication's cut/spawn semantics; its correspondence to OrgLang, including lifecycle and scheduling guarantees, remains **Open**. OrgLang's lowercase transaction-type `spawn` is a distinct protocol constructor guarded by positive committed allocation weight `Q(q)` and leaves `Q` unchanged; see [Pools and transaction types](../about-pools-and-transaction-types/README.md). The higher-level `ExternalCall` contract, including discovery, negotiation, incarnation creation, and provider-channel delivery, is defined in [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). The unfinished AST `SpawnSpec` and pool API `Spawn` are implementation representations, not substitutes for either language contract. Any correspondence between the publication's cut rule and transaction-level `spawn` remains **Open**.
 
-## 6.3 Implementation mapping
+## Part III. Implementation evidence and open questions
+
+### 6.3 Implementation mapping
 
 This section records how selected participant and channel concepts are represented in the inspected `orglang/go-engine` snapshot. These are implementation correspondences, not definitions of the OrgLang model and not claims of complete runtime conformance.
 
@@ -148,7 +154,7 @@ Relevant source locations:
 
 The shared binding fields are a join point between participant execution, communication exchange, and channel identity. Their co-location in one record does not make the corresponding identifiers interchangeable.
 
-## 7. Open questions and deferred topics
+### 7. Open questions and deferred topics
 
 The current contract provides no progress guarantee for pending calls: it specifies neither eventual service nor a time bound. The following questions remain open because their answers can change observable behavior or resource ownership.
 
