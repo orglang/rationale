@@ -21,7 +21,7 @@ The following contract is the canonical statement of intended language-level beh
 
 The rules below are the **working OrgLang contract adopted for this research draft**, independent of any current implementation. The detailed preconditions and commit-boundary rules follow in the operation-specific sections. This summary makes the shared model and the distinction between the two call forms explicit.
 
-A call is not merely a jump to a named body. It resolves a process definition, creates a fresh incarnation on success, and establishes which existing channel identities that incarnation owns. A channel's identity and **residual protocol state** are preserved when its binding is transferred; the transition changes which incarnation owns a binding, not the identity of the channel itself.
+A call is not merely a jump to a named body. It resolves a process definition, creates a fresh incarnation on success, and establishes which existing channel identities that incarnation owns. A channel's identity and **current protocol state** are preserved when its binding is transferred; the transition changes which incarnation owns a binding, not the identity of the channel itself.
 
 | Property | `ExternalCall` | `InternalCall` |
 |---|---|---|
@@ -39,7 +39,7 @@ A call is not merely a jump to a named body. It resolves a process definition, c
 1. **Fresh incarnation identity:** every created incarnation receives an identity never allocated before; identities are never reused.
 2. **Positional binding:** formal client-channel placeholders of the target are bound to the supplied channels in declaration order. The target provider placeholder is bound as described for the relevant call form.
 3. **Linearity and no aliasing:** distinct formal channel parameters map to distinct channel identities. For `InternalCall`, `X` and `Ys` together account for the invoking incarnation's complete channel environment.
-4. **Channel preservation:** transferred channels keep their identities and current residual protocol states; a call does not silently reset or advance a protocol.
+4. **Channel preservation:** transferred channels keep their identities and current current protocol states; a call does not silently reset or advance a protocol.
 5. **No partial visible transition:** observers see the pre-state or the specified committed post-state, not partially changed channel ownership.
 6. **Implementation independence:** these are intended language-level rules, not a claim that any existing implementation attempt completes them.
 
@@ -134,7 +134,7 @@ If a precondition fails before the transition commits—for example, the target 
 **Focused conformance tests to add:** The following are test obligations for the implementation, not claims that current tests already pass.
 
 1. **Complete transfer:** use a target with one provider placeholder and multiple client placeholders; assert the target receives the exact channel identities in declaration order and the old incarnation is no longer live.
-2. **Protocol-state preservation:** give each supplied channel a non-initial residual session state; assert the transition does not reset, advance, or replace that state.
+2. **Protocol-state preservation:** give each supplied channel a non-initial current session type; assert the transition does not reset, advance, or replace that state.
 3. **Fresh identity and non-reuse:** assert `Q` receives an identity never previously allocated, including identities of terminated incarnations; repeat transitions after termination to verify that no identity is reused.
 4. **Duplicate identity rejection:** supply the same channel identity twice, including the `X`/`Ys` overlap case; assert rejection leaves the pre-state unchanged.
 5. **Missing or extra channels:** mismatch the target's client-placeholder count; assert no partial binding and no live target incarnation.
