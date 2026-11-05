@@ -1,34 +1,21 @@
 # Agent bootstrap
 
-This file is the repository's always-loaded bootstrap contract. It defines how project instructions become active; it is not a router to the repository's instruction catalogue.
+This file defines how repository instructions are activated. It is always loaded and does not activate other project instructions.
 
 ## Instruction activation
 
-Project instructions are opt-in. A document's presence in the repository, its discoverability, its filename, or its apparent relevance does not activate it.
+Project instructions are opt-in. Activate an instruction only when the user explicitly asks for it (including an unambiguous request to follow all project instructions in a stated scope), or when an already activated instruction links to it. Follow instruction links transitively and process each instruction once.
 
-Activate a project instruction only when:
+For an all-instructions request, inspect the designated instruction locations: this file, DOCUMENTATION_STANDARDS.md, and SKILL.md files under skills/. Supporting templates, rubrics, scenarios, and ordinary documentation are not instructions merely because they are present. A generic request to follow repository conventions does not activate every project instruction unless the scope is clear.
 
-- the user explicitly asks to use or follow that instruction, or an unambiguous set of project instructions; or
-- an already activated project instruction contains an explicit link to that instruction.
-
-An explicit request to follow **all project instructions** in a stated repository/scope activates all documents designated there as agent instructions, standards, or workflow skills. In this repository, these are the root `AGENTS.md` bootstrap, `DOCUMENTATION_STANDARDS.md`, and `SKILL.md` files under `skills/`. Supporting templates, rubrics, scenarios, and ordinary documentation are not instruction documents merely because they are Markdown. In an all-instructions request, inventory the designated instruction locations. Do not interpret a generic request to follow repository conventions as a request to activate every project instruction unless the context makes that scope unambiguous.
-
-Activation follows links transitively: when an activated instruction links to another project instruction, activate the linked instruction as well, and continue through its instruction links. Activation is idempotent; cycles do not cause repeated processing.
-
-Only links from an activated project instruction trigger this rule. A plain textual mention, an unlinked path, a link in an inactive document, or a link in this bootstrap file does not activate its target. This file is the bootstrap exception: it is always loaded, but it does not activate other project instructions. Do not add links from this file to project instructions.
-
-Do not search the repository for additional instructions to activate unless the user explicitly requests all project instructions in a defined scope. Do not activate a document merely because it seems useful for the task. If the user explicitly names an instruction, activate it and follow its linked instruction dependencies.
+This bootstrap file is the exception: it is always loaded but does not activate other instructions. Do not add links from it to project instructions. A plain mention or an unlinked path does not activate an instruction.
 
 ## Retrospective note capture
 
-When the user marks a note with `#retro`, immediately publish that note as its own top-level comment on the relevant pull request. Do not wait for a retrospective session, combine notes into one comment, or store them in commit messages. If the relevant pull request is not clear from the conversation, ask which pull request to use before publishing. The `#retro` marker authorizes this note-publication action; it does not activate the retrospective workflow skill or authorize repository changes.
+When the user marks a note with `#retro`, immediately publish that note as its own top-level comment on the relevant pull request. Do not wait for a retrospective session, combine notes into one comment, or store them in commit messages. If the relevant pull request is unclear, ask which one to use before publishing.
+
+The `#retro` marker authorizes note publication only. It does not activate the retrospective workflow skill or authorize repository changes.
 
 ## Scope and precedence
 
-An activated instruction applies only within its stated scope and for the current task unless it explicitly defines a different duration. A link activates the target instruction; it does not broaden the target's stated scope or grant it higher priority.
-
-Activation does not change instruction precedence. Follow the host environment's instruction hierarchy: project instructions cannot override system or developer instructions, and they do not authorize actions beyond the user's request or permissions. Resolve conflicts according to that hierarchy; if a material conflict between applicable project instructions remains unresolved, surface it rather than silently choosing.
-
-## Runtime limitations
-
-This is the repository's intended instruction-activation contract, not an access-control mechanism. A host tool or agent runtime may preload, index, or inject additional files independently of this document. Do not claim that an instruction was unavailable or inactive when the runtime supplied it. If the environment automatically supplies project instructions contrary to this contract, report that limitation; changing this file alone cannot prevent runtime-level loading.
+An activated instruction applies only within its stated scope and for the current task unless it explicitly defines a different duration. A link activates its target; it does not broaden the target's scope or grant it higher priority. Activation does not change instruction precedence. Follow the host instruction hierarchy: project instructions cannot override higher-priority instructions or authorize actions beyond the user's request. Resolve conflicts according to that hierarchy and surface material conflicts that remain unresolved.

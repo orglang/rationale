@@ -33,11 +33,15 @@
 
 ## Evaluator-only acceptance criteria
 
-> Coordinator use only. This section is not part of the tested-agent task and must never be copied into a prompt, exposed in a tested-agent context, or used as a source link in a blind run.
+> Coordinator use only. This section is not part of the tested-agent task and must never be copied into a prompt, exposed in a tested-agent context, or used as a source link in the tested-agent task prompt.
 
 **Primary acceptance**
 - Recognizes the user-confirmed behavior as an accepted semantic change: after every candidate pool has been tried without matched `Down`, search remains active until the shared timeout expires rather than terminating immediately on candidate exhaustion.
-- Identifies the canonical owner of the search/timeout rule and updates it before dependent summaries or references.
+- Identifies `about-incarnations-and-channels/README.md`, Sections 5.3 and 5.5, as the canonical owner of candidate-exhaustion and shared-timeout behavior, and updates the normative rule there.
+- Finds the explicit immediate-termination summary in `about-transaction/README.md` and removes the stale timing claim, preferably by replacing it with a concise link to the canonical rule rather than reproducing that rule.
+- Leaves the no-result/channel-preservation summaries in `about-processes-and-session-types/README.md` unchanged where they remain accurate and do not specify immediate termination. Does not edit other candidate/negotiation mentions merely because they use the same terms.
+- Describes the resulting contract directly as current behavior. Does not preserve the previous rule as change-history prose or describe the new behavior merely as a transition from the old one. A negative formulation is acceptable when it expresses a real current constraint, but not as a substitute for a clear statement of the new behavior.
+- Limits edits to the canonical rule and genuinely dependent normative material. Distinguishes normative statements that must be corrected from incidental mentions, navigation references, and context that remain accurate. Does not copy the new rule into every document that mentions ExternalCall or candidate exhaustion.
 - Traces the effect on `ExternalCall` completion and timeout behavior without broadening unrelated negotiation, cancellation, or servicing rules.
 - Preserves the distinction between candidate exhaustion and timeout expiry. The revised outcome at expiry remains “no result” if no suitable agreement has been found or committed.
 - Uses change management, semantic specification, and semantic verification for their distinct responsibilities; verification checks the result but does not make the semantic decision.
@@ -48,7 +52,11 @@
 - Verify that the revised rule says the search remains active through the remainder of the shared timeout after all candidates are exhausted.
 - Verify that timeout expiry without a suitable existing agreement or matched-`Down` commit still terminates without a result and does not create an incarnation or provider channel.
 - Check that the diff does not imply a new candidate, repeat attempt, retry policy, progress guarantee, fairness guarantee, or restart behavior after exhaustion.
-- Check dependent materials for stale statements and changed links; verify canonical ownership rather than duplicating the full procedure in unrelated documents.
+- Check `about-transaction/README.md` for the stale immediate-termination timing claim and ensure it no longer conflicts with the canonical rule.
+- Verify that the no-result/channel-preservation statements in `about-processes-and-session-types/README.md` remain accurate and are not needlessly rewritten; do not propagate the timing change into unrelated pool/transaction descriptions.
+- Check dependent normative materials for stale or contradictory statements and changed links. Do not rewrite incidental mentions or duplicate the canonical rule where a link or brief context is sufficient.
+- Check that the final normative text states the current behavior directly and contains no unnecessary account of the previous wording or behavior.
+- Check that edits are limited to the canonical owner and dependent material whose meaning would otherwise be inaccurate; unchanged contextual mentions remain untouched.
 - Check the response distinguishes an independent verification performed from the author's own reasoning or the mere presence of a diff.
 
 **Expert review**
@@ -69,7 +77,7 @@ Apply only checks relevant to the response and any proposed diff:
 - **Scope:** changed paths are justified by the task; no unrelated files or unrequested implementation work.
 - **Canonical ownership:** normative statements are changed at their canonical owner; dependent documents refer to or accurately reflect that owner.
 - **No semantic inflation:** no new retry, fairness, scheduling, liveness, rollback, error-reporting, or implementation guarantee is added unless the pinned source or explicit user decision supports it.
-- **Truthful reporting:** distinguish files read, searches attempted, checks actually run, proposed diffs, and applied changes. The tested agent has no source-repository write access; a diff in its response is a proposal, not an applied repository change.
+- **Truthful reporting:** distinguish files read, searches attempted, checks actually run, proposed diffs, and applied changes. A diff in the response is a proposal, not an applied repository change, unless application is independently confirmed.
 - **Structural integrity:** changed Markdown remains structurally valid and changed relative links resolve in the pinned snapshot.
 - **No false automation:** a coordinator's post-check does not retroactively mean the tested agent ran that check.
 
