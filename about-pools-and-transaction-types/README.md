@@ -7,9 +7,10 @@
 **Scope and document boundaries**
 
 - This document owns the technical model of pools and transaction types, including the pool's public transaction channel and its protocol.
-- [Processes and session types](../about-processes-and-session-types/README.md) owns the shared participant/channel model, pool eligibility, search order, process-incarnation creation, pool binding, and the start of servicing.
+- [Processes and session types](../about-processes-and-session-types/README.md) owns process declarations, definitions, and process-channel protocols.
+- [Calls and spawns](../about-calls-and-spawns/README.md) owns named-process invocation, process-incarnation creation, channel transfer, and the generic creation semantics at the boundary with pool-level spawning.
 - The root [README](../README.md) provides an accessible introduction and motivating example.
-- [Processes and session types](../about-processes-and-session-types/README.md) owns process expressions and the intended semantics of `ExternalCall` and `InternalCall`.
+- [Calls and spawns](../about-calls-and-spawns/README.md) owns the intended semantics of `ExternalCall` and `InternalCall`; this document retains the pool-selection and transaction-protocol rules those calls rely on.
 
 **Shared terminology:** see the [OrgLang glossary](../GLOSSARY.md).
 
@@ -29,7 +30,7 @@ A transaction is the pool-to-pool interaction; its transaction type is the proto
 
 The public and private transaction channels are physically distinct representations of one logical transaction channel. They share its logical identity and transaction type, but have distinct physical identities. A matched `Up` creates a new private physical channel; matched `Down` commits its allocation state. The detailed matching, commit, and cancellation lifecycle is specified in [Incarnations and channels](../about-incarnations-and-channels/README.md#4-publication-subscription-and-matching) and Section 2.1 below.
 
-The provider/client endpoints are the two participant-relative sides of the shared transaction channel. Do not conflate the pool's public transaction channel with a process incarnation's provider channel; the latter is defined in [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls).
+The provider/client endpoints are the two participant-relative sides of the shared transaction channel. Do not conflate the pool's public transaction channel with a process incarnation's provider channel; the latter is defined in [Calls and spawns](../about-calls-and-spawns/README.md#1-intended-semantics-of-named-process-calls).
 
 The exact OrgLang syntax, checking rules, and runtime enforcement for transaction-type refinements remain **Open**. The current project direction is that the public channel type does not use refinements, while the private channel type may use refinement session types.
 

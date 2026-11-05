@@ -22,7 +22,7 @@ Implementation identifiers are not model terms. Their observed correspondence to
 | **Process declaration** | The interface of a named process, including its channel parameters. | [Processes and session types, §4](about-processes-and-session-types/README.md#4-process-declarations-and-definitions) |
 | **Process definition** | The body or expression specifying the behavior of a named process. | [Processes and session types, §4](about-processes-and-session-types/README.md#4-process-declarations-and-definitions) |
 | **Process incarnation** | One concrete running instance of a process. The current model assigns each incarnation a never-reused identity. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
-| **Servicing pool** | The pool associated with a process incarnation and responsible for servicing its provider channel. | [Processes and session types, §7](about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls) |
+| **Servicing pool** | The pool associated with a process incarnation and responsible for servicing its provider channel. | [Calls and spawns, §1](about-calls-and-spawns/README.md#1-intended-semantics-of-named-process-calls) |
 
 ## Channels and interactions
 
@@ -52,7 +52,7 @@ Implementation identifiers are not model terms. Their observed correspondence to
 | **Session type** | The protocol governing communication on a process channel, described from the provider endpoint's point of view. | [Processes and session types, §2, §6](about-processes-and-session-types/README.md#6-session-types-the-protocol-for-a-channel) |
 | **Residual protocol state** | The part of a transaction or session protocol remaining after prior interaction steps. | [Processes and session types, §2–3](about-processes-and-session-types/README.md#2-core-concepts) |
 | **Agreement** | The committed allocation state associated with a logical transaction channel and accepted by its participating pools. | [Pools and transaction types, §2.1](about-pools-and-transaction-types/README.md#21-negotiation-protocol-and-established-agreement) |
-| **Process allocation function (`Q`)** | The per-logical-transaction-channel function assigning non-negative allocation weights to process names in the provider pool's competence set. | [Pools and transaction types, §4](about-pools-and-transaction-types/README.md#formal-grammar-and-state-indexed-rules) |
+| **Process allocation function (`Q`)** | The per-logical-transaction-channel function assigning non-negative allocation weights to process names in the provider pool's competence set. | [Calls and spawns, §2](about-calls-and-spawns/README.md#2-process-spawning-and-the-pool-protocol); [Pools and transaction types, §4](about-pools-and-transaction-types/README.md#formal-grammar-and-state-indexed-rules) |
 | **Allocation state** | The value of `Q` at a particular point in a private-channel access; it may be committed or uncommitted. | [Pools and transaction types, §2.1](about-pools-and-transaction-types/README.md#21-negotiation-protocol-and-established-agreement) |
 | **`Coop`** | A model-level allocation operation that increases the allocation weight for a named process. | [Pools and transaction types, §4](about-pools-and-transaction-types/README.md#formal-grammar-and-state-indexed-rules) |
 | **`Hire` / `Apply`** | The two participant-side forms corresponding to the single model operation `Coop`; they are not separate model operations. | [Pools and transaction types, §4](about-pools-and-transaction-types/README.md#formal-grammar-and-state-indexed-rules) |
@@ -60,7 +60,7 @@ Implementation identifiers are not model terms. Their observed correspondence to
 | **`Fire` / `Quit`** | The two participant-side forms corresponding to the single model operation `Isol`; they are not separate model operations. | [Pools and transaction types, §4](about-pools-and-transaction-types/README.md#formal-grammar-and-state-indexed-rules) |
 | **`ExternalCall`** | A named-process call that obtains service through pool selection and delivers a fresh provider channel to the caller. | [Processes and session types, §7](about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls) |
 | **`InternalCall`** | A named-process call that creates a fresh incarnation in the invoking incarnation's pool and transfers its complete channel environment to it. | [Processes and session types, §7](about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls) |
-| **Call** | The umbrella term for `ExternalCall` and `InternalCall`. | [Processes and session types, §5, §7](about-processes-and-session-types/README.md) |
+| **Call** | The umbrella term for `ExternalCall` and `InternalCall`. | [Processes and session types, §5](about-processes-and-session-types/README.md); [Calls and spawns, §1](about-calls-and-spawns/README.md#1-intended-semantics-of-named-process-calls) |
 | **`spawn`** | A transaction-type constructor permitting process spawning only when its allocation weight on the relevant channel is positive; it does not itself change `Q`. | [Pools and transaction types, §4](about-pools-and-transaction-types/README.md#formal-grammar-and-state-indexed-rules) |
 
 ## Related implementation terminology
