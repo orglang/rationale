@@ -192,9 +192,9 @@ The initial comparison should cover:
 
 **Open:** whether these publication constructs correspond one-to-one to OrgLang constructs. Similar names or matching notation are not sufficient evidence.
 
-## 8. Implementation concretization and evidence
+## 8. Implementation mapping and evidence
 
-Implementation conformance has not been established by this document. This section records **implementation concretizations**: observed correspondences between pool/transaction model concepts and `go-engine` structures or execution paths. They are specific to the inspected source snapshot and do not make implementation details normative or establish complete semantic conformance.
+Implementation conformance has not been established by this document. This section records **implementation mappings**: observed correspondences between pool/transaction model concepts and `go-engine` structures or execution paths. They are specific to the inspected source snapshot and do not make implementation details normative or establish complete semantic conformance.
 
 | Path / symbol | Observed behavior | What this establishes | What remains unverified |
 |---|---|---|---|
