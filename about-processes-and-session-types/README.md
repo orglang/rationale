@@ -92,7 +92,7 @@ Use one row for each proposed correspondence. **Mapping status** reports corresp
 | `InternalCall` | No equivalent established | `LinkSpec` (implementation AST spelling `Link`) | Unresolved | Agreed intended behavior transfers all channels bound to the invoking incarnation into a fresh incarnation and semantically terminates the old incarnation; no complete adapter/executor path was found. |
 | Send/publish action (`pub`) | `msg` | `PubRec`, `ValExp` | Provisional | The names align with the send/message side in the described forwarding trace; end-to-end state semantics remain open. |
 | Service/wait action (`sub`) | `srv` | `SubRec`, `ContExp` | Provisional | The names align with the service/waiting side in the described forwarding trace; end-to-end state semantics remain open. |
-| type continuation | Remaining interactions described by the session type | Type-continuation value / checker context (`LinearVars`) | Unresolved | Conceptual correspondence only; state-update invariants remain open. |
+| **Type continuation** | Remaining interactions described by the session type | Type-continuation value / checker context (`LinearVars`) | Unresolved | Conceptual correspondence only; state-update invariants remain open. |
 Record mismatches among OrgLang terminology, publication terminology, and implementation names. Treat these terms as synonyms only when evidence supports the mapping. Intended behavior is described in Section 7; implementation findings and remaining questions are separated in Part III.
 
 
@@ -420,7 +420,7 @@ The detailed acceptance tests below are the proposed validation target; they are
 
 For process-channel matching, the same suite should include these focused cases:
 
-- **`Send`/`Recv`:** test sender-first and receiver-first arrival. After the first operation, assert a pending action with no completed transfer, session-type advancement, or continuation eligibility. After the matching operation, assert one completed transfer, the shared type continuation effect, and each participant's own continuation behavior.
+- **`Send`/`Recv`:** test sender-first and receiver-first arrival. After the first operation, assert a pending action with no completed transfer, type-continuation advancement, or process-continuation eligibility. After the matching operation, assert one completed transfer, the shared type continuation effect, and each participant's own continuation behavior.
 - **`Close`/`Wait`:** test both arrival orders and the unmatched boundary. After matching, assert that the interaction completes, the provider has no executable continuation, and the client's enclosing continuation becomes eligible only if supplied.
 - **`Fwd`:** test forwarding redirection separately from the data transfer it redirects. Assert that matching a forwarding message with a waiting service changes the service's destination but does not complete the sender's data communication; that communication completes only when the sender's message matches the redirected service. Add polarity, one-shot consumption, and linear-endpoint-preservation cases as the constructor-specific rule is formalized.
 - **Cross-constructor isolation:** verify that matching on one channel does not advance another channel's type continuation or make an unrelated continuation eligible.
