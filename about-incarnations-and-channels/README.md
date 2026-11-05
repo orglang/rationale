@@ -122,7 +122,7 @@ Here `P` is the body of the process being spawned and `Q` is the original proces
 
 This rule establishes only the publication's cut/spawn semantics; its correspondence to OrgLang, including lifecycle and scheduling guarantees, remains **Open**. OrgLang's lowercase transaction-type `spawn` is a distinct protocol constructor guarded by positive committed allocation weight `Q(q)` and leaves `Q` unchanged; see [Pools and transaction types](../about-pools-and-transaction-types/README.md). The higher-level `ExternalCall` contract, including discovery, negotiation, incarnation creation, and provider-channel delivery, is defined in [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). The unfinished AST `SpawnSpec` and pool API `Spawn` are implementation representations, not substitutes for either language contract. Any correspondence between the publication's cut rule and transaction-level `spawn` remains **Open**.
 
-## 6.3 Implementation concretization
+## 6.3 Implementation mapping
 
 This section records how selected participant and channel concepts are represented in the inspected `orglang/go-engine` snapshot. These are implementation correspondences, not definitions of the OrgLang model and not claims of complete runtime conformance.
 
