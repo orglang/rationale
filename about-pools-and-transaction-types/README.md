@@ -33,7 +33,7 @@ The provider/client endpoints are the two participant-relative sides of the shar
 
 The exact OrgLang syntax, checking rules, and runtime enforcement for transaction-type refinements remain **Open**. The current project direction is that the public channel type does not use refinements, while the private channel type may use refinement session types.
 
-##### 2.1 Negotiation protocol and established agreement
+#### 2.1 Negotiation protocol and established agreement
 
 The current model has three related concepts:
 
@@ -43,7 +43,7 @@ The current model has three related concepts:
 
 For the discovery and negotiation sequence, including the point at which incarnation creation may begin, see [Incarnations and channels, Sections 5.3–5.4](../about-incarnations-and-channels/README.md#53-search-and-agreement-negotiation).
 
-### What the formal transaction-type model establishes
+#### What the formal transaction-type model establishes
 
 The grammar in the [transaction introduction](../about-transaction/README.md) gives evidence for a **state-indexed protocol**:
 
@@ -56,7 +56,7 @@ The grammar in the [transaction introduction](../about-transaction/README.md) gi
 
 **Agreed working model:** the public channel type has no refinements; the private channel type may express refinements, with `Q` as the runtime value providing evidence for a relevant condition (for example, `Q(q) > 0`). `Q` exists in the context of private channels and changes with the corresponding channel's process-allocation-function value. `Q'` is only notation for that value during an uncommitted private-channel access, not a separate function or stored field. How `Q` is physically stored or associated with a private channel remains **Open**.
 
-### Agreement lifecycle: current contract and missing rules
+#### Agreement lifecycle: current contract and missing rules
 
 | Stage | Current project contract | Still unspecified |
 |---|---|---|
@@ -69,7 +69,7 @@ The grammar in the [transaction introduction](../about-transaction/README.md) gi
 | Service activation | Only after a suitable existing agreement is found or a new one is successfully established does the engine create the incarnation and deliver the provider channel. | Resource reservation/consumption semantics and failure handling between agreement establishment and channel delivery. |
 
 
-### Questions required to complete the agreement model
+#### Questions required to complete the agreement model
 
 - How is `Q` physically represented or associated with a private channel? The current model does not decide whether it is stored within the channel or represented separately.
 - What exact formal syntax and typing judgment express the transaction type's protocol and its dependent state index `Q`?
@@ -97,7 +97,7 @@ The companion [transaction introduction](../about-transaction/README.md) present
 | How are pool-state constraints formalized in the type system? | **Agreed working model:** constraints expressed by transaction types are checked statically, using the current `Q` and accounting for preceding `Coop` and `Isol` transitions. | The exact typing judgment and formal rules remain to be specified. |
 
 
-### Per-channel allocation state
+#### Per-channel allocation state
 
 The transaction-type grammar is state-indexed: `Coop` and `Isol` transition the process allocation function associated with the shared transaction channel, while `spawn` requires a positive allocation weight for the requested process. The canonical definition of the function, its initialization, allocation weights, and transition side conditions are in [What is a transaction?](../about-transaction/README.md#типы-ограничения-уточнения).
 
@@ -119,7 +119,7 @@ This pool-level protocol is distinct from a process's provider channel and from 
 
 This section records the agreed minimal language-level decisions for matching and continuation behavior, while leaving a complete operational semantics unfinished. The decisions below specify when the protocol transition counts as occurring; they do not establish implementation correctness, complete typing rules, failure semantics, or every state transition.
 
-##### 6.1 Minimal transaction-type constructors
+#### 6.1 Minimal transaction-type constructors
 
 **Status: Project semantic decisions, with formalization still open.** The matching points, shared channel-identity rules, and participant-specific continuation obligations recorded below are adopted language-level requirements. Their complete typing judgments, operational rules, and implementation conformance are not yet established; this research document is not itself the normative language specification.
 
@@ -133,7 +133,7 @@ A transaction type describes the protocol exposed by a pool through its public t
 
 The operation names above are implementation identifiers, not proposed surface syntax. The pool-side operation declarations are in [`pool/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/main/pool/termexp/core/core.go); the process-side declarations are in [`proc/termexp/core/core.go`](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/proc/termexp/core/core.go). These declarations support the provider/client operation mapping, but by themselves do not establish the runtime transition order or full language semantics.
 
-##### 6.2 Matched transitions, continuations, and channel identity
+#### 6.2 Matched transitions, continuations, and channel identity
 
 The general paired-interaction principle is defined in [Incarnations and channels](../about-incarnations-and-channels/README.md#2-common-matching-principle). This section specifies its pool-specific consequences:
 
@@ -176,7 +176,7 @@ The [transaction introduction](../about-transaction/README.md) presents the OrgL
 
 The project uses those ideas as the basis for its transaction-type interpretation. The correspondence between the publication's channel actions and OrgLang's transaction operations is therefore a model-level analogy, not a rule stated directly by the publication. The OrgLang language-level operation model additionally requires each side of `Down`—provider-side `detach` and client-side `release`—to carry its own participant-specific `ContExp`. These expressions need not be identical: the provider continuation is checked against `A`, and the client continuation against the corresponding client-side protocol type. This is a language-level requirement, not a claim that the current runtime operation structs already expose those fields. The publication table's send/accept wording also should not be equated mechanically with the current runtime operation names (`accept`/`acquire`, `detach`/`release`) without an explicit role and polarity mapping.
 
-### Initial constructor/role correspondence table
+#### Initial constructor/role correspondence table
 
 The table below separates the publication model's token polarity from OrgLang's current provider/client operation names. It is a working correspondence, not a claim that the runtime implementation already conforms.
 
@@ -231,7 +231,7 @@ The [`TestPool` / `waitClose` example](https://github.com/orglang/go-engine/blob
 | How are transaction identifiers allocated and related to process channel identities? | Identity uniqueness, resource ownership, and safe continuation substitution. | Identity contract and source/test evidence for allocation and substitution. |
 | Which implementation paths establish conformance? | Confidence that intended protocol rules are executable. | Source-level trace and tests with observable assertions for each agreed rule. |
 
-### Minimum conformance test matrix
+#### Minimum conformance test matrix
 
 The following is an acceptance target for the adopted semantics, not a description of tests already present. Each pending case should be tested with both endpoint arrival orders, and each matched case should assert the observable post-state rather than only the absence of an API error.
 
