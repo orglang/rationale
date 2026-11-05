@@ -27,7 +27,7 @@ Under the current language-level working model, creating a fresh incarnation is 
 
 `Call` is the umbrella term for the two named-process call forms, `ExternalCall` and `InternalCall`.
 
-### How to read status labels
+#### How to read status labels
 
 Use the same claim-status vocabulary as the canonical [Processes and session types](../about-processes-and-session-types/README.md#1-scope-and-evidence) document:
 
