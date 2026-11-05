@@ -5,12 +5,12 @@
 
 ## Decisions
 
-1. Move the previous AWF scenarios out of the active test set and preserve them unchanged in an archive. Do not delete their history or reuse their IDs for new scenarios.
-2. Add and validate new scenarios strictly **one at a time**. Do not draft or queue a batch of future scenarios.
+1. Keep the existing AWF scenarios in place as regression coverage and historical comparators. Do not delete or rewrite them, or reuse their IDs for new scenarios.
+2. Add and validate any new scenario strictly **one at a time**. Do not draft or queue a batch of future scenarios.
 3. Do not start a new scenario until the current one has a documented calibration result and an explicit keep/revise/retire decision.
 4. Do not assign a stable AWF ID until the scenario fixture is complete, source-grounded, and passes setup validation.
 
-The existing AWF-001, AWF-003, AWF-004, and AWF-007 results remain historical evidence. Their near-ceiling scores mean they are not useful primary stress tests; they should not be silently discarded or rewritten.
+The existing AWF-001, AWF-003, AWF-004, and AWF-007 results remain historical evidence. Their near-ceiling scores mean they are not useful primary stress tests, but they remain available as regression smoke tests.
 
 ## One-at-a-time workflow
 
