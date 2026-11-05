@@ -100,7 +100,7 @@ One timeout supplied by the calling pool covers the complete discovery-and-negot
 
 #### Formal grammar and state-indexed rules
 
-The following grammar records the pool-specific values, continuations, and transaction-type constructors. The abstract term syntax, identifiers, placeholders, and publication/subscription mechanism are defined in [Processes and session types](../about-processes-and-session-types/README.md).
+The following grammar records the pool-specific values, continuations, and transaction-type constructors. The abstract term syntax, identifiers, placeholders, and publication/subscription mechanism are defined in [Incarnations and channels](../about-incarnations-and-channels/README.md).
 
 | Значение *V*  | Семантика |
 | :-----------  | :-------- |

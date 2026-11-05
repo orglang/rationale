@@ -443,7 +443,7 @@ In the implementation, `proc/compexec/core/core.go` loads the current execution 
 
 #### How to read the correspondence table
 
-The table records which session-type constructor the inspected checker expects for each process operator. “Provider-side” and “client-side” identify the channel roles defined in [Incarnations and channels, Section 3](../about-incarnations-and-channels/README.md#3-channels-and-endpoints). A match in this table is evidence about the checker; the full language rule requires separate semantic evidence.
+The table records which session-type constructor the inspected checker expects for each process operator. “Provider-side” and “client-side” identify the process-channel roles defined in [Section 2](#2-core-concepts). A match in this table is evidence about the checker; the full language rule requires separate semantic evidence.
 | Process operator | Provider-side expectation | Client-side expectation | Implementation evidence |
 |---|---|---|---|
 | `Send` | `Tensor` | `Lolli` | Confirmed as an observation about the inspected checker |

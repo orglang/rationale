@@ -68,7 +68,7 @@ This section establishes only the general vocabulary of type expressions, connec
 
 ### 8. Continuation-based communication
 
-The abstract distinction between a published value and a continuation waiting to consume it follows the general channel-and-continuation style used in the supplied session-types literature. In that style, communication supplies a value, and applying that value to a continuation determines the next term through pattern selection and substitution.
+The abstract distinction between a published value and a continuation waiting to consume it follows the general channel-and-continuation style used in the supplied channel-calculus literature. In that style, communication supplies a value, and applying that value to a continuation determines the next term through pattern selection and substitution.
 
 This correspondence is a source of conceptual structure, not a claim that the publication defines OrgLang's concrete value constructors or language semantics.
 
