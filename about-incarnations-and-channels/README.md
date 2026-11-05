@@ -47,14 +47,7 @@ Process-channel constructors and their typing rules are recorded in [Processes a
 
 A **participant** is a process incarnation or pool taking part in a channel interaction. Each participant has exactly one provider channel and may have any number of client channels. This cardinality rule applies to all channels in the model. Provider and client describe the participant's role on a channel: the same channel is the provider channel for one participant and a client channel for the other.
 
-The following concepts distinguish participant and endpoint roles:
-
-- **Process incarnation:** a particular instance of a process body.
-- **Provider endpoint:** the side of a channel belonging to the participant that provides the service.
-- **Client endpoint:** the side of that channel belonging to the participant that uses the service.
-- **Provider channel:** a channel viewed from the participant that provides on it; its endpoint for that participant is the provider endpoint.
-- **Client channel:** a channel viewed from the participant that uses it; its endpoint for that participant is the client endpoint. The same channel is the provider channel for one participant and a client channel for the other; these labels describe relative roles of a single channel resource.
-- **Servicing pool:** the pool associated with the incarnation and responsible for servicing its provider channel.
+Use the [OrgLang glossary](../GLOSSARY.md) for the shared definitions of participant, process incarnation, endpoint, provider/client channel, and servicing pool. The key model relationship is role-relative: one physical channel connects two participants, and the same channel is the provider channel for one participant and the client channel for the other. The participant has exactly one provider channel and may have any number of client channels. A process incarnation's servicing pool is the pool responsible for servicing that incarnation's provider channel.
 
 ### 3.1 The process–pool boundary
 
