@@ -73,9 +73,9 @@ Use the [OrgLang glossary](../GLOSSARY.md) for shared definitions of processes, 
 
 Named-process invocation and incarnation creation are specified canonically in [Calls and spawns](../about-calls-and-spawns/README.md). Every incarnation receives a never-reused identity; this is a model-wide identity policy. An environment or substitution associates channel placeholders with the relevant channel resources or endpoints.
 
-For session types, the **provider endpoint** supplies the reference perspective; checking the **client endpoint** accounts for the complementary actions it permits. The request/response example and the evolution of the current session type is illustrated in Section 3.
+For session types, the **provider endpoint** supplies the reference perspective; checking the **client endpoint** accounts for the complementary actions it permits. The request/response example and the evolution of the type continuation is illustrated in Section 3.
 
-**Linearity** is the channel usage/ownership discipline. **Model invariant:** channel bindings are non-aliasing: distinct bound channel placeholders refer to distinct channel identities. Consequently, distinct formal channel parameters supplied to a call must map to distinct existing channel identities. The no-alias property is a global assumption of the OrgLang model. `InternalCall` transfers every binding in the environment, so completeness is determined by the full environment. More generally, **normal completion** of a process is permitted only when its current session types permit completion and all linear obligations have been discharged; the inspected type checker rejects a normal-completion attempt while a provider-channel session type remains unfinished; this is an implementation observation, not yet a complete formal language rule. This is distinct from `InternalCall`, whose agreed semantics terminate the old incarnation by transferring its complete channel environment to a replacement incarnation. That transition is not evidence that the transferred protocols are finished. The full linearity invariant and its application across constructs remain open; do not infer them solely from `InternalCall`.
+**Linearity** is the channel usage/ownership discipline. **Model invariant:** channel bindings are non-aliasing: distinct bound channel placeholders refer to distinct channel identities. Consequently, distinct formal channel parameters supplied to a call must map to distinct existing channel identities. The no-alias property is a global assumption of the OrgLang model. `InternalCall` transfers every binding in the environment, so completeness is determined by the full environment. More generally, **normal completion** of a process is permitted only when its type continuations permit completion and all linear obligations have been discharged; the inspected type checker rejects a normal-completion attempt while a provider-channel session type remains unfinished; this is an implementation observation, not yet a complete formal language rule. This is distinct from `InternalCall`, whose agreed semantics terminate the old incarnation by transferring its complete channel environment to a replacement incarnation. That transition is not evidence that the transferred protocols are finished. The full linearity invariant and its application across constructs remain open; do not infer them solely from `InternalCall`.
 
 
 #### Terminology correspondence: OrgLang, publication, and implementation
@@ -92,7 +92,7 @@ Use one row for each proposed correspondence. **Mapping status** reports corresp
 | `InternalCall` | No equivalent established | `LinkSpec` (implementation AST spelling `Link`) | Unresolved | Agreed intended behavior transfers all channels bound to the invoking incarnation into a fresh incarnation and semantically terminates the old incarnation; no complete adapter/executor path was found. |
 | Send/publish action (`pub`) | `msg` | `PubRec`, `ValExp` | Provisional | The names align with the send/message side in the described forwarding trace; end-to-end state semantics remain open. |
 | Service/wait action (`sub`) | `srv` | `SubRec`, `ContExp` | Provisional | The names align with the service/waiting side in the described forwarding trace; end-to-end state semantics remain open. |
-| current session type | Remaining interactions described by the session type | Current session-type value / checker context (`LinearVars`) | Unresolved | Conceptual correspondence only; state-update invariants remain open. |
+| type continuation | Remaining interactions described by the session type | Type-continuation value / checker context (`LinearVars`) | Unresolved | Conceptual correspondence only; state-update invariants remain open. |
 Record mismatches among OrgLang terminology, publication terminology, and implementation names. Treat these terms as synonyms only when evidence supports the mapping. Intended behavior is described in Section 7; implementation findings and remaining questions are separated in Part III.
 
 
@@ -100,7 +100,7 @@ Record mismatches among OrgLang terminology, publication terminology, and implem
 
 ### 3. A small example: following a channel
 
-Imagine two processes that communicate over one channel. The **current session type** is the remaining interaction sequence at the channel's current point. A session type is expressed from the provider endpoint's point of view; the client performs the complementary actions. The table describes what each side does as the session type advances.
+Imagine two processes that communicate over one channel. The **type continuation** is the remaining interaction sequence at the channel's current point. A session type is expressed from the provider endpoint's point of view; the client performs the complementary actions. The table describes what each side does as the type continuation advances.
 
 - **Before the request:**
   - Client: next, send request; then receive response and finish.
@@ -111,7 +111,7 @@ Imagine two processes that communicate over one channel. The **current session t
 - **After the response is transferred:** both endpoints have only finishing left.
 - **Session finished:** both endpoints are finished.
 
-The arrows mean “then” and serve as explanatory notation for the sequence of actions; they are not OrgLang syntax. “Transferred” means both matching send/receive actions have taken place. Starting one side's action alone does not count as transfer. This is a conceptual trace showing how the current session type advances as each side performs its permitted action. A channel is not just a wire carrying arbitrary messages: its session type limits which interaction is allowed next.
+The arrows mean “then” and serve as explanatory notation for the sequence of actions; they are not OrgLang syntax. “Transferred” means both matching send/receive actions have taken place. Starting one side's action alone does not count as transfer. This is a conceptual trace showing how the type continuation advances as each side performs its permitted action. A channel is not just a wire carrying arbitrary messages: its session type limits which interaction is allowed next.
 
 **Connection to the implementation vocabulary:** at the process-expression level, the request and response correspond conceptually to complementary `Send`/`Recv` actions, followed by the session type's terminal actions. Section 10 records the observed checker correspondence for `Send`, `Recv`, and `One`. The concrete OrgLang session-type expression is omitted because the exact typing rules and context updates remain to be established. Channel transfer (`Tensor`/`Lolli`) and labelled choice (`Plus`/`With`) are separate session-type forms discussed in Section 6.
 ### 4. Process declarations and definitions
@@ -126,7 +126,7 @@ Keep three categories distinct in operation contracts:
 
 - **Static obligation:** a property decidable from the program version and its available typing/name information at the admission boundary. Examples include arity, positional correspondence, and type compatibility when the relevant definitions and channel identities are statically known.
 - **Runtime precondition:** a condition that depends on the current execution state or on a resource allocated during execution, such as whether a fresh incarnation can be created or whether a newly allocated identity is fresh.
-- **Transition invariant:** a property that must hold across a successful state transition, such as preserving channel identity and session-type state or preventing observers from seeing a partial transition.
+- **Transition invariant:** a property that must hold across a successful state transition, such as preserving channel identity and type continuation or preventing observers from seeing a partial transition.
 
 A condition belongs to the static category only when it is decidable at the specified admission boundary. If a target definition is introduced dynamically, its availability can be checked statically for the resulting program version at the point that version is admitted; availability at some later execution point must not be assumed without a corresponding versioning rule. Likewise, allocating a fresh runtime resource is not itself a static check, even if freshness is a required runtime invariant.
 
@@ -147,7 +147,7 @@ The repository also contains AST constructors for `Spawn`, `Acqure`, `Accept`, `
 
 ### 6. Session types for a channel
 
-A session type describes the interactions permitted by the session type from the provider endpoint's point of view; the type checker accounts for the client role when checking the other endpoint (Section 2). For the request/response example and the progression of the current session type, see Section 3.
+A session type describes the interactions permitted by the session type from the provider endpoint's point of view; the type checker accounts for the client role when checking the other endpoint (Section 2). For the request/response example and the progression of the type continuation, see Section 3.
 
 A session type can also describe the transfer of a channel between processes. The sender gives the other process a channel it can use to communicate; the receiver gains access to that channel for the rest of its process. The implementation names the relevant session-type forms `Tensor` and `Lolli`. At a high level, these are the two complementary forms used to describe channel transfer together with the session type that remains after the transfer. Section 9 records the observed polarity assignments and checker coverage; Section 10 describes the typing interface.
 
@@ -169,7 +169,7 @@ The canonical language-level contract for `ExternalCall`, `InternalCall`, and pr
 
 **Agreed project decision — one-shot forwarding under linearity:** `Fwd` redirects one interaction once and must not duplicate a linear endpoint. The publication's Example 9 illustrates redirection of an existing interaction.
 
-If neither channel has a pending interaction, `Fwd` may initiate the forwarding-side operation on the corresponding endpoint according to forwarding direction and polarity. This initiation may create a pending forwarding record; it does not, by itself, complete the interaction being forwarded or advance that interaction's current session type. Completion still requires the corresponding operation on the other side to match. The exact mapping between polarity, side, and channel state remains open. The model rules out both channels having a pending interaction simultaneously.
+If neither channel has a pending interaction, `Fwd` may initiate the forwarding-side operation on the corresponding endpoint according to forwarding direction and polarity. This initiation may create a pending forwarding record; it does not, by itself, complete the interaction being forwarded or advance that interaction's type continuation. Completion still requires the corresponding operation on the other side to match. The exact mapping between polarity, side, and channel state remains open. The model rules out both channels having a pending interaction simultaneously.
 
 **Implementation observation:** the inspected executor has paths for positive and negative polarity, but this does not establish that every path is reachable or correct. Neutral polarity takes an unexpected-polarity error path; a negative-polarity branch has a type-mismatch TODO; and the existing e2e `fwd` test has no result assertion. The pending-turn lookup checks `CommChnlPH`; handling a turn pending only on the other channel is unverified. The implementation therefore does not yet establish the complete transition contract.
 
@@ -188,7 +188,7 @@ The following is a **review matrix, not a transition rule**. “Channel A” and
 | Neutral | Any state allowed by the model | **Open** | Decide whether neutral polarity is unreachable, invalid, or has defined behavior. The current executor error is implementation evidence, not a language rule. |
 | Any | Both A and B have pending interactions | Excluded by current model | Preserve the existing model constraint unless new evidence or an explicit decision revises it. |
 
-For every allowed row, the rule and tests should establish that the interaction is redirected at most once, neither linear endpoint is duplicated, and the resulting continuation agrees with the current session types. Tests should assert observable results and relevant channel/pending-state invariants; merely executing the `Fwd` path is insufficient.
+For every allowed row, the rule and tests should establish that the interaction is redirected at most once, neither linear endpoint is duplicated, and the resulting continuation agrees with the type continuations. Tests should assert observable results and relevant channel/pending-state invariants; merely executing the `Fwd` path is insufficient.
 
 
 #### Operation index
@@ -307,7 +307,7 @@ One concrete source discrepancy exists in `pool/typeexp/core/tc.go`: the `DownSp
 
 #### What type checking does
 
-Before an expression is executed, the implementation checks whether the current session types are compatible with the operation. For example, a send action should only be used when the channel's current session type permits sending; a close action should only be used when that interaction is ready to finish. These are intuitive explanations; complete formal rules remain to be established.
+Before an expression is executed, the implementation checks whether the type continuations are compatible with the operation. For example, a send action should only be used when the channel's type continuation permits sending; a close action should only be used when that interaction is ready to finish. These are intuitive explanations; complete formal rules remain to be established.
 
 In the implementation, `proc/compexec/core/core.go` loads the current execution snapshot (a saved view of computation state at that execution point; its relationship to the publication's `configuration` and `environment` is not yet established), gathers relevant process declarations and type definitions, builds the type-checking context, and calls `checkType` before dispatching the expression. Its `LinearVars` map records the channel variables tracked by the checker. The exact invariants of this context remain unverified.
 
@@ -342,7 +342,7 @@ At a high level, the inspected execution path follows six steps. The names in pa
 
 This outlines the observed path. The complete rules for blocking, resumption, and channel ownership remain to be established. Constructor-specific execution findings are in Section 13; representation gaps are in Section 12.
 
-Communication may take more than one execution step. If the matching action from the other side is not yet available—for example, the corresponding `Wait` for a `Close`, or a receive for a send—the current action may register that it is waiting and return. **Registering this pending action is not, by itself, a completed interaction or a language-level session-type transition:** the current session type and the participants' continuation eligibility do not advance merely because one side has acted. The language-level interaction takes effect only when the corresponding actions match, as stated by the common paired-interaction principle in Section 6. When the other side becomes available, the inspected implementation updates the exchange state and channel records, and may schedule the continuation. This is an implementation observation, not a complete transition rule or evidence that continuation scheduling occurs at the correct semantic boundary; implementation ordering, ownership, and conformance remain to be verified.
+Communication may take more than one execution step. If the matching action from the other side is not yet available—for example, the corresponding `Wait` for a `Close`, or a receive for a send—the current action may register that it is waiting and return. **Registering this pending action is not, by itself, a completed interaction or a language-level session-type transition:** the type continuation and the participants' continuation eligibility do not advance merely because one side has acted. The language-level interaction takes effect only when the corresponding actions match, as stated by the common paired-interaction principle in Section 6. When the other side becomes available, the inspected implementation updates the exchange state and channel records, and may schedule the continuation. This is an implementation observation, not a complete transition rule or evidence that continuation scheduling occurs at the correct semantic boundary; implementation ordering, ownership, and conformance remain to be verified.
 
 The transition relation and invariants for publication (`pub`), subscription (`sub`), and exchange-turn state remain open; they require tracing the relevant producer and consumer paths together.
 
@@ -408,7 +408,7 @@ The list is ordered by investigation priority. [Calls and spawns](../about-calls
 
 **Implementation summary:** the inspected repository does not demonstrate a working end-to-end implementation of either named-process call form. Both constructors lack checker and executor branches, and the inspected conversion/DTO paths cannot preserve their full representations. The available `ExternalCall` e2e scenario is disabled/inconclusive. The intended call semantics are recorded in [Calls and spawns](../about-calls-and-spawns/README.md); implementation evidence is detailed in Sections 12–13.
 
-The semantic decisions that should guide implementation are recorded in [Calls and spawns](../about-calls-and-spawns/README.md): `ExternalCall` preserves supplied channel identities and session-type states while transferring their use to the target, and releases the caller continuation only when the fresh provider channel is received; `InternalCall` transfers the complete channel environment to a fresh incarnation and semantically terminates the old one. Model-wide non-aliasing and never-reused incarnation identities are settled assumptions. These decisions do not establish implementation conformance.
+The semantic decisions that should guide implementation are recorded in [Calls and spawns](../about-calls-and-spawns/README.md): `ExternalCall` preserves supplied channel identities and type continuations while transferring their use to the target, and releases the caller continuation only when the fresh provider channel is received; `InternalCall` transfers the complete channel environment to a fresh incarnation and semantically terminates the old one. Model-wide non-aliasing and never-reused incarnation identities are settled assumptions. These decisions do not establish implementation conformance.
 
 The remaining work falls into three different categories and should not be conflated:
 
@@ -420,10 +420,10 @@ The detailed acceptance tests below are the proposed validation target; they are
 
 For process-channel matching, the same suite should include these focused cases:
 
-- **`Send`/`Recv`:** test sender-first and receiver-first arrival. After the first operation, assert a pending action with no completed transfer, session-type advancement, or continuation eligibility. After the matching operation, assert one completed transfer, the shared session-type state effect, and each participant's own continuation behavior.
+- **`Send`/`Recv`:** test sender-first and receiver-first arrival. After the first operation, assert a pending action with no completed transfer, session-type advancement, or continuation eligibility. After the matching operation, assert one completed transfer, the shared type continuation effect, and each participant's own continuation behavior.
 - **`Close`/`Wait`:** test both arrival orders and the unmatched boundary. After matching, assert that the interaction completes, the provider has no executable continuation, and the client's enclosing continuation becomes eligible only if supplied.
 - **`Fwd`:** test forwarding redirection separately from the data transfer it redirects. Assert that matching a forwarding message with a waiting service changes the service's destination but does not complete the sender's data communication; that communication completes only when the sender's message matches the redirected service. Add polarity, one-shot consumption, and linear-endpoint-preservation cases as the constructor-specific rule is formalized.
-- **Cross-constructor isolation:** verify that matching on one channel does not advance another channel's current session type or make an unrelated continuation eligible.
+- **Cross-constructor isolation:** verify that matching on one channel does not advance another channel's type continuation or make an unrelated continuation eligible.
 
 These tests must assert observable state and scheduled continuations, not merely successful `Take` calls. The current `fwd` end-to-end test ends with a TODO instead of a result assertion, and the inspected `close`/`wait` scenario also lacks an asserted postcondition.
 
@@ -431,7 +431,7 @@ These tests must assert observable state and scheduled continuations, not merely
 2. **ExternalCall search-and-negotiation timeout conformance:** The language-level commit point and pre-commit search-timeout behavior are specified in Section 7; the timeout policy is documented in [Pools and transaction types, Section 2.1](../about-pools-and-transaction-types/README.md#21-negotiation-and-established-agreement). Remaining work is implementation conformance for the agreed contract. The timeout's source, who supplies or configures it, and its representation remain open.
 
    - Verify that agreement discovery and candidate negotiation, including escalation to manual intervention, are bounded by the same timeout.
-   - Verify timeout expiry before finding a suitable agreement does not create an incarnation or deliver a provider channel, and leaves supplied client-channel identities and session-type states unchanged.
+   - Verify timeout expiry before finding a suitable agreement does not create an incarnation or deliver a provider channel, and leaves supplied client-channel identities and type continuations unchanged.
    - Verify that finding a suitable existing agreement or successfully negotiating a new agreement ends the timeout's effect: subsequent engine delay before provider-channel delivery does not trigger this search-and-negotiation timeout.
 
    General process/pool failures, recovery after delivery, restart guarantees, and retry policy are outside the current scope and may be addressed by a separate fault-tolerance contract.
