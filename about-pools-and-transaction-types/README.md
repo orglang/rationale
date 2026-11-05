@@ -43,7 +43,7 @@ The current model has three related concepts:
 
 For the discovery and negotiation sequence, including the point at which incarnation creation may begin, see [Incarnations and channels, Sections 5.3–5.4](../about-incarnations-and-channels/README.md#53-search-and-agreement-negotiation).
 
-#### What the formal transaction-type model establishes
+##### What the formal transaction-type model establishes
 
 The grammar in the [transaction introduction](../about-transaction/README.md) gives evidence for a **state-indexed protocol**:
 
@@ -56,7 +56,7 @@ The grammar in the [transaction introduction](../about-transaction/README.md) gi
 
 **Agreed working model:** the public channel type has no refinements; the private channel type may express refinements, with `Q` as the runtime value providing evidence for a relevant condition (for example, `Q(q) > 0`). `Q` exists in the context of private channels and changes with the corresponding channel's process-allocation-function value. `Q'` is only notation for that value during an uncommitted private-channel access, not a separate function or stored field. How `Q` is physically stored or associated with a private channel remains **Open**.
 
-#### Agreement lifecycle: current contract and missing rules
+##### Agreement lifecycle: current contract and missing rules
 
 | Stage | Current project contract | Still unspecified |
 |---|---|---|
@@ -69,7 +69,7 @@ The grammar in the [transaction introduction](../about-transaction/README.md) gi
 | Service activation | Only after a suitable existing agreement is found or a new one is successfully established does the engine create the incarnation and deliver the provider channel. | Resource reservation/consumption semantics and failure handling between agreement establishment and channel delivery. |
 
 
-#### Questions required to complete the agreement model
+##### Questions required to complete the agreement model
 
 - How is `Q` physically represented or associated with a private channel? The current model does not decide whether it is stored within the channel or represented separately.
 - What exact formal syntax and typing judgment express the transaction type's protocol and its dependent state index `Q`?
