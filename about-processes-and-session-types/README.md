@@ -13,7 +13,7 @@
 
 **Shared terminology:** see the [OrgLang glossary](../GLOSSARY.md).
 
-## Part I. Language model
+## Part I. Conceptual model
 
 ## 1. Scope and evidence
 
@@ -325,7 +325,7 @@ For every allowed row, the rule and tests should establish that the interaction 
 
 The intended contracts are specified in the operation-specific subsections above: [`ExternalCall`](#externalcall), [`InternalCall`](#internalcall), and [`Fwd`](#fwd). Part II records publication context; Part III records implementation evidence. Neither evidence section replaces the language-level contracts.
 
-## Part II. Comparison with the publication
+## Part II. Semantics and relation to prior work
 
 ## 8. Comparison with the supplied publication
 
