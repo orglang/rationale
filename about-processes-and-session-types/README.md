@@ -55,9 +55,9 @@ An AST constructor establishes syntax support. Runtime support requires evidence
 
 For substantial or disputed claims, record the claim, source, evidence status, implementation status (when relevant), and any limitation or next verification step. Use three statement categories: **Language rule** (established for OrgLang), **Implementation observation** (found in the inspected implementation), and **Candidate rule** (awaiting verification or a design decision).
 
-### Implementation concretization: terminology correspondence
+### Implementation mapping: terminology correspondence
 
-The table records observed or proposed correspondences among OrgLang concepts, publication notation, and implementation identifiers. These mappings concretize model concepts for the inspected implementation; they do not define language semantics. Mapping status reports correspondence strength, while claim evidence and implementation coverage remain separate.
+The table records observed or proposed correspondences among OrgLang concepts, publication notation, and implementation identifiers. These mappings relate model concepts to terminology and identifiers in the inspected sources; they do not define language semantics. Mapping status reports correspondence strength, while claim evidence and implementation coverage remain separate.
 
 Use **Confirmed**, **Provisional**, or **Unresolved** for mappings:
 
