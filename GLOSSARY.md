@@ -23,7 +23,7 @@
 | **Continuation** | A continuation associated with a term or a type; its specific meaning depends on the layer of the model. | [Incarnations and channels, §5–6](about-incarnations-and-channels/README.md#5-values-and-continuations) |
 | **Term continuation** | A continuation that selects or supplies the next term after a value is matched and applied. | [Incarnations and channels, §5–6](about-incarnations-and-channels/README.md#5-values-and-continuations) |
 | **Process continuation** | A process expression that becomes eligible for execution after the interaction that enables it. | [Processes and session types, §3](about-processes-and-session-types/README.md#3-a-small-example-following-a-channel); [Calls and spawns, §1](about-calls-and-spawns/README.md#1-intended-semantics-of-named-process-calls) |
-| **Type continuation** | The residual type expression that describes the interactions permitted after the current interaction. | [Processes and session types, §3](about-processes-and-session-types/README.md#3-a-small-example-following-a-channel); [Pools and transaction types, §4](about-pools-and-transaction-types/README.md#4-transaction-types) |
+| **Type continuation** | The residual type expression that describes the interactions permitted after the current interaction, including any refinements that constrain the runtime states or values admitted at that point. | [Processes and session types, §3](about-processes-and-session-types/README.md#3-a-small-example-following-a-channel); [Pools and transaction types, §4](about-pools-and-transaction-types/README.md#4-transaction-types) |
 
 ## Channels and communication
 
