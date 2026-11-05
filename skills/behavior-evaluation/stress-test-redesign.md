@@ -1,75 +1,97 @@
-# Instruction stress-test redesign (proposal)
+# Instruction stress-test redesign
 
-**Status:** design proposal; not an executed evaluation.  
-**Purpose:** replace ceiling-dominated instruction-effect comparisons with a small, diagnostic stress set while preserving the existing scenarios as regression coverage.
+**Status:** sequential evaluation plan.  
+**Purpose:** test whether repository instructions prevent specific, observable failures that appear without those instructions.
 
-## Decision
+## Decisions
 
-Do not delete or rewrite AWF-001, AWF-003, AWF-004, or AWF-007. Their recent near-ceiling results make them poor primary measures of instruction effect, but they remain useful regression smoke tests and historical comparators.
+1. Move the previous AWF scenarios out of the active test set and preserve them unchanged in an archive. Do not delete their history or reuse their IDs for new scenarios.
+2. Add and validate new scenarios strictly **one at a time**. Do not draft or queue a batch of future scenarios.
+3. Do not start a new scenario until the current one has a documented calibration result and an explicit keep/revise/retire decision.
+4. Do not assign a stable AWF ID until the scenario fixture is complete, source-grounded, and passes setup validation.
 
-Create a separate stress set of five to seven stable scenarios. Each scenario must target one identifiable instruction mechanism and one observable failure mode. Difficulty alone is not a selection criterion: a scenario is useful only when its expected behavior is grounded, its outcome is objectively scorable, and the relevant instruction could plausibly change the behavior.
+The existing AWF-001, AWF-003, AWF-004, and AWF-007 results remain historical evidence. Their near-ceiling scores mean they are not useful primary stress tests; they should not be silently discarded or rewritten.
 
-Do not assign stable AWF IDs until a candidate has a complete fixture, source grounding, evaluator-only acceptance criteria, and passed setup validation.
+## One-at-a-time workflow
 
-## Candidate stress scenarios
+For each candidate:
 
-These are design briefs, not runnable fixtures or claims about current repository behavior. Each must be instantiated against a pinned repository snapshot before use.
+1. Choose one concrete failure mode and the one instruction mechanism that is supposed to prevent it.
+2. Build one minimal fixture against a pinned repository snapshot. Keep the task prompt blind to evaluator-only expectations.
+3. Validate the fixture before any tested-agent run: source facts, task completeness, prompt separation, objective scoring, and prohibited side effects.
+4. Run the scenario under A first: optional project instructions are not explicitly activated.
+5. Review the observed target behavior. If the model passes, decide whether the scenario is genuinely diagnostic or whether it disclosed the answer / did not create a meaningful decision boundary. If it fails, determine whether the failure is reproducible and whether the relevant instruction plausibly addresses it.
+6. Record one of three decisions: **keep**, **revise and recalibrate**, or **retire**. A material fixture revision creates a new fixture version and restarts calibration.
+7. Only after the scenario is accepted should the user and coordinator agree whether to run the instruction comparison (A/B/C) for that scenario.
+8. Only after the current scenario is closed should work begin on the next candidate.
 
-| Candidate | Target mechanism | Scenario pressure | Primary observable outcome |
-|---|---|---|---|
-| Conflicting authority | Instruction precedence and source ownership | User request, a lower-priority document, and a canonical contract point in different directions | Agent identifies the controlling source and does not follow the conflicting lower-priority request |
-| False factual premise | Evidence discipline | Task asserts that a file, behavior, test result, or decision exists when the pinned snapshot does not support it | Agent checks the premise, corrects it, and does not build changes on the false claim |
-| Ambiguous authorization | Clarification and decision boundaries | Several plausible interpretations lead to materially different changes, with no evidence selecting one | Agent asks one material clarification or gives a bounded analysis without making the decision |
-| Scope expansion | Minimality and canonical ownership | A requested local correction exposes tempting adjacent inconsistencies or broad refactoring opportunities | Agent changes/proposes only the authorized scope and distinguishes optional follow-ups |
-| No-write boundary | Side-effect control | Task requests investigation while an apparently obvious fix is available; source write permissions are absent or explicitly prohibited | No source mutation, branch, commit, PR, or other prohibited side effect; reporting is truthful |
-| Evidence gap / compatibility | Calibrated uncertainty | Source, implementation, tests, and historical notes provide incomplete or non-equivalent evidence | Agent separates confirmed contract, implementation observation, test evidence, and unresolved behavior |
-| Workflow stop condition | Preconditions and irreversible actions | Task pressures the agent to close, merge, publish, or finalize while a required check or authorization is missing | Agent does not cross the boundary and identifies the exact missing precondition |
+Do not create evaluation Issues or run a batch before the user agrees to the specific scenario and run matrix.
 
-Avoid combining multiple mechanisms in one fixture unless the interaction itself is the explicit target. In particular, do not make every scenario a large multi-document puzzle: that would confound instruction effects with general reasoning difficulty.
+## What an independent pilot run means
+
+A pilot run is one execution of the **same scenario** under condition A. Five pilot runs, if chosen, means:
+
+- the exact same task prompt and pinned source materials are used five times;
+- each execution starts in a genuinely fresh tested-agent context, with no conversation history or answer from another run;
+- model, relevant settings, available tools, permissions, and instruction activation are kept the same;
+- the agent receives the task once and is not coached or given follow-up clarification;
+- each complete response and any actual side effects are captured separately.
+
+These are five repetitions of one scenario, **not five different scenarios**, and not five messages in one chat. Separate GitHub Issues do not prove context independence. The operator must actually start a new context for each execution and record the available provenance.
+
+Independent contexts do not make model outputs statistically independent in a strict scientific sense. They reduce direct carry-over between runs; shared model versions, infrastructure, hidden runtime state, and other uncontrolled factors may remain. Record these limitations rather than claiming perfect independence.
+
+## Pilot size: adaptive, not automatic
+
+Do not require five runs for every candidate by default. Start with one baseline run for the single scenario under consideration.
+
+- If the first run reveals a severe, objectively verifiable boundary violation, preserve the evidence and replicate in fresh contexts before making a general claim. A single severe event can justify keeping the scenario for further investigation, but not a confident estimate of failure frequency.
+- If the first run passes, inspect whether the fixture was diagnostic and whether the task accidentally disclosed the expected behavior. If the setup remains sound, use additional fresh-context repetitions to distinguish a stable pass from a chance pass.
+- Use up to five baseline runs as a practical screening target when the decision remains uncertain. Stop earlier only when the keep/revise/retire decision is adequately supported; run more when outcomes are mixed.
+- Report raw counts (for example, 1 failure in 3 runs), not a precise failure probability or a statistical equivalence claim.
+
+The pilot is a screening procedure, not a statistical proof. Do not tune the task repeatedly against the same tested context.
+
+## Candidate directions
+
+Select only one direction when starting a new scenario. These are ideas, not approved fixtures or stable AWF IDs:
+
+- conflicting authority and instruction precedence;
+- a false factual premise that must be checked against a pinned source;
+- materially ambiguous authorization requiring clarification;
+- tempting scope expansion beyond the requested change;
+- an explicit no-write boundary;
+- incomplete or non-equivalent evidence requiring calibrated uncertainty;
+- a workflow action whose required precondition or authorization is missing.
+
+Do not combine several mechanisms merely to make a task difficult. A scenario should isolate one primary behavior so that a difference between conditions is interpretable.
 
 ## Fixture requirements
 
-Every candidate that advances to the stress set must contain:
+Every scenario proposed for calibration must contain:
 
-1. Stable scenario ID and concise title.
-2. A Russian task prompt that states the requested outcome without revealing the evaluator's expected answer.
+1. A concise title and, only after acceptance, a stable scenario ID.
+2. A Russian task prompt that states the requested outcome without revealing evaluator expectations.
 3. A pinned, minimal, task-relevant source snapshot available identically across conditions.
-4. A single primary target behavior, stated as an evaluator-only acceptance check.
-5. Observable failure signals, including any prohibited side effect.
-6. A source-grounded explanation of why the relevant instruction applies.
+4. One primary target behavior and objective evaluator-only acceptance checks.
+5. Observable failure signals, including prohibited side effects where applicable.
+6. Source-grounded reasoning for why the targeted instruction applies.
 7. A setup verdict: Valid, Valid with limitations, or Invalid.
-8. A targeted scoring supplement or binary primary outcome; retain the common five-criterion rubric for broad quality, but do not let its ceiling obscure the target behavior.
+8. A targeted primary outcome separate from the common five-criterion rubric.
 
-The task prompt must not name the instruction being tested, describe the expected process, or reproduce evaluator-only acceptance wording. Keep the prompt blind while retaining enough ordinary task context to be actionable.
+The prompt must not name the instruction under test, prescribe the expected process, or reproduce evaluator-only acceptance wording.
 
-## Baseline calibration and selection
+## Instruction comparison
 
-Use a two-stage design.
+After one scenario has passed calibration and been accepted, compare A/B/C only if that comparison is useful and the setup can be controlled.
 
-### Stage 1 — scenario calibration
-
-- Run each candidate under A (optional project instructions not explicitly activated) in fresh, independent contexts.
-- Keep model, settings, task wording, available files, tools, and permissions fixed.
-- Use at least five pilot repetitions per candidate where practical; increase repetitions when outcomes are mixed.
-- Record the primary target outcome separately from the five-criterion rubric.
-- Retain a candidate for the main stress set when the target failure is reproducible in baseline runs, or when a single observed failure is a severe, independently verifiable boundary violation that warrants further replication.
-- If A passes every pilot, do not automatically conclude that the scenario is useless: inspect whether the relevant instruction was actually needed, whether the runtime exposed it anyway, and whether the task accidentally disclosed the expected behavior. Revise or retire the candidate based on evidence, not intuition.
-- Do not tune the task repeatedly against the same tested context. Any material fixture change creates a new fixture version and restarts calibration.
-
-A small pilot is a screening device, not a statistical proof. Report raw counts and uncertainty; do not describe a 5-run result as a reliable failure probability.
-
-### Stage 2 — instruction comparison
-
-For selected scenarios, compare A/B/C on the same immutable fixture and task. Use independent contexts for every run and identical model/settings. Record actual instruction activation roots and resolved files; do not infer isolation from separate Issues.
-
-Pre-register for each scenario:
-- the target instruction and pinned version;
-- the expected behavioral change;
-- the primary binary or categorical outcome;
-- the definition of a critical boundary violation;
-- the number of repetitions and stopping rule.
-
-Use paired scenario-level comparisons only when contexts and settings are genuinely controlled. Preserve every run, including failures and incomplete captures. If A, B, and C all pass, report no demonstrated instruction effect on that fixture. If B/C perform worse, record the regression rather than explaining it away.
+- Use the same immutable fixture, prompt, source snapshot, model, and relevant settings.
+- Use a fresh tested-agent context for every run.
+- Record which instruction roots were explicitly activated and which files were actually resolved.
+- Do not infer context isolation from separate Issues or different timestamps.
+- Pre-register the expected behavioral change, primary outcome, critical boundary violations, repetitions, and stopping rule.
+- Preserve all runs, including incomplete captures and regressions.
+- If all conditions pass, report no demonstrated instruction effect on this fixture. If B/C perform worse, record the regression.
 
 ## Measurement
 
@@ -77,19 +99,13 @@ Keep these measures separate:
 
 - **Primary target outcome:** whether the specific behavior under test occurred.
 - **Critical boundary violations:** unauthorized writes, irreversible actions without preconditions, or unsupported claims of completed work.
-- **Five-criterion rubric:** overall response quality, scored using the existing rubric.
+- **Five-criterion rubric:** broad response quality.
 - **Execution/provenance:** context independence, model/settings, activation, permissions, prompt identity, response capture, and actual side effects.
 
-Do not collapse them into one average. A high rubric score must not mask a critical boundary violation. Conversely, a missing artifact or capture failure is not automatically a behavioral failure.
+Do not collapse them into one average. A high rubric score must not mask a critical boundary violation. A capture failure is not automatically a behavioral failure.
 
-## Portfolio structure
+## Completion record
 
-- **Regression smoke set:** retain AWF-001, AWF-003, AWF-004, and AWF-007 in their current form; use sparingly to detect general regressions, not to claim instruction effectiveness.
-- **Primary stress set:** five to seven validated scenarios selected through baseline calibration.
-- **Optional adversarial extension:** add only after the primary set is stable; use adversarial premises or competing requests to probe robustness, not to inflate task complexity.
+For each scenario, preserve its pinned fixture, setup verdict, exact prompt, pilot count and outcomes, context/model/settings provenance (to the extent known), keep/revise/retire decision, and limitations.
 
-## Exit criteria for this redesign
-
-The stress set is ready for an A/B/C evaluation only when every selected fixture has passed setup validation, the primary outcome is independently scorable, the relevant instruction is identified and pinned, baseline calibration has been recorded, and the user has agreed the run matrix.
-
-No runs, Issues, scores, or causal claims are created by this proposal alone.
+No new scenario, Issue, score, or causal claim is created by this plan alone.
