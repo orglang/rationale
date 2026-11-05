@@ -8,6 +8,8 @@
 > **Implementation status:** The intended call and servicing behavior is specified independently of the incomplete implementation paths recorded in [Processes and session types, Part III](../about-processes-and-session-types/README.md#part-iii-implementation-evidence-and-open-questions).
 
 
+**Shared terminology:** see the [OrgLang glossary](../GLOSSARY.md).
+
 ## 1. Purpose and mental model
 
 When a process invokes `ExternalCall`, the language-level operation requests service for a named process. The engine may need to perform two distinct tasks: create a fresh process incarnation and arrange for a pool to service the new incarnation's provider channel.
@@ -126,6 +128,32 @@ The supplied calculus gives the following cut/spawn rule:
 Here `P` is the body of the process being spawned and `Q` is the original process's continuation. The rule allocates a fresh channel `a`, substitutes it for `x` in both expressions, and runs the two resulting processes so they can communicate over that shared channel. It therefore combines fresh-channel allocation and process spawning in this particular calculus.
 
 This rule establishes only the publication's cut/spawn semantics; its correspondence to OrgLang, including lifecycle and scheduling guarantees, remains **Open**. OrgLang's lowercase transaction-type `spawn` is a distinct protocol constructor guarded by positive committed allocation weight `Q(q)` and leaves `Q` unchanged; see [Pools and transaction types](../about-pools-and-transaction-types/README.md). The higher-level `ExternalCall` contract, including discovery, negotiation, incarnation creation, and provider-channel delivery, is defined in [Processes and session types, Section 7](../about-processes-and-session-types/README.md#7-intended-semantics-of-named-process-calls). The unfinished AST `SpawnSpec` and pool API `Spawn` are implementation representations, not substitutes for either language contract. Any correspondence between the publication's cut rule and transaction-level `spawn` remains **Open**.
+
+## 6.3 Implementation concretization
+
+This section records how selected participant and channel concepts are represented in the inspected `orglang/go-engine` snapshot. These are implementation correspondences, not definitions of the OrgLang model and not claims of complete runtime conformance.
+
+**Implementation snapshot:** [`orglang/go-engine` commit `8ef6983f7a112616ee3f78d4f98e615686931e6a`](https://github.com/orglang/go-engine/tree/8ef6983f7a112616ee3f78d4f98e615686931e6a).
+
+| Model concept | Observed implementation representation | What the correspondence establishes | Limits |
+|---|---|---|---|
+| Participant execution / incarnation reference | `compsem.SemRef`, stored as `CompRef` | Used by pool and process execution records and operations as a reference to an execution. | It is not the execution's full state, a channel identity, or proof of the model-wide never-reuse guarantee. |
+| Channel identity | `identity.ADT`, stored as `ChnlID` | Identifies a channel in inspected communication and binding records. | Distinct from a local placeholder, communication reference, or execution reference. |
+| Channel placeholder | `symbol.ADT`, stored as `ChnlPH` | Represents a symbolic local name used to find a binding in an execution configuration. | It is not the channel resource or its identity. |
+| Participant-local channel binding | `compvar.LinearRec` and `compvar.StructRec` | Associates an execution, communication, channel identity, placeholder, side, and type-state key. | The correspondence between linear/structural modes and all language-level channel categories remains to be specified. |
+| Communication exchange | `commexch.ExchRec`, `CommRef`, and `ExchSnap` | Represents exchange-level state and turns, separate from an individual channel identity. | Complete lifecycle and language-level semantics remain provisional. |
+| Pending communication turn | `commturn.PubRec` and `commturn.SubRec` | Provides records used for pending publication/subscription turns in inspected paths. | These records are not by themselves the complete language-level interaction abstraction. |
+| Provider/client endpoint role | `LiabSide` / `AssetSide` in `compvar.Side` | Pool initialization assigns `LiabSide` to the liability binding and `AssetSide` to asset bindings; process type checking routes `LiabSide` through `checkProvider` and the other side through `checkClient`. | This confirms the role mapping only in the inspected initialization and type-checking paths. Do not assume it holds across every binding, transfer, forwarding, or runtime path without further evidence. |
+
+Relevant source locations:
+
+- [`adt/compvar/core.go`](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/adt/compvar/core.go)
+- [`adt/compsem/core.go`](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/adt/compsem/core.go)
+- [`pool/commturn/core/core.go`](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/commturn/core/core.go)
+- [`pool/commexch/core/core.go`](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/commexch/core/core.go)
+- [`pool/compexec/core/core.go`](https://github.com/orglang/go-engine/blob/8ef6983f7a112616ee3f78d4f98e615686931e6a/pool/compexec/core/core.go)
+
+The shared binding fields are a join point between participant execution, communication exchange, and channel identity. Their co-location in one record does not make the corresponding identifiers interchangeable.
 
 ## 7. Open questions and deferred topics
 
