@@ -40,7 +40,7 @@ The abstract term forms are:
 
 **Publication** and **subscription** are complementary endpoint actions. A publication that has no matching subscription remains pending; a subscription that has no matching publication also remains pending. The communication interaction takes effect when the corresponding actions match. Matching makes the received value available to the subscription's continuation; it does not imply that both incarnations execute simultaneously.
 
-The concrete values, permitted **protocol** actions, and continuation obligations are defined by the domain-specific model using the channel.
+The concrete values, permitted interactions, and continuation obligations are defined by the domain-specific model using the channel.
 
 ### 5. Values and continuations
 
@@ -81,6 +81,6 @@ The abstract model leaves the following representation and semantics questions o
 - What is the exact binding and substitution discipline, including scope, capture avoidance, and linearity?
 - What are the general channel lifecycle and resource-reclamation rules?
 - What ordering and observability guarantees apply to pending publication/subscription actions and their match?
-- Which general typing rules govern channel references, values, and continuations independently of a domain-specific protocol?
+- Which general typing rules govern channel references, values, and continuations independently of a particular domain model?
 
 These questions should be resolved at the abstract mechanism layer only when their answers are independent of a particular domain model.
