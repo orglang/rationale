@@ -4,11 +4,11 @@
 
 **Audience:** readers studying OrgLang process expressions and session types, and contributors verifying their representation in `orglang/go-engine`.
 
-**Document structure:** Part I describes the language model and intended operation semantics; Part II compares the model with the publication; Part III records implementation evidence and open questions.
+**Document structure:** Part I describes the conceptual model and intended operation semantics; Part II presents formal semantics and relation to prior work; Part III records implementation evidence and open questions.
 
 **Contents**
-- [Part I — Language model](#part-i-language-model): [core concepts and model invariants](#2-core-concepts), [protocol example](#3-a-small-example-following-a-channel), [session types](#6-session-types-the-protocol-for-a-channel), and [intended operation semantics](#7-intended-semantics-of-named-process-calls).
-- [Part II — Comparison with the publication](#part-ii-comparison-with-the-publication): publication rules and forwarding trace.
+- [Part I — Conceptual model](#part-i-conceptual-model): [core concepts and model invariants](#2-core-concepts), [protocol example](#3-a-small-example-following-a-channel), [session types](#6-session-types-the-protocol-for-a-channel), and [intended operation semantics](#7-intended-semantics-of-named-process-calls).
+- [Part II — Semantics and relation to prior work](#part-ii-semantics-and-relation-to-prior-work): publication rules and forwarding trace.
 - [Part III — Implementation evidence and open questions](#part-iii-implementation-evidence-and-open-questions): [implementation map](#9-implementation-map-process-declarations-and-definitions), [typing](#10-typing-interface), [execution](#11-execution-and-communication), [AST and serialization gaps](#12-ast-and-serialization-gaps), and [open questions](#14-open-questions-and-next-tests).
 
 **Shared terminology:** see the [OrgLang glossary](../GLOSSARY.md).
