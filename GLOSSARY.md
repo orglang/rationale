@@ -4,6 +4,17 @@
 
 **Typography:** a shared term is bolded where it is first substantively introduced or defined in a document. Later occurrences are plain unless emphasis is needed for another reason. Boldface identifies vocabulary; it does not make a statement normative.
 
+
+## Designation approaches
+
+OrgLang uses three distinct approaches to designate entities or types:
+
+| Approach | Definition | Typical use |
+|---|---|---|
+| **Qualified name** | Designation by a symbol together with the qualification needed to distinguish it within the language's naming model. | Static language entities, including types referred to by variables. |
+| **Unique identifier** | Designation by a unique machine-oriented identifier that refers to one particular runtime entity or resource. | Runtime entities such as executions and channel addresses. |
+| **Content key** | Designation by a content-derived key, typically a hash, that identifies content independently of where or when it occurs. | The type expression associated with a channel. |
+
 ## Execution and model entities
 
 | Term | Definition | Canonical reference |
