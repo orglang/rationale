@@ -23,8 +23,8 @@ A **Reference** is an extended designation built on a **Unique identifier** and 
 |---|---|---|
 | **Execution** | A standalone runtime entity representing one concrete execution, with its own unique identifier and execution state. Its short name in the implementation is `exec`. | [Incarnations and channels, §1](about-incarnations-and-channels/README.md#1-incarnations-and-execution-state) |
 | **Execution state** | The abstract runtime state associated with a particular execution. | [Incarnations and channels, §1](about-incarnations-and-channels/README.md#1-incarnations-and-execution-state) |
-| **Computation** | The computational aspect of the model, describing the evaluation of expressions and changes to execution state. | |
-| **Communication** | The communicative aspect of the model, describing interactions between participants through channels. |
+| **Computation** | The computational aspect of the model, within which an execution takes place. | |
+| **Communication** | The communicative aspect of the model, within which an exchange takes place. |
 | **Participant** | An entity that takes part in an interaction through a channel. | [Pools and transaction types, §2](about-pools-and-transaction-types/README.md#2-core-model-relationships); [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
 | **Pool** | A domain-specific kind of participant in the pool model that makes capabilities available to other pools and may service process incarnations under agreements. The pool specification provides its full definition and is authoritative for its semantics. | [Pools and transaction types](about-pools-and-transaction-types/README.md) |
 | **Process** | A domain-specific computational entity in the process model; context distinguishes its declaration and definition from a running incarnation. The process specification provides its full definition and is authoritative for its semantics. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
