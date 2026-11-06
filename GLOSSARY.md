@@ -24,7 +24,7 @@ A **Reference** is an extended designation built on a **Unique identifier** and 
 | **Execution** | A standalone runtime entity representing one concrete execution, with its own unique identifier and execution state. Applications and reductions unfold within an execution. Its short name in the implementation is `exec`. | [Incarnations and channels, §1](about-incarnations-and-channels/README.md#1-incarnations-and-execution-state) |
 | **Program** | A collection of OrgLang declarations and definitions. | |
 | **Execution state** | The abstract runtime state associated with a particular execution. | [Incarnations and channels, §1](about-incarnations-and-channels/README.md#1-incarnations-and-execution-state) |
-| **Computation** | The computational aspect of the model, within which an execution takes place. It proceeds through applications and reductions. | |
+| **Computation** | The computational aspect of the model, within which an execution takes place. It proceeds through alternating steps of Application and Reduction. | |
 | **Application** | An operation that applies a computational rule to an expression or the current state of an execution. **Substitution** is a particular application that establishes an association between a variable and a channel. | |
 | **Communication** | The communicative aspect of the model, within which an exchange takes place. It consists of communication acts: publications and subscriptions. |
 | **Participant** | An entity that takes part in an interaction through a channel. | [Pools and transaction types, §2](about-pools-and-transaction-types/README.md#2-core-model-relationships); [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
@@ -44,7 +44,6 @@ A **Reference** is an extended designation built on a **Unique identifier** and 
 | **Substitution** | An operation that establishes an association between a variable and a channel. | [Incarnations and channels, §6](about-incarnations-and-channels/README.md#6-substitution-and-continuation-application) |
 | **Type declaration** | A declaration whose one provider-side variable and zero or more client-side variables are all type variables. | [Processes and session types, §6](about-processes-and-session-types/README.md#6-session-types-for-a-channel) |
 | **Type definition** | A definition that refers to a type declaration with the same qualified symbol and associates it with a type expression. | [Processes and session types, §6](about-processes-and-session-types/README.md#6-session-types-for-a-channel) |
-| **Qualified symbol** | A symbol written in qualified form. The mechanism and components of qualification are not specified here. | [Processes and session types, §4, §6](about-processes-and-session-types/README.md) |
 | **Variable** | A pair consisting of a placeholder (the variable's name) and a type, identified by a qualified symbol. | [Processes and session types, §4, §6](about-processes-and-session-types/README.md) |
 | **Term variable** | A variable belonging to the term layer. | [Processes and session types, §4](about-processes-and-session-types/README.md#4-process-declarations-and-definitions) |
 | **Type variable** | A variable belonging to the type layer. | [Processes and session types, §6](about-processes-and-session-types/README.md#6-session-types-for-a-channel) |
