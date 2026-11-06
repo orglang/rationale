@@ -16,7 +16,7 @@ An incarnation is not an identifier, a term, or a channel. An identifier may ref
 
 An **identifier** names or refers to a runtime resource. In the abstract notation below, identifiers are written with early Latin letters such as *a*, *b*, and *c*.
 
-A **placeholder** is a syntactic name whose runtime referent is supplied by **substitution**. Placeholders are written with late Latin letters such as *x*, *y*, and *z*. A placeholder is not itself the resource to which it is bound: after substitution, the identifier occupies that syntactic position.
+A **placeholder** is a syntactic name whose runtime referent is supplied by **placeholder replacement**. Placeholders are written with late Latin letters such as *x*, *y*, and *z*. A placeholder is not itself the resource to which it is bound: after replacement, the identifier occupies that syntactic position.
 
 This distinction is important for channel references. A placeholder is local to an expression or continuation; an identifier denotes the channel or other resource referred to at runtime.
 
@@ -50,13 +50,13 @@ The concrete values, permitted interactions, and continuation obligations are de
 
 Here *P* and *Pᵢ* are terms. This notation does not define a concrete value constructor or branch-selection policy; those are owned by the relevant domain specification.
 
-### 6. Substitution and continuation application
+### 6. Placeholder replacement and continuation application
 
-Substitution replaces a placeholder in a term with an identifier. We write *P*[*a*/*x*] for the result of replacing the free occurrences of placeholder *x* in *P* with identifier *a*.
+Placeholder replacement replaces a placeholder in a term with an identifier. We write *P*[*a*/*x*] for the result of replacing the free occurrences of placeholder *x* in *P* with identifier *a*.
 
-When a published value matches a continuation pattern, applying the value to the continuation selects the corresponding branch and performs the required substitutions. We write this abstract operation as *V* ▷ *K*. It is defined only when the value matches a pattern in *K*; otherwise the application is undefined.
+When a published value matches a continuation pattern, applying the value to the continuation selects the corresponding branch and performs the required placeholder replacements. We write this abstract operation as *V* ▷ *K*. It is defined only when the value matches a pattern in *K*; otherwise the application is undefined.
 
-The exact matching relation between values and patterns, and the substitutions performed by a successful application, depend on the value grammar defined by the relevant domain model.
+The exact matching relation between values and patterns, and the placeholder replacements performed by a successful application, depend on the value grammar defined by the relevant domain model.
 
 ### 7. Types and constraints
 
