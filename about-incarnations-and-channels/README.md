@@ -40,7 +40,7 @@ The abstract term forms are:
 
 **Publication** and **subscription** are complementary endpoint actions. A publication that has no matching subscription remains pending; a subscription that has no matching publication also remains pending. The communication interaction takes effect when the corresponding actions match. Matching makes the received value available to the subscription's continuation; it does not imply that both incarnations execute simultaneously.
 
-The concrete values, permitted interactions, and continuation obligations are defined by the domain-specific model using the channel.
+The concrete values, permitted interactions, and continuation obligations are defined by the domain-specific model using the channel. An **exchange** is an ordered sequence of communication **acts**, each of which is a publication or a subscription on a channel.
 
 ### 5. Values and continuations
 
