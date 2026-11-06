@@ -367,7 +367,7 @@ These source-level discrepancies require focused tests and call-path analysis to
 
 Use the status policy in Section 1 when reading the findings below. End-to-end behavior requires checking typing, adapters, scheduling, and execution together; AST presence or a single handler is not sufficient. The operation-specific gaps are collected in Section 14.
 
-A formal reduction relation should distinguish at least:
+A formal execution-transition relation should account for at least:
 
 - an expression that is ready to execute;
 - an expression suspended while waiting for a peer;
