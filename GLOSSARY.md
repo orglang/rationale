@@ -15,6 +15,8 @@ OrgLang uses three distinct approaches to designate entities or types:
 | **Unique identifier** | Designation by a unique machine-oriented identifier that refers to one particular runtime entity or resource. | Runtime entities such as executions and channel addresses. |
 | **Content key** | Designation by a content-derived key, typically a hash, that identifies content independently of where or when it occurs. | The type expression associated with a channel. |
 
+A **Reference** is an extended designation built on a **Unique identifier** and optional additional components, such as a revision. It identifies a runtime entity and may either leave its revision unspecified or designate a particular revision. A reference is therefore a structured form of unique-identifier-based designation, not a separate basic designation approach.
+
 ## Execution and model entities
 
 | Term | Definition | Canonical reference |
