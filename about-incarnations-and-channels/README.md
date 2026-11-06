@@ -1,4 +1,4 @@
-# Incarnations and channels
+# Computations and channels
 
 > **Status: preliminary semantic research.** This document describes abstract execution and communication mechanisms that are independent of any particular domain model.
 
@@ -6,11 +6,11 @@
 
 ## Part I. Conceptual model
 
-### 1. Incarnations and execution state
+### 1. Computations and execution state
 
-An **incarnation** is one concrete runtime instance of an executing entity. It has its own **execution state** and local namespace. Two incarnations may originate from the same declaration or description while remaining distinct runtime instances.
+An **computation** is one concrete runtime instance of an executing entity. It has its own **execution state** and local namespace. Two computations may originate from the same declaration or description while remaining distinct runtime instances.
 
-An incarnation is not an identifier, a term, or a channel. An identifier may refer to a runtime resource; a term describes an action or expression; a channel provides a communication relation between endpoints.
+An computation is not an identifier, a term, or a channel. An identifier may refer to a runtime resource; a term describes an action or expression; a channel provides a communication relation between endpoints.
 
 ### 2. Identifiers and placeholders
 
@@ -22,9 +22,9 @@ This distinction is important for channel references. A placeholder is local to 
 
 ### 3. Channels and endpoints
 
-A **channel** is a communication resource connecting two endpoints. Each endpoint is interpreted relative to its owning incarnation. The two endpoints refer to the same communication relation, while each incarnation maintains its own local references and execution state.
+A **channel** is a communication resource connecting two endpoints. Each endpoint is interpreted relative to its owning computation. The two endpoints refer to the same communication relation, while each computation maintains its own local references and execution state.
 
-A channel identifier, a local placeholder, and an incarnation identifier are distinct kinds of reference. Their representations must not be conflated.
+A channel identifier, a local placeholder, and an computation identifier are distinct kinds of reference. Their representations must not be conflated.
 
 ## Part II. Abstract communication model
 
@@ -38,7 +38,7 @@ The abstract term forms are:
 | *c*.*V* | Publish value *V* on channel *c*. |
 | `case` *c* *K* | Subscribe on channel *c* with continuation *K*. |
 
-**Publication** and **subscription** are complementary endpoint actions. A publication that has no matching subscription remains pending; a subscription that has no matching publication also remains pending. The communication interaction takes effect when the corresponding actions match. Matching makes the received value available to the subscription's continuation; it does not imply that both incarnations execute simultaneously.
+**Publication** and **subscription** are complementary endpoint actions. A publication that has no matching subscription remains pending; a subscription that has no matching publication also remains pending. The communication interaction takes effect when the corresponding actions match. Matching makes the received value available to the subscription's continuation; it does not imply that both computations execute simultaneously.
 
 The concrete values, permitted interactions, and continuation obligations are defined by the domain-specific model using the channel. An **exchange** is an ordered sequence of communication **acts**, each of which is a publication or a subscription on a channel.
 
@@ -76,7 +76,7 @@ This correspondence is a source of conceptual structure, not a claim that the pu
 
 The abstract model leaves the following representation and semantics questions open:
 
-- What is the complete identity and lifetime contract for incarnations?
+- What is the complete identity and lifetime contract for computations?
 - Which identifier classes are distinct at the language level, and what uniqueness guarantees apply to each?
 - What is the exact binding and substitution discipline, including scope, capture avoidance, and linearity?
 - What are the general channel lifecycle and resource-reclamation rules?
