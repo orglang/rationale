@@ -11,9 +11,9 @@ OrgLang uses three distinct approaches to designate entities or types:
 
 | Approach | Definition | Typical use |
 |---|---|---|
-| **Qualified name** | Designation by a symbol together with the qualification needed to distinguish it within the language's naming model. | Static language entities, including types referred to by variables. |
-| **Unique identifier** | Designation by a unique machine-oriented identifier that refers to one particular runtime entity or resource. | Runtime entities such as executions and channels. |
-| **Content key** | Designation by a content-derived key, typically a hash, that identifies content independently of where or when it occurs. | Expressions identified by their content. |
+| **Qualified name** | Designation by a qualified symbol. | Static language entities, including types referred to by variables. |
+| **Unique identifier** | Designation by a unique machine-oriented identifier. | Runtime entities such as executions and channels. |
+| **Content key** | Designation by a hash of expression content. | Expressions identified by their content. |
 
 A **Reference** is an extended form of unique-identifier-based designation, not a separate basic designation approach; see its entry below.
 
