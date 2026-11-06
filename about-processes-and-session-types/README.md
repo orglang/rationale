@@ -71,7 +71,7 @@ Record mismatches explicitly; treat similarly named concepts as equivalent only 
 
 Use the [OrgLang glossary](../GLOSSARY.md) for shared definitions of processes, **term declarations** and **term definitions**, incarnations, channel placeholders, and session types. The abstract channel and endpoint model is defined in [Incarnations and channels, Section 3](../about-incarnations-and-channels/README.md#3-channels-and-endpoints); process-specific provider/client roles and channel cardinality are defined in this document.
 
-Named-process invocation and incarnation creation are specified canonically in [Calls and spawns](../about-calls-and-spawns/README.md). Every incarnation receives a never-reused identity; this is a model-wide identity policy. An environment or substitution associates channel placeholders with the relevant channel resources or endpoints.
+Named-process invocation and incarnation creation are specified canonically in [Calls and spawns](../about-calls-and-spawns/README.md). Every incarnation receives a never-reused identity; this is a model-wide identity policy. The runtime environment records the bindings that associate channel variables with their relevant channel resources or endpoints.
 
 For channel types, the **provider endpoint** supplies the reference perspective; the **client endpoint** performs the complementary actions. This provider/client relationship is shared by session types and transaction types. The request/response example and the evolution of the type continuation are illustrated in Section 3.
 
@@ -344,7 +344,7 @@ This outlines the observed path. The complete rules for blocking, resumption, an
 
 Communication may take more than one execution step. If the matching action from the other side is not yet available—for example, the corresponding `Wait` for a `Close`, or a receive for a send—the current action may register that it is waiting and return. **Registering this pending action is not, by itself, a completed interaction or a language-level session-type transition:** the type continuation and the participants' continuation eligibility do not advance merely because one side has acted. The language-level interaction takes effect only when the corresponding actions match, as stated by the common paired-interaction principle in Section 6. When the other side becomes available, the inspected implementation updates the exchange state and channel records, and may schedule the continuation. This is an implementation observation, not a complete transition rule or evidence that continuation scheduling occurs at the correct semantic boundary; implementation ordering, ownership, and conformance remain to be verified.
 
-The transition relation and invariants for publication (`pub`), subscription (`sub`), and exchange-turn state remain open; they require tracing the relevant producer and consumer paths together.
+The transition relation and invariants for publication (`pub`), subscription (`sub`), and exchange/act state remain open; they require tracing the relevant producer and consumer paths together.
 
 ### 12. AST and serialization gaps
 
