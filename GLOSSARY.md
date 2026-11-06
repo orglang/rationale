@@ -25,6 +25,7 @@ A **Reference** is an extended designation built on a **Unique identifier** and 
 | **Program** | A collection of OrgLang declarations and definitions. | |
 | **Execution state** | The abstract runtime state associated with a particular execution. | [Incarnations and channels, §1](about-incarnations-and-channels/README.md#1-incarnations-and-execution-state) |
 | **Computation** | The computational aspect of the model, within which an execution takes place. | |
+| **Application** | An operation that applies a computational rule to an expression or the current state of an execution. | |
 | **Communication** | The communicative aspect of the model, within which an exchange takes place. |
 | **Participant** | An entity that takes part in an interaction through a channel. | [Pools and transaction types, §2](about-pools-and-transaction-types/README.md#2-core-model-relationships); [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
 | **Pool** | A domain-specific kind of participant in the pool model that makes capabilities available to other pools and may service process incarnations under agreements. The pool specification provides its full definition and is authoritative for its semantics. | [Pools and transaction types](about-pools-and-transaction-types/README.md) |
