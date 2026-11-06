@@ -71,7 +71,7 @@ Record mismatches explicitly; treat similarly named concepts as equivalent only 
 
 Use the [OrgLang glossary](../GLOSSARY.md) for shared definitions of processes, **term declarations** and **term definitions**, incarnations, channel placeholders, and session types. The abstract channel and endpoint model is defined in [Incarnations and channels, Section 3](../about-incarnations-and-channels/README.md#3-channels-and-endpoints); process-specific provider/client roles and channel cardinality are defined in this document.
 
-Named-process invocation and incarnation creation are specified canonically in [Calls and spawns](../about-calls-and-spawns/README.md). Every incarnation receives a never-reused identity; this is a model-wide identity policy. The runtime environment records the bindings that associate channel variables with their relevant channel resources or endpoints.
+Named-process invocation and incarnation creation are specified canonically in [Calls and spawns](../about-calls-and-spawns/README.md). Every incarnation receives a never-reused identity; this is a model-wide identity policy. The runtime environment records the bindings that associate channel variables with their relevant channel resources or endpoints. Runtime **substitution** establishes an association between a variable and a channel; the resulting association is a **binding**.
 
 For channel types, the **provider endpoint** supplies the reference perspective; the **client endpoint** performs the complementary actions. This provider/client relationship is shared by session types and transaction types. The request/response example and the evolution of the type continuation are illustrated in Section 3.
 
