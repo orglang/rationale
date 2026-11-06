@@ -51,7 +51,6 @@ A **Reference** is an extended designation built on a **Unique identifier** and 
 | **Value** | The structural side of the model; **Term** and **Type** are its two varieties. | [Incarnations and channels, §5](about-incarnations-and-channels/README.md#5-values-and-continuations) |
 | **Continuation** | The behavioral side of the model, at the same conceptual level as Value; it is not a variety of Value. | [Incarnations and channels, §5–6](about-incarnations-and-channels/README.md#5-values-and-continuations) |
 | **Term continuation** | A variety of continuation belonging to the term layer. | [Incarnations and channels, §5–6](about-incarnations-and-channels/README.md#5-values-and-continuations) |
-| **Process continuation** | A process expression that becomes eligible for execution after the interaction that enables it. | [Processes and session types, §3](about-processes-and-session-types/README.md#3-a-small-example-following-a-channel); [Calls and spawns, §1](about-calls-and-spawns/README.md#1-intended-semantics-of-named-process-calls) |
 | **Type continuation** | A variety of continuation belonging to the type layer. | [Processes and session types, §3](about-processes-and-session-types/README.md#3-a-small-example-following-a-channel); [Pools and transaction types, §4](about-pools-and-transaction-types/README.md#4-transaction-types) |
 
 ## Channels and communication
