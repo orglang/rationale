@@ -13,7 +13,7 @@ OrgLang uses three distinct approaches to designate entities or types:
 |---|---|---|
 | **Qualified name** | Designation by a symbol together with the qualification needed to distinguish it within the language's naming model. | Static language entities, including types referred to by variables. |
 | **Unique identifier** | Designation by a unique machine-oriented identifier that refers to one particular runtime entity or resource. | Runtime entities such as executions and channel addresses. |
-| **Content key** | Designation by a content-derived key, typically a hash, that identifies content independently of where or when it occurs. | The type expression associated with a channel. |
+| **Content key** | Designation by a content-derived key, typically a hash, that identifies content independently of where or when it occurs. | Expressions identified by their content. |
 
 A **Reference** is an extended designation built on a **Unique identifier** and optional additional components, such as a revision. It identifies a runtime entity and may either leave its revision unspecified or designate a particular revision. A reference is therefore a structured form of unique-identifier-based designation, not a separate basic designation approach.
 
@@ -23,6 +23,8 @@ A **Reference** is an extended designation built on a **Unique identifier** and 
 |---|---|---|
 | **Execution** | A standalone runtime entity representing one concrete execution, with its own unique identifier and execution state. Its short name in the implementation is `exec`. | [Incarnations and channels, §1](about-incarnations-and-channels/README.md#1-incarnations-and-execution-state) |
 | **Execution state** | The abstract runtime state associated with a particular execution. | [Incarnations and channels, §1](about-incarnations-and-channels/README.md#1-incarnations-and-execution-state) |
+| **Computation** | The computational aspect of the model, describing the evaluation of expressions and changes to execution state. | |
+| **Communication** | The communicative aspect of the model, describing interactions between participants through channels. |
 | **Participant** | An entity that takes part in an interaction through a channel. | [Pools and transaction types, §2](about-pools-and-transaction-types/README.md#2-core-model-relationships); [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
 | **Pool** | A domain-specific kind of participant in the pool model that makes capabilities available to other pools and may service process incarnations under agreements. The pool specification provides its full definition and is authoritative for its semantics. | [Pools and transaction types](about-pools-and-transaction-types/README.md) |
 | **Process** | A domain-specific computational entity in the process model; context distinguishes its declaration and definition from a running incarnation. The process specification provides its full definition and is authoritative for its semantics. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
@@ -58,7 +60,7 @@ A **Reference** is an extended designation built on a **Unique identifier** and 
 | Term | Definition | Canonical reference |
 |---|---|---|
 | **Channel** | A channel is identified by a unique identifier and a content key identifying its type expression. It belongs to one specific execution and is not shared between executions. | [Incarnations and channels, §3](about-incarnations-and-channels/README.md#3-channels-and-endpoints) |
-| **Content key** | A content identifier (hash) of a type expression, used to identify a channel's type by its content. | [Incarnations and channels, §3](about-incarnations-and-channels/README.md#3-channels-and-endpoints) |
+| **Content key** | A hash of an expression's content, used to identify that expression independently of where or when it occurs. | [Incarnations and channels, §3](about-incarnations-and-channels/README.md#3-channels-and-endpoints) |
 | **Endpoint** | One participant-relative end of a shared channel. | [Incarnations and channels, §3](about-incarnations-and-channels/README.md#3-channels-and-endpoints) |
 | **Provider endpoint** | The endpoint from which a participant provides the service or initiates the interaction described by a channel's type. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts); [Pools and transaction types, §2](about-pools-and-transaction-types/README.md#2-core-model-relationships) |
 | **Client endpoint** | The complementary endpoint from which a participant uses the service or takes part in the interaction described by a channel's type. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts); [Pools and transaction types, §2](about-pools-and-transaction-types/README.md#2-core-model-relationships) |
