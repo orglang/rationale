@@ -21,12 +21,12 @@ A **Reference** is an extended designation built on a **Unique identifier** and 
 
 | Term | Definition | Canonical reference |
 |---|---|---|
-| **Execution** | A standalone runtime entity representing one concrete execution, with its own unique identifier and execution state. Its short name in the implementation is `exec`. | [Incarnations and channels, §1](about-incarnations-and-channels/README.md#1-incarnations-and-execution-state) |
+| **Execution** | A standalone runtime entity representing one concrete execution, with its own unique identifier and execution state. Applications and reductions unfold within an execution. Its short name in the implementation is `exec`. | [Incarnations and channels, §1](about-incarnations-and-channels/README.md#1-incarnations-and-execution-state) |
 | **Program** | A collection of OrgLang declarations and definitions. | |
 | **Execution state** | The abstract runtime state associated with a particular execution. | [Incarnations and channels, §1](about-incarnations-and-channels/README.md#1-incarnations-and-execution-state) |
-| **Computation** | The computational aspect of the model, within which an execution takes place. | |
+| **Computation** | The computational aspect of the model, within which an execution takes place. It proceeds through applications and reductions. | |
 | **Application** | An operation that applies a computational rule to an expression or the current state of an execution. **Substitution** is a particular application that establishes an association between a variable and a channel. | |
-| **Communication** | The communicative aspect of the model, within which an exchange takes place. |
+| **Communication** | The communicative aspect of the model, within which an exchange takes place. It consists of communication acts: publications and subscriptions. |
 | **Participant** | An entity that takes part in an interaction through a channel. | [Pools and transaction types, §2](about-pools-and-transaction-types/README.md#2-core-model-relationships); [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
 | **Pool** | A domain-specific kind of participant in the pool model that makes capabilities available to other pools and may service process incarnations under agreements. The pool specification provides its full definition and is authoritative for its semantics. | [Pools and transaction types](about-pools-and-transaction-types/README.md) |
 | **Process** | A domain-specific computational entity in the process model; context distinguishes its declaration and definition from a running incarnation. The process specification provides its full definition and is authoritative for its semantics. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
@@ -70,8 +70,8 @@ A **Reference** is an extended designation built on a **Unique identifier** and 
 | **Client endpoint** | The complementary endpoint from which a participant uses the service or takes part in the interaction described by a channel's type. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts); [Pools and transaction types, §2](about-pools-and-transaction-types/README.md#2-core-model-relationships) |
 | **Public channel** | A channel exposed as the public interaction point for a participant; in the pool model, the public transaction channel is the stable access point when no private access is active. | [Pools and transaction types, §5](about-pools-and-transaction-types/README.md#5-the-pools-public-transaction-channel) |
 | **Private channel** | A channel used for a private access associated with a logical transaction channel; in the pool model it has a distinct physical identity and carries the access-local allocation state. | [Pools and transaction types, §2.1](about-pools-and-transaction-types/README.md) |
-| **Exchange** | An ordered sequence of communication turns (**Turns**), consisting of publications and subscriptions on channels. | |
-| **Turn** | An individual communication turn within an exchange, representing a publication or subscription on a channel. | |
+| **Exchange** | An ordered sequence of communication acts (**Acts**), consisting of publications and subscriptions on channels. | |
+| **Act** | An individual communication act within an exchange, representing either a publication or a subscription on a channel. | |
 | **Publication** | An endpoint action that makes a value available on a channel for a matching subscription. A publication may remain pending while it awaits the corresponding subscription. | [Incarnations and channels, §4](about-incarnations-and-channels/README.md#4-publication-subscription-and-matching) |
 | **Subscription** | An endpoint action that waits on a channel for a matching publication and supplies a continuation for the received value. A subscription may remain pending while it awaits the corresponding publication. | [Incarnations and channels, §4](about-incarnations-and-channels/README.md#4-publication-subscription-and-matching) |
 | **Matching** | The point at which corresponding endpoint actions meet and establish the shared interaction effect specified by the applicable type. | [Incarnations and channels, §4](about-incarnations-and-channels/README.md#4-publication-subscription-and-matching) |
