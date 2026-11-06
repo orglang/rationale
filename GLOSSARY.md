@@ -12,10 +12,10 @@ OrgLang uses three distinct approaches to designate entities or types:
 | Approach | Definition | Typical use |
 |---|---|---|
 | **Qualified name** | Designation by a symbol together with the qualification needed to distinguish it within the language's naming model. | Static language entities, including types referred to by variables. |
-| **Unique identifier** | Designation by a unique machine-oriented identifier that refers to one particular runtime entity or resource. | Runtime entities such as executions and channel addresses. |
+| **Unique identifier** | Designation by a unique machine-oriented identifier that refers to one particular runtime entity or resource. | Runtime entities such as executions and channels. |
 | **Content key** | Designation by a content-derived key, typically a hash, that identifies content independently of where or when it occurs. | Expressions identified by their content. |
 
-A **Reference** is an extended designation built on a **Unique identifier** and optional additional components, such as a revision. It identifies a runtime entity and may either leave its revision unspecified or designate a particular revision. A reference is therefore a structured form of unique-identifier-based designation, not a separate basic designation approach.
+A **Reference** is an extended form of unique-identifier-based designation, not a separate basic designation approach; see its entry below.
 
 ## Execution and model entities
 
@@ -39,7 +39,7 @@ A **Reference** is an extended designation built on a **Unique identifier** and 
 | **Symbol** | A syntactic designation (name) in the language. | [Processes and session types, §4, §6](about-processes-and-session-types/README.md) |
 | **Qualified symbol** | A symbol written with the qualification needed to distinguish it from other symbols, such as a module, namespace, or enclosing declaration path. The exact qualification components and resolution rules depend on the language's naming model. | [Processes and session types, §4, §6](about-processes-and-session-types/README.md) |
 | **Reference** | A designation of a runtime entity consisting of an identifier and optional additional components, such as a revision. A reference may omit the revision to designate the entity without pinning a particular state, or include one to designate a particular revision. | [Incarnations and channels, §2](about-incarnations-and-channels/README.md#2-identifiers-and-placeholders) |
-| **Identifier** | A unique machine-oriented designation of a runtime entity, analogous to an address; it is distinct from a syntactic symbol or placeholder. | [Incarnations and channels, §2](about-incarnations-and-channels/README.md#2-identifiers-and-placeholders) |
+| **Identifier** | A unique machine-oriented designation of a runtime entity or resource; it is distinct from a syntactic symbol or placeholder. | [Incarnations and channels, §2](about-incarnations-and-channels/README.md#2-identifiers-and-placeholders) |
 | **Placeholder** | A syntactic variable name whose runtime referent is supplied through substitution; it is not itself the resource. | [Incarnations and channels, §2](about-incarnations-and-channels/README.md#2-identifiers-and-placeholders) |
 | **Substitution** | An operation that establishes an association between a variable and a channel. | [Incarnations and channels, §6](about-incarnations-and-channels/README.md#6-substitution-and-continuation-application) |
 | **Type declaration** | A declaration whose one provider-side variable and zero or more client-side variables are all type variables. | [Processes and session types, §6](about-processes-and-session-types/README.md#6-session-types-for-a-channel) |
