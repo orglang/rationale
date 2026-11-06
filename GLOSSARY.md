@@ -43,7 +43,7 @@ A **Reference** is an extended form of unique-identifier-based designation, not 
 | **Variable** | A pair consisting of a placeholder (the variable's name) and a type, identified by a qualified symbol. | [Processes and session types, §4, §6](about-processes-and-session-types/README.md) |
 | **Term variable** | A variable belonging to the term layer. | [Processes and session types, §4](about-processes-and-session-types/README.md#4-process-declarations-and-definitions) |
 | **Type variable** | A variable belonging to the type layer. | [Processes and session types, §6](about-processes-and-session-types/README.md#6-session-types-for-a-channel) |
-| **Placeholder** | A syntactic variable name whose runtime referent is supplied through substitution; it is not itself the resource. | [Incarnations and channels, §2](about-incarnations-and-channels/README.md#2-identifiers-and-placeholders) |
+| **Placeholder** | A syntactic variable name whose runtime referent is supplied through placeholder replacement; it is not itself the resource. | [Incarnations and channels, §2](about-incarnations-and-channels/README.md#2-identifiers-and-placeholders) |
 | **Expression** | A formal expression of OrgLang belonging to either the term layer or the type layer. | [Incarnations and channels, §4, §7](about-incarnations-and-channels/README.md) |
 | **Term expression** | A formal expression belonging to the term layer. | [Incarnations and channels, §4](about-incarnations-and-channels/README.md#4-publication-subscription-and-matching) |
 | **Type expression** | A formal expression belonging to the type layer. | [Incarnations and channels, §7](about-incarnations-and-channels/README.md#7-types-and-constraints) |
@@ -70,7 +70,7 @@ A **Reference** is an extended form of unique-identifier-based designation, not 
 | **Content key** | A hash of an expression's content, used to identify that expression independently of where or when it occurs. | [Incarnations and channels, §3](about-incarnations-and-channels/README.md#3-channels-and-endpoints) |
 | **Placeholder replacement** | The syntactic operation of replacing free occurrences of a placeholder in a term with an identifier. It is written *P*[*a*/*x*] and is distinct from the runtime substitution that establishes a variable–channel association. | [Incarnations and channels, §6](about-incarnations-and-channels/README.md#6-placeholder-replacement-and-continuation-application) |
 | **Substitution** | An operation that establishes an association between a variable and a channel. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
-| **Binding** | The association between a variable and a channel established by substitution within an execution. A variable has at most one binding in an execution; it may be unbound while awaiting a channel. When a channel arrives for an awaiting variable, it is bound to that variable. A new binding for the same variable replaces the previous binding. | [Incarnations and channels, §2–3](about-incarnations-and-channels/README.md#2-identifiers-and-placeholders) |
+| **Binding** | The association between a variable and a channel established by substitution within an execution. A variable has at most one binding in an execution; it may be unbound while awaiting a channel. When a channel arrives for an awaiting variable, it is bound to that variable. A new binding for the same variable replaces the previous binding. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
 
 ## Communication
 
