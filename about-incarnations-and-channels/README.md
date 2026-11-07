@@ -24,7 +24,7 @@ This distinction is important for channel references. A placeholder is local to 
 
 ### 3. Channels and endpoints
 
-A **channel** is a communication resource connecting two endpoints. Each channel always has exactly one owning **execution**. Each endpoint is interpreted relative to the execution that holds the corresponding binding. The two endpoints refer to the same communication relation, while each execution maintains its own local references and execution state.
+A **channel** is a communication resource connecting two endpoints. Each channel always has exactly one owning **execution**. Each endpoint is interpreted relative to the execution that holds the corresponding binding; the two endpoint bindings may be held by different executions at the same time. Endpoint bindings and channel ownership are distinct relations: having a binding for an endpoint does not by itself make that execution the channel's owner. The two endpoints refer to the same communication relation, while each execution maintains its own local references and execution state.
 
 A channel identifier, a local placeholder, and an execution identifier are distinct kinds of reference. Their representations must not be conflated.
 
