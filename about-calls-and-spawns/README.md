@@ -124,7 +124,7 @@ If a precondition fails before the transition commits—for example, the target 
 
 **Required invariants (intended contract):**
 
-- **Freshness:** `Q`'s computation identity has never been allocated to any computation in the execution history, including terminated computations. Computation identities are never reused.
+- **Freshness:** `Q`'s Execution root identifier has never been allocated to any Computation aggregate in the execution history, including terminated aggregates. Execution root identifiers are never reused.
 - **Total transfer:** the invoking environment is injective, and the set of channel identities referenced by `P`'s bindings is exactly the set supplied by `X` and `Ys`; after commit, `P` has negative bindings for all transferred channels.
 - **Exact rebinding:** each target placeholder is bound to the corresponding supplied channel identity, with `X` mapped to the provider placeholder and `Ys[i]` mapped to the i-th client placeholder.
 - **Identity and type-continuation preservation:** transfer changes ownership/bindings, not channel identity or type continuation.
