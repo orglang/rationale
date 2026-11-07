@@ -206,3 +206,4 @@ No equivalence among these representations is assumed. The process AST, adapter,
 3. What is the relationship, if any, between pool-level `spawn` and process-expression `ExternalCall` / `InternalCall` beyond their shared concern with computation creation?
 4. Which implementation representation, if any, will replace the unfinished process-expression `SpawnSpec` attempt?
 5. What are the required atomicity and failure guarantees for pool-level spawning, and which component owns each boundary?
+6. Could `ExternalCall`, `InternalCall`, or pool-level `spawn` be modeled as actions that participate in Matching through an Exchange, rather than (or in addition to) directly establishing the required computation and channel bindings? This is a deferred design question only: the current call and spawn contracts remain unchanged, and no matching semantics for these operations are adopted by this specification.
