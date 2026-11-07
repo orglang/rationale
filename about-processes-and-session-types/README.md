@@ -173,7 +173,7 @@ If neither channel has a pending interaction, `Fwd` may initiate the forwarding-
 
 **Implementation observation:** the inspected executor has paths for positive and negative polarity, but this does not establish that every path is reachable or correct. Neutral polarity takes an unexpected-polarity error path; a negative-polarity branch has a type-mismatch TODO; and the existing e2e `fwd` test has no result assertion. The pending-turn lookup checks `CommChnlPH`; handling a turn pending only on the other channel is unverified. The implementation therefore does not yet establish the complete transition contract.
 
-The remaining rule must specify the reachable cases for positive and negative polarity when one side has a pending interaction, the treatment of neutral polarity, and the resulting continuation and one-shot consumption. Polarity is defined in Section 2; Section 9 records the checker's observed assignments.
+The remaining rule must specify the reachable cases for positive and negative polarity when one side has a pending interaction, the treatment of neutral polarity, and the resulting continuation and one-shot consumption. Section 9 records the checker's observed polarity assignments; these implementation observations do not define the language-level polarity rules.
 
 The following is a **review matrix, not a transition rule**. “Channel A” and “channel B” are the two existing channels supplied to `Fwd`; the exact direction mapping remains unresolved.
 
