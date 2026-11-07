@@ -7,7 +7,7 @@
 - This document owns `ExternalCall`, `InternalCall`, their channel-transfer and lifecycle contracts, and the generic semantics of creating a process Computation aggregate and its Execution.
 - [Processes and session types](../about-processes-and-session-types/README.md) owns process declarations and definitions, process expressions, session types, process-channel protocols, and implementation evidence from the process AST/type-checker/executor.
 - [Pools and transaction types](../about-pools-and-transaction-types/README.md) owns pool selection and servicing agreements, transaction types, and the `spawn` admissibility condition and its place in the transaction type.
-- [Executions and connections](../about-executions-and-connections/README.md) owns the abstract computation, identifier, channel, endpoint, and substitution mechanisms used by these operations.
+- [Executions and connections](../about-executions-and-exchanges/README.md) owns the abstract computation, identifier, channel, endpoint, and substitution mechanisms used by these operations.
 
 **Shared terminology:** see the [OrgLang glossary](../GLOSSARY.md).
 
@@ -206,4 +206,4 @@ No equivalence among these representations is assumed. The process AST, adapter,
 3. What is the relationship, if any, between pool-level `spawn` and process-expression `ExternalCall` / `InternalCall` beyond their shared concern with computation creation?
 4. Which implementation representation, if any, will replace the unfinished process-expression `SpawnSpec` attempt?
 5. What are the required atomicity and failure guarantees for pool-level spawning, and which component owns each boundary?
-6. Could `ExternalCall`, `InternalCall`, or pool-level `spawn` be modeled as actions that participate in Matching through an Connection, rather than (or in addition to) directly establishing the required computation and channel bindings? This is a deferred design question only: the current call and spawn contracts remain unchanged, and no matching semantics for these operations are adopted by this specification.
+6. Could `ExternalCall`, `InternalCall`, or pool-level `spawn` be modeled as actions that participate in Matching through a Connection, rather than (or in addition to) directly establishing the required computation and channel bindings? This is a deferred design question only: the current call and spawn contracts remain unchanged, and no matching semantics for these operations are adopted by this specification.
