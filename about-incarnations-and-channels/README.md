@@ -8,9 +8,9 @@
 
 ### 1. Computations and execution state
 
-An **computation** is one concrete runtime instance of an executing entity. It has its own **execution state** and local namespace. Two computations may originate from the same declaration or description while remaining distinct runtime instances.
+A **computation** is one concrete runtime instance of an executing entity. It has its own **execution state** and local namespace. Two computations may originate from the same declaration or description while remaining distinct runtime instances.
 
-An computation is not an identifier, a term, or a channel. An identifier may refer to a runtime resource; a term describes an action or expression; a channel provides a communication relation between endpoints.
+A computation is not an identifier, a term, or a channel. An identifier may refer to a runtime resource; a term describes an action or expression; a channel provides a communication relation between endpoints.
 
 ### 2. Identifiers and placeholders
 
@@ -22,9 +22,17 @@ This distinction is important for channel references. A placeholder is local to 
 
 ### 3. Channels and endpoints
 
-A **channel** is a communication resource connecting two endpoints. Each endpoint is interpreted relative to its owning computation. The two endpoints refer to the same communication relation, while each computation maintains its own local references and execution state.
+A **channel** is a communication resource connecting two endpoints. Each channel always has exactly one owning **computation**. Each endpoint is interpreted relative to the computation that holds the corresponding binding. The two endpoints refer to the same communication relation, while each computation maintains its own local references and execution state.
 
-A channel identifier, a local placeholder, and an computation identifier are distinct kinds of reference. Their representations must not be conflated.
+A channel identifier, a local placeholder, and a computation identifier are distinct kinds of reference. Their representations must not be conflated.
+
+#### Channel ownership and transfer
+
+**Channel ownership** is the exclusive relation between a channel and its owning computation. A channel is created with an owner and is never in an ownerless state. At any point, exactly one computation owns a given channel.
+
+A **positive binding** records that a channel is bound in a computation. A **negative binding** records the release of that channel by that computation. These are polarity distinctions for binding records; the precise rules for interpreting a history of positive and negative bindings remain open.
+
+A **transfer of channel ownership** changes the owning computation. It is represented by a negative binding for the source computation and a positive binding for the destination computation. The transfer is atomic: it is observed as one indivisible change from the source owner to the destination owner, never as an ownerless or multiply owned intermediate state. The channel's identity and type expression remain unchanged.
 
 ## Part II. Abstract communication model
 
@@ -76,9 +84,8 @@ This correspondence is a source of conceptual structure, not a claim that the pu
 
 The abstract model leaves the following representation and semantics questions open:
 
-- What is the complete identity and lifetime contract for computations?
 - Which identifier classes are distinct at the language level, and what uniqueness guarantees apply to each?
-- What is the exact binding and substitution discipline, including scope, capture avoidance, and linearity?
+- What are the exact rules for interpreting positive and negative binding records, including their history and scope?
 - What are the general channel lifecycle and resource-reclamation rules?
 - What ordering and observability guarantees apply to pending publication/subscription actions and their match?
 - Which general typing rules govern channel references, values, and continuations independently of a particular domain model?
