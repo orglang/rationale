@@ -36,7 +36,7 @@ An Exchange is designated by its own **unique identifier**. Each channel is also
 
 **Client usage right** is the right of the participant associated through the client endpoint to use the channel according to its type. **Provider channel-servicing responsibility** is the obligation of the participant associated through the provider endpoint to service the channel according to its type. Neither relation implies or replaces the other.
 
-A **positive binding** records that a variable in an Execution is associated with a Channel through an Endpoint of an Exchange. A **negative binding** records the release of that association. The binding relation includes the Execution, Exchange, Endpoint, and Channel; the variable is local to the Execution. The precise representation of this relation remains open.
+A **Binding** in the dynamic model identifies the variable by its Placeholder and the channel by its Identifier. The association is scoped by an Execution, an Endpoint, and an Exchange. A **positive binding** records establishment of this association; a **negative binding** records its release. This representation refers to the variable and channel without embedding the complete static Variable or Channel entities.
 
 By **linearity**, one Endpoint may have at most one active binding at a time. Its binding may end and a later binding may associate the same Endpoint with another Execution and/or another Channel. The Endpoint remains the same historical entity throughout; releasing a binding does not remove the Endpoint. A period with no active binding is permitted, including while a channel is being sent as a value over another channel and before the recipient establishes its binding.
 
