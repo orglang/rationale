@@ -13,7 +13,7 @@ The distinction matters: a request to perform work does not itself mean that a s
 
 ## The models
 
-- [Computations and communications](about-computations-and-communications/README.md) describes the abstract runtime mechanisms: Computation aggregates, Execution roots, identifiers, placeholders, channels, publication, subscription, matching, and continuations.
+- [Executions and exchanges](about-executions-and-exchanges/README.md) describes the abstract runtime mechanisms: Computation aggregates, Execution roots, identifiers, placeholders, channels, publication, subscription, matching, and continuations.
 - [Pools and transaction types](about-pools-and-transaction-types/README.md) describes pools, transaction protocols, negotiation, and established agreements.
 - [Processes and session types](about-processes-and-session-types/README.md) describes process declarations, process expressions, and the protocols governing process communication.
 - [Calls and spawns](about-calls-and-spawns/README.md) describes named-process invocation, Computation aggregate creation, channel transfer, and the boundary with pool-level spawning.
