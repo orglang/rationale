@@ -18,9 +18,9 @@ A computation is not an identifier, a term, or a channel. An identifier may refe
 
 An **identifier** names or refers to a runtime resource. In the abstract notation below, identifiers are written with early Latin letters such as *a*, *b*, and *c*.
 
-A **placeholder** is a syntactic name whose runtime referent is supplied by **placeholder replacement**. Placeholders are written with late Latin letters such as *x*, *y*, and *z*. A placeholder is not itself the resource to which it is bound: after replacement, the identifier occupies that syntactic position.
+A **placeholder** is a syntactic name whose runtime referent is supplied by **placeholder replacement**. Placeholders are written with late Latin letters such as *x*, *y*, and *z*. A placeholder is not itself the resource to which it is bound: after replacement, the identifier occupies that syntactic position. A Placeholder is unique within its containing declaration, definition, or expression.
 
-This distinction is important for channel references. A placeholder is local to an expression or continuation; an identifier denotes the channel or other resource referred to at runtime.
+This distinction is important for channel references. An identifier denotes the channel or other resource referred to at runtime; a Placeholder designates a variable within its static context.
 
 ### 3. Channels and endpoints
 
@@ -28,7 +28,7 @@ An **Exchange** is the stable communication aggregate root, with its own unique 
 
 A **channel** is a communication resource used by the two endpoints of an Exchange for an individual interaction. A corresponding pair consisting of a **Publication** and a **Subscription** is one interaction and is associated with a newly created channel with its own unique identifier. Thus, an Exchange may use a succession of distinct channels while retaining the same provider and client endpoints. A channel identifier, an Exchange identifier, a local placeholder, and an execution identifier are distinct kinds of reference. Their representations must not be conflated.
 
-Each endpoint is accessed through a **Binding** that identifies a variable by its **Placeholder** and a channel by its **Identifier**. The association is scoped by an **Execution**, an **Exchange**, and the relevant **Endpoint**. The provider endpoint carries the **provider channel-servicing responsibility**; the client endpoint carries the **client usage right**. These are distinct, complementary relations, not exclusive ownership of the channel as a whole.
+Each endpoint is accessed through a **Binding** that identifies a variable by the pair of **Execution** and **Placeholder**, and a channel by its **Identifier**. The Execution identifies the Definition whose expression provides the static context in which the Placeholder is unique. The Channel Identifier independently identifies the channel; no additional channel context is required for its identification. The association is further scoped by the **Exchange** and the relevant **Endpoint**. The provider endpoint carries the **provider channel-servicing responsibility**; the client endpoint carries the **client usage right**. These are distinct, complementary relations, not exclusive ownership of the channel as a whole.
 
 An Exchange is designated by its own **unique identifier**. Each channel is also designated by a separate **unique identifier**. A channel's type expression is identified by a **content key**, a hash of the expression's content. This separates the identity of the Exchange and channel resources from the content-based designation of the type expression.
 
