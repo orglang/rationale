@@ -40,7 +40,7 @@ A **transfer of client usage right** changes the execution holding the client-si
 
 A **transfer of provider channel-servicing responsibility** changes the execution holding the provider-side binding and responsible for servicing the channel. It is likewise represented by a negative binding in the source execution and a positive binding in the destination execution. The transfer is atomic and preserves the channel's identity, client endpoint, and type expression.
 
-An **ExternalCall** may transfer client usage rights for supplied channels while leaving the corresponding provider servicing responsibilities with their existing providers. An **InternalCall** transfers the complete channel environment of the old execution to the new execution: client usage rights for client-side bindings and provider servicing responsibilities for provider-side bindings. In both cases, peer participants' complementary relations remain in place.
+An **ExternalCall** may transfer client usage rights for supplied channels while leaving the corresponding provider channel-servicing responsibilities with their existing providers. An **InternalCall** transfers the complete channel environment of the old execution to the new execution: client usage rights for client-side bindings and provider channel-servicing responsibilities for provider-side bindings. In both cases, peer participants' complementary relations remain in place.
 
 ## Part II. Abstract communication model
 
