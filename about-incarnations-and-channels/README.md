@@ -24,7 +24,7 @@ This distinction is important for channel references. A placeholder is local to 
 
 ### 3. Channels and endpoints
 
-A **channel** is a communication resource connecting two **endpoints**, its two participant-relative sides: a **provider endpoint** and a **client endpoint**. Each endpoint is accessed through the corresponding participant's **binding** for the channel; the two bindings may be held by different **executions** at the same time. A binding associates a variable with a channel within an execution. The provider side carries the **provider servicing responsibility**: the obligation to service the channel according to its type. The client side carries the **client usage right**: the right to use the channel according to its type. These are distinct, complementary relations, not exclusive ownership of the channel as a whole. The two endpoints refer to the same communication relation, while each execution maintains its own local references and execution state.
+A **channel** is a communication resource connecting two **endpoints**, its two participant-relative sides: a **provider endpoint** and a **client endpoint**. Each endpoint is accessed through the corresponding participant's **binding** for the channel; the two bindings may be held by different **executions** at the same time. A binding associates a variable with a channel within an execution. The provider side carries the **provider channel-servicing responsibility**: the obligation to service the channel according to its type. The client side carries the **client usage right**: the right to use the channel according to its type. These are distinct, complementary relations, not exclusive ownership of the channel as a whole. The two endpoints refer to the same communication relation, while each execution maintains its own local references and execution state.
 
 A channel identifier, a local placeholder, and an execution identifier are distinct kinds of reference. Their representations must not be conflated.
 
@@ -32,13 +32,13 @@ A channel is designated by a **unique identifier**. Its type expression is ident
 
 #### Channel rights and responsibilities
 
-**Client usage right** is the right of the client participant to use the channel according to its type. **Provider servicing responsibility** is the provider participant's obligation to service the channel according to its type. A channel has both relations, associated with its respective client and provider endpoints. Neither relation implies or replaces the other.
+**Client usage right** is the right of the client participant to use the channel according to its type. **Provider channel-servicing responsibility** is the provider participant's obligation to service the channel according to its type. A channel has both relations, associated with its respective client and provider endpoints. Neither relation implies or replaces the other.
 
 A **positive binding** records that a channel is bound in an execution. A **negative binding** records the release of that channel by that execution. These are polarity distinctions for binding records; the precise rules for interpreting a history of positive and negative bindings remain open.
 
 A **transfer of client usage right** changes the execution holding the client-side binding and entitled to use the channel. It is represented by a negative binding in the source execution and a positive binding in the destination execution. The transfer is atomic: it is observed as one indivisible change, without an intermediate state in which the client usage right is unassigned or assigned to multiple executions. The channel's identity, provider endpoint, and type expression remain unchanged.
 
-A **transfer of provider servicing responsibility** changes the execution holding the provider-side binding and responsible for servicing the channel. It is likewise represented by a negative binding in the source execution and a positive binding in the destination execution. The transfer is atomic and preserves the channel's identity, client endpoint, and type expression.
+A **transfer of provider channel-servicing responsibility** changes the execution holding the provider-side binding and responsible for servicing the channel. It is likewise represented by a negative binding in the source execution and a positive binding in the destination execution. The transfer is atomic and preserves the channel's identity, client endpoint, and type expression.
 
 An **ExternalCall** may transfer client usage rights for supplied channels while leaving the corresponding provider servicing responsibilities with their existing providers. An **InternalCall** transfers the complete channel environment of the old execution to the new execution: client usage rights for client-side bindings and provider servicing responsibilities for provider-side bindings. In both cases, peer participants' complementary relations remain in place.
 
