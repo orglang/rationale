@@ -207,7 +207,7 @@ The public transaction channel and private channels are physically distinct repr
 
 The lifecycle of `Q`, including initialization, updates during private-channel access, and commit at matched `Down`, is defined in [Section 2.1](#21-negotiation-and-established-agreement). The logical/physical identity switch and participant-continuation rules are defined in [Section 6.2](#62-matched-transitions-continuations-and-channel-identity).
 
-This pool-level interaction model is distinct from a process's provider channel and from channels mapped to a new computation's client-role parameters in `ExternalCall`. Process creation, pool selection, and the start of servicing are described in [Processes and session types](../about-processes-and-session-types/README.md).
+This pool-level interaction model is distinct from a process's provider channel and from channels mapped to a new computation's client-role parameters in `ExternalCall`. Process-specific declarations, definitions, and session types are described in [Processes and session types](../about-processes-and-session-types/README.md); the creation of a process Computation aggregate and its Execution is specified in [Calls and spawns](../about-calls-and-spawns/README.md).
 
 ### 6. Intended semantics and formal rules
 
