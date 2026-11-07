@@ -28,6 +28,8 @@ A **channel** is a communication resource connecting two endpoints. Each channel
 
 A channel identifier, a local placeholder, and an execution identifier are distinct kinds of reference. Their representations must not be conflated.
 
+A channel is designated by a **unique identifier**. Its type expression is identified by a **content key**, a hash of the expression's content. This separates the identity of the channel resource from the content-based designation of its type expression.
+
 #### Channel ownership and transfer
 
 **Channel ownership** is the exclusive relation between a channel and its owning **execution**. A channel is created with an owner and is never in an ownerless state. At any point, exactly one execution owns a given channel.
