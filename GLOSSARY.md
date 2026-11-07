@@ -21,9 +21,9 @@ A **Reference** is an extended form of unique-identifier-based designation, not 
 
 | Term | Definition | Canonical reference |
 |---|---|---|
-| **Execution** | A standalone runtime entity representing one concrete execution, with its own unique identifier and execution state. Applications and reductions unfold within an execution. Its short name in the implementation is `exec`. | [Computations and channels, §1](about-incarnations-and-channels/README.md#1-computations-and-execution-state) |
-| **Execution state** | The abstract runtime state associated with a particular execution. | [Computations and channels, §1](about-incarnations-and-channels/README.md#1-computations-and-execution-state) |
-| **Computation** | A concrete runtime instance of a computational process, in which applications and reductions unfold. It has its own execution state and local namespace and is distinct from the declaration or description from which it originates. | [Computations and channels, §1](about-incarnations-and-channels/README.md#1-computations-and-execution-state) |
+| **Execution** | A key internal entity within a **Computation** aggregate, representing a concrete execution with its own unique identifier and execution state. Applications and reductions unfold within an execution. Its short name in the implementation is `exec`. | [Computations and channels, §1](about-incarnations-and-channels/README.md#1-computation-and-execution) |
+| **Execution state** | The abstract runtime state associated with a particular execution. | [Computations and channels, §1](about-incarnations-and-channels/README.md#1-computation-and-execution) |
+| **Computation** | The root aggregate of the computational context. It contains **Execution** as a key internal entity; it is distinct from an individual execution. | [Computations and channels, §1](about-incarnations-and-channels/README.md#1-computation-and-execution) |
 | **Process** | A domain-specific computational entity in the process model; context distinguishes its declaration and definition from a running computation. The process specification provides its full definition and is authoritative for its semantics. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
 | **Pool** | A domain-specific kind of participant in the pool model that makes capabilities available to other pools and may service process computations under agreements. The pool specification provides its full definition and is authoritative for its semantics. | [Pools and transaction types](about-pools-and-transaction-types/README.md) |
 | **Participant** | An entity that takes part in an interaction through a channel. | [Pools and transaction types, §2](about-pools-and-transaction-types/README.md#2-core-model-relationships); [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
@@ -76,6 +76,9 @@ A **Reference** is an extended form of unique-identifier-based designation, not 
 
 | Term | Definition | Canonical reference |
 |---|---|---|
+| **Communication** | The root aggregate of the communication context. It contains **Exchange** as a key internal entity. | [Computations and channels, §4](about-incarnations-and-channels/README.md#4-publication-subscription-and-matching) |
+| **Exchange** | A key internal entity within a **Communication** aggregate, representing an ordered sequence of communication acts. | [Computations and channels, §4](about-incarnations-and-channels/README.md#4-publication-subscription-and-matching) |
+| **Act** | An individual communication act within an exchange, representing either a publication or a subscription on a channel. | [Computations and channels, §4](about-incarnations-and-channels/README.md#4-publication-subscription-and-matching) |
 | **Channel** | A communication resource identified by a unique identifier and a content key identifying its type expression. Every channel is created with exactly one owning execution and always has exactly one owner. | [Computations and channels, §3](about-incarnations-and-channels/README.md#3-channels-and-endpoints) |
 | **Channel ownership** | The exclusive relation between a channel and its single owning execution. | [Computations and channels, §3](about-incarnations-and-channels/README.md#3-channels-and-endpoints) |
 | **Positive binding** | A binding record that establishes or records a channel association in an execution. | [Computations and channels, §3](about-incarnations-and-channels/README.md#channel-ownership-and-transfer) |
