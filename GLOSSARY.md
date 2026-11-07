@@ -99,5 +99,5 @@ A **Reference** is an extended form of unique-identifier-based designation, not 
 | **Transaction type** | A protocol type that describes the transaction interactions permitted through a pool's transaction channel, including their continuations and applicable allocation-state changes. | [Pools and transaction types, §4](about-pools-and-transaction-types/README.md#4-transaction-types) |
 | **Constraint** | A condition associated with a type expression that restricts the states or values for which an interaction is permitted. | [Computations and channels, §7](about-incarnations-and-channels/README.md#7-types-and-constraints) |
 | **Refinement** | A restriction attached to a type expression that narrows the states or values it admits. | [Computations and channels, §7](about-incarnations-and-channels/README.md#7-types-and-constraints) |
-| **Linearity** | A channel usage and ownership discipline that prevents channel endpoints or bindings from being duplicated or silently discarded. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
+| **Linearity** | A discipline governing channel use that prevents channel endpoints or bindings from being duplicated or silently discarded. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
 
