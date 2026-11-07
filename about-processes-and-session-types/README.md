@@ -116,7 +116,7 @@ The arrows mean “then” and serve as explanatory notation for the sequence of
 **Connection to the implementation vocabulary:** at the process-expression level, the request and response correspond conceptually to complementary `Send`/`Recv` actions, followed by the session type's terminal actions. Section 10 records the observed checker correspondence for `Send`, `Recv`, and `One`. The concrete OrgLang session-type expression is omitted because the exact typing rules and context updates remain to be established. Channel transfer (`Tensor`/`Lolli`) and labelled choice (`Plus`/`With`) are separate session-type forms discussed in Section 6.
 ### 4. Process declarations and definitions
 
-Recall the recipe analogy from Section 2: a named process is like a recipe, and each run is an computation of that process. A **process declaration** describes the recipe's channel interface. A **process definition** supplies the implementation—the expression or process body that carries out the work. The distinction matters because the existence of a declaration alone leaves storage and loading of a usable body unverified. Go-specific names for these concepts are introduced in Part III.
+Recall the recipe analogy from Section 2: a named process is like a recipe, and each run is a Computation aggregate for that process. A **process declaration** describes the recipe's channel interface. A **process definition** supplies the implementation—the expression or process body that carries out the work. The distinction matters because the existence of a declaration alone leaves storage and loading of a usable body unverified. Go-specific names for these concepts are introduced in Part III.
 
 #### Definition, validation, and execution admission
 
@@ -431,7 +431,7 @@ These tests must assert observable state and scheduled continuations, not merely
 2. **ExternalCall search-and-negotiation timeout conformance:** The language-level commit point and pre-commit search-timeout behavior are specified in Section 7; the timeout policy is documented in [Pools and transaction types, Section 2.1](../about-pools-and-transaction-types/README.md#21-negotiation-and-established-agreement). Remaining work is implementation conformance for the agreed contract. The timeout's source, who supplies or configures it, and its representation remain open.
 
    - Verify that agreement discovery and candidate negotiation, including escalation to manual intervention, are bounded by the same timeout.
-   - Verify timeout expiry before finding a suitable agreement does not create an computation or deliver a provider channel, and leaves supplied client-channel identities and type continuations unchanged.
+   - Verify timeout expiry before finding a suitable agreement does not create a Computation aggregate or deliver a provider channel, and leaves supplied client-channel identities and type continuations unchanged.
    - Verify that finding a suitable existing agreement or successfully negotiating a new agreement ends the timeout's effect: subsequent engine delay before provider-channel delivery does not trigger this search-and-negotiation timeout.
 
    General process/pool failures, recovery after delivery, restart guarantees, and retry policy are outside the current scope and may be addressed by a separate fault-tolerance contract.
