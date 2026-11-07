@@ -30,7 +30,13 @@ A **channel** is a communication resource used by the two endpoints of an Exchan
 
 Each endpoint is accessed through a **Binding**. A Binding relates a particular revision of an Execution to a particular revision of an Exchange. These revisions are designated independently by an **Execution Reference** and an **Exchange Reference**, each including the identifier and revision of the referenced aggregate root. The Binding identifies a variable by the pair of Execution and **Placeholder**, and a channel by its **Channel Identifier**. The Execution context identifies the Definition whose expression provides the static context in which the Placeholder is unique. The Channel Identifier independently identifies the channel; no additional channel context is required for its identification. The association is further scoped by the Exchange and the relevant **Endpoint**. The provider endpoint carries the **provider channel-servicing responsibility**; the client endpoint carries the **client usage right**. These are distinct, complementary relations, not exclusive ownership of the channel as a whole.
 
-A Binding is a domain relation between the participating aggregate contexts, rather than a part owned exclusively by either aggregate. It may therefore relate entities belonging to different aggregates. This does not by itself require Binding to be a separate aggregate; its storage and coordination model remain open.
+A Binding is a domain relation between the participating aggregate contexts, rather than a part owned exclusively by either aggregate. It may therefore relate entities belonging to different aggregates. This does not by itself require Binding to be a separate aggregate; its storage and coordination model remain open. Execution and Exchange are peers in this domain relation.
+
+Binding is a domain fact in its own right, not merely a technical representation of a successful Matching. It relates particular revisions of the participating roots and remains meaningful as a historical fact after either aggregate has completed. The history of these relations should arise from the sequence of positive and negative Binding facts; this does not prescribe a separate history mechanism or where such facts are stored.
+
+A positive Binding arises when a Publication and a Subscription in the Exchange match. The Publication and Subscription are initiated from Execution contexts. The model does not currently prohibit both actions from being initiated by the same Execution.
+
+Consistency of a Binding across the participating aggregate contexts requires coordination. If Execution and Exchange are separate aggregates, coordination may be provided externally or by the aggregate that initiates the operation; which aggregate can act as initiator depends on the chosen aggregate boundaries. The current working assumption is synchronous coordination: Matching completes only after the participating aggregate states are consistent, and failure to update either side must not leave the change to the other side committed. This coordination requirement does not decide whether Execution and Exchange are separate aggregates or belong to one aggregate.
 
 An Exchange is designated by its own **unique identifier**. Each channel is also designated by a separate **unique identifier**. A channel's type expression is identified by a **content key**, a hash of the expression's content. This separates the identity of the Exchange and channel resources from the content-based designation of the type expression.
 
@@ -40,7 +46,9 @@ An Exchange is designated by its own **unique identifier**. Each channel is also
 
 In the dynamic model, a **Binding** represents this association without embedding the complete static **Variable** or **Channel** entities. A **positive binding** records establishment of the association; a **negative binding** records its release.
 
-By **linearity**, one Endpoint may have at most one active binding at a time. Its binding may end and a later binding may associate the same Endpoint with another Execution and/or another Channel. The Endpoint remains the same historical entity throughout; releasing a binding does not remove the Endpoint. A period with no active binding is permitted, including while a channel is being sent as a value over another channel and before the recipient establishes its binding.
+By **linearity**, one Endpoint may have at most one active binding at a time. A new positive Binding for an Endpoint must not become committed before the negative Binding releasing its previous association has been committed. The release and establishment may be committed together in one atomic transaction, in which case the intermediate unbound state is not observable. Alternatively, the Endpoint may remain temporarily unbound until a later positive Binding is established. The permitted duration of that state and the timeout or rollback behavior depend on the particular operation; there is no general timeout or rollback rule at this level.
+
+The Endpoint remains the same historical entity throughout; releasing a binding does not remove the Endpoint. A period with no active binding is permitted, including while a channel is being sent as a value over another channel and before the recipient establishes its binding.
 
 A **transfer of client usage right** or **provider channel-servicing responsibility** may be defined as a direct handoff between executions. Where a call contract specifies such a handoff as atomic, it is observed as one indivisible change, without an intermediate state in which the right or responsibility is unassigned or assigned to multiple executions. This atomic handoff rule does not prescribe the behavior of sending a channel as a value over another channel: in that case, the source binding may be released before the recipient establishes a new binding. The channel's identity and the Exchange's endpoint identities remain unchanged.
 
@@ -97,7 +105,7 @@ This correspondence is a source of conceptual structure, not a claim that the pu
 The abstract model leaves the following representation and semantics questions open:
 
 - Which identifier classes are distinct at the language level, and what uniqueness guarantees apply to each?
-- What are the exact rules for interpreting positive and negative binding records, including their history and scope?
+- What record structure and storage arrangement should represent positive and negative Binding facts and their history?
 - What are the general channel lifecycle and resource-reclamation rules?
 - What ordering and observability guarantees apply to pending publication/subscription actions and their match?
 - Which general typing rules govern channel references, values, and continuations independently of a particular domain model?
