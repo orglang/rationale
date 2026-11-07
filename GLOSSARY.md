@@ -76,7 +76,11 @@ A **Reference** is an extended form of unique-identifier-based designation, not 
 
 | Term | Definition | Canonical reference |
 |---|---|---|
-| **Channel** | A communication resource identified by a unique identifier and a content key identifying its type expression. Every channel always has exactly one owning execution. | [Computations and channels, §3](about-incarnations-and-channels/README.md#3-channels-and-endpoints) |
+| **Channel** | A communication resource identified by a unique identifier and a content key identifying its type expression. Every channel is created with exactly one owning computation and always has exactly one owner. | [Computations and channels, §3](about-incarnations-and-channels/README.md#3-channels-and-endpoints) |
+| **Channel ownership** | The exclusive relation between a channel and its single owning computation. | [Computations and channels, §3](about-incarnations-and-channels/README.md#3-channels-and-endpoints) |
+| **Positive binding** | A binding record that establishes or records a channel association in an execution. | [Computations and channels, §3](about-incarnations-and-channels/README.md#channel-ownership-and-transfer) |
+| **Negative binding** | A binding record that records release of a channel association by an execution. | [Computations and channels, §3](about-incarnations-and-channels/README.md#channel-ownership-and-transfer) |
+| **Transfer of channel ownership** | An atomic change of a channel's owning computation, represented by a negative binding for the source and a positive binding for the destination. | [Computations and channels, §3](about-incarnations-and-channels/README.md#channel-ownership-and-transfer) |
 | **Endpoint** | One participant-relative end of a shared channel. | [Computations and channels, §3](about-incarnations-and-channels/README.md#3-channels-and-endpoints) |
 | **Provider endpoint** | The endpoint from which a participant provides the service or initiates the interaction described by a channel's type. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts); [Pools and transaction types, §2](about-pools-and-transaction-types/README.md#2-core-model-relationships) |
 | **Client endpoint** | The complementary endpoint from which a participant uses the service or takes part in the interaction described by a channel's type. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts); [Pools and transaction types, §2](about-pools-and-transaction-types/README.md#2-core-model-relationships) |
