@@ -13,10 +13,10 @@ The distinction matters: a request to perform work does not itself mean that a s
 
 ## The models
 
-- [Incarnations and channels](about-incarnations-and-channels/README.md) describes the abstract runtime mechanisms: incarnations, identifiers, placeholders, channels, publication, subscription, matching, and continuations.
+- [Computations and channels](about-incarnations-and-channels/README.md) describes the abstract runtime mechanisms: Computation aggregates, Execution roots, identifiers, placeholders, channels, publication, subscription, matching, and continuations.
 - [Pools and transaction types](about-pools-and-transaction-types/README.md) describes pools, transaction protocols, negotiation, and established agreements.
 - [Processes and session types](about-processes-and-session-types/README.md) describes process declarations, process expressions, and the protocols governing process communication.
-- [Calls and spawns](about-calls-and-spawns/README.md) describes named-process invocation, incarnation creation, channel transfer, and the boundary with pool-level spawning.
+- [Calls and spawns](about-calls-and-spawns/README.md) describes named-process invocation, Computation aggregate creation, channel transfer, and the boundary with pool-level spawning.
 - [Glossary](GLOSSARY.md) collects shared terminology.
 
-The abstract mechanisms are deliberately separated from the models built on top of them. The pool and process specifications define their own domain-specific rules without turning those rules into assumptions of the general incarnation-and-channel model.
+The abstract mechanisms are deliberately separated from the models built on top of them. The pool and process specifications define their own domain-specific rules without turning those rules into assumptions of the general computation-and-channel model.
