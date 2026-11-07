@@ -12,7 +12,7 @@ A **Computation** is an aggregate in the computational context, rooted at an **E
 
 The aggregate root is the entity through which the aggregate is identified and accessed. This description does not prescribe additional cardinality or lifecycle rules.
 
-A computation is not an identifier, a term, or a channel. An identifier may refer to a runtime resource; a term describes an action or expression; a channel provides a communication relation between endpoints.
+A computation is not an identifier, a term, or a channel. An identifier may refer to a runtime resource; a term describes an action or expression; a channel provides a communication relation between two participant-relative endpoints.
 
 ### 2. Identifiers and placeholders
 
@@ -24,7 +24,7 @@ This distinction is important for channel references. A placeholder is local to 
 
 ### 3. Channels and endpoints
 
-A **channel** is a communication resource connecting two endpoints. Each channel always has exactly one owning **execution**. Each endpoint is interpreted relative to the execution that holds the corresponding binding; the two endpoint bindings may be held by different executions at the same time. Endpoint bindings and channel ownership are distinct relations: having a binding for an endpoint does not by itself make that execution the channel's owner. The two endpoints refer to the same communication relation, while each execution maintains its own local references and execution state.
+A **channel** is a communication resource connecting two **endpoints**, its two participant-relative sides. Each endpoint is accessed through the corresponding participant's **binding** for the channel; the two bindings may be held by different **executions** at the same time. A binding associates a variable with a channel within an execution. Each channel nevertheless has exactly one owning execution: holding a binding for the channel does not by itself confer ownership. The two endpoints refer to the same communication relation, while each execution maintains its own local references and execution state.
 
 A channel identifier, a local placeholder, and an execution identifier are distinct kinds of reference. Their representations must not be conflated.
 
