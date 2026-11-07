@@ -40,7 +40,7 @@ The current model has three related concepts:
 
 1. **Transaction type:** the type that defines how pools may interact while establishing or modifying an agreement. It describes permitted messages, choices, constraints, and continuations.
 2. **Negotiation interaction:** the pool-to-pool exchange described by that type over the shared transaction channel. Its detailed operational representation remains unspecified.
-3. **Agreement:** the committed allocation state (the value of the process allocation function `Q`) for the shared transaction channel `c`, accepted by the participating pools. Once established, this state can be found and reused by a later `ExternalCall`; finding it is distinct from negotiating or modifying it.
+3. **Agreement:** the committed allocation state (the value of the process allocation function `Q`) for the shared transaction channel `c`, accepted by the participating pools. Once established, this state can be found and reused by a later `ExternalCall`; finding it is distinct from negotiating or modifying it. The agreement also supplies the terms under which the provider pool assumes process-servicing responsibility for a computation associated with it. This pool-level responsibility is distinct from the provider process's channel-servicing responsibility on the process's own provider channel; the latter is represented by the process Execution's provider-side channel binding.
 
 For the discovery and negotiation sequence, including the point at which computation creation may begin, see [Section 2.1](#21-negotiation-and-established-agreement).
 
