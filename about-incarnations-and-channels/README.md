@@ -8,9 +8,9 @@
 
 ### 1. Computation and execution
 
-A **Computation** is the root aggregate of the computational context. An **Execution** is a key internal entity within that aggregate; it represents a concrete execution and has its own unique identifier and **execution state**. Applications and reductions unfold within an execution.
+A **Computation** is an aggregate in the computational context, rooted at an **Execution**. The **Execution** aggregate root represents a concrete execution and has its own unique identifier and **execution state**. Applications and reductions unfold within an execution.
 
-The aggregate relationship does not, by itself, prescribe the number or lifecycle of executions within a computation.
+The aggregate root is the entity through which the aggregate is identified and accessed. This description does not prescribe additional cardinality or lifecycle rules.
 
 A computation is not an identifier, a term, or a channel. An identifier may refer to a runtime resource; a term describes an action or expression; a channel provides a communication relation between endpoints.
 
@@ -50,7 +50,7 @@ The abstract term forms are:
 
 **Publication** and **subscription** are complementary endpoint actions. A publication that has no matching subscription remains pending; a subscription that has no matching publication also remains pending. The communication interaction takes effect when the corresponding actions match. Matching makes the received value available to the subscription's continuation; it does not imply that both computations execute simultaneously.
 
-The concrete values, permitted interactions, and continuation obligations are defined by the domain-specific model using the channel. **Communication** is the root aggregate of the communication context. An **Exchange** is a key internal entity within that aggregate and represents an ordered sequence of communication **Acts**, each of which is a publication or a subscription on a channel.
+The concrete values, permitted interactions, and continuation obligations are defined by the domain-specific model using the channel. **Communication** is an aggregate in the communication context, rooted at an **Exchange**. The **Exchange** aggregate root represents an ordered sequence of communication **Acts**, each of which is a publication or a subscription on a channel.
 
 ### 5. Values and continuations
 
