@@ -7,7 +7,7 @@
 - This document owns `ExternalCall`, `InternalCall`, their channel-transfer and lifecycle contracts, and the generic semantics of creating a process Computation aggregate and its Execution.
 - [Processes and session types](../about-processes-and-session-types/README.md) owns process declarations and definitions, process expressions, session types, process-channel protocols, and implementation evidence from the process AST/type-checker/executor.
 - [Pools and transaction types](../about-pools-and-transaction-types/README.md) owns pool selection and servicing agreements, transaction types, and the `spawn` admissibility condition and its place in the transaction type.
-- [Computations and communications](../about-computations-and-communications/README.md) owns the abstract computation, identifier, channel, endpoint, and substitution mechanisms used by these operations.
+- [Executions and exchanges](../about-executions-and-exchanges/README.md) owns the abstract computation, identifier, channel, endpoint, and substitution mechanisms used by these operations.
 
 **Shared terminology:** see the [OrgLang glossary](../GLOSSARY.md).
 
