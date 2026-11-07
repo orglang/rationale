@@ -6,9 +6,11 @@
 
 ## Part I. Conceptual model
 
-### 1. Computations and execution state
+### 1. Computation and execution
 
-A **computation** is one concrete runtime instance of an executing entity. It has its own **execution state** and local namespace. Two computations may originate from the same declaration or description while remaining distinct runtime instances.
+A **Computation** is the root aggregate of the computational context. An **Execution** is a key internal entity within that aggregate; it represents a concrete execution and has its own unique identifier and **execution state**. Applications and reductions unfold within an execution.
+
+The aggregate relationship does not, by itself, prescribe the number or lifecycle of executions within a computation.
 
 A computation is not an identifier, a term, or a channel. An identifier may refer to a runtime resource; a term describes an action or expression; a channel provides a communication relation between endpoints.
 
@@ -22,9 +24,9 @@ This distinction is important for channel references. A placeholder is local to 
 
 ### 3. Channels and endpoints
 
-A **channel** is a communication resource connecting two endpoints. Each channel always has exactly one owning **execution**. Each endpoint is interpreted relative to the computation that holds the corresponding binding. The two endpoints refer to the same communication relation, while each computation maintains its own local references and execution state.
+A **channel** is a communication resource connecting two endpoints. Each channel always has exactly one owning **execution**. Each endpoint is interpreted relative to the execution that holds the corresponding binding. The two endpoints refer to the same communication relation, while each execution maintains its own local references and execution state.
 
-A channel identifier, a local placeholder, and a computation identifier are distinct kinds of reference. Their representations must not be conflated.
+A channel identifier, a local placeholder, and an execution identifier are distinct kinds of reference. Their representations must not be conflated.
 
 #### Channel ownership and transfer
 
@@ -48,7 +50,7 @@ The abstract term forms are:
 
 **Publication** and **subscription** are complementary endpoint actions. A publication that has no matching subscription remains pending; a subscription that has no matching publication also remains pending. The communication interaction takes effect when the corresponding actions match. Matching makes the received value available to the subscription's continuation; it does not imply that both computations execute simultaneously.
 
-The concrete values, permitted interactions, and continuation obligations are defined by the domain-specific model using the channel. An **exchange** is an ordered sequence of communication **acts**, each of which is a publication or a subscription on a channel.
+The concrete values, permitted interactions, and continuation obligations are defined by the domain-specific model using the channel. **Communication** is the root aggregate of the communication context. An **Exchange** is a key internal entity within that aggregate and represents an ordered sequence of communication **Acts**, each of which is a publication or a subscription on a channel.
 
 ### 5. Values and continuations
 
