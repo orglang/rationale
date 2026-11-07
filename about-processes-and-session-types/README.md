@@ -340,7 +340,7 @@ At a high level, the inspected execution path follows six steps. The names in pa
 5. Save the resulting state changes and effects.
 6. If the action produced a next expression, schedule or continue with it; otherwise return.
 
-This outlines the observed path. The complete rules for blocking, resumption, and channel ownership remain to be established. Constructor-specific execution findings are in Section 13; representation gaps are in Section 12.
+This outlines the observed path. The complete rules for blocking, resumption, and provider/client endpoint-role transfer remain to be established. Constructor-specific execution findings are in Section 13; representation gaps are in Section 12.
 
 Communication may take more than one execution step. If the matching action from the other side is not yet available—for example, the corresponding `Wait` for a `Close`, or a receive for a send—the current action may register that it is waiting and return. **Registering this pending action is not, by itself, a completed interaction or a language-level session-type transition:** the type continuation and the participants' continuation eligibility do not advance merely because one side has acted. The language-level interaction takes effect only when the corresponding actions match, as stated by the common paired-interaction principle in Section 6. When the other side becomes available, the inspected implementation updates the exchange state and channel records, and may schedule the continuation. This is an implementation observation, not a complete transition rule or evidence that continuation scheduling occurs at the correct semantic boundary; implementation ordering, ownership, and conformance remain to be verified.
 
