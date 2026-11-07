@@ -147,7 +147,7 @@ The repository also contains AST constructors for `Spawn`, `Acqure`, `Accept`, `
 
 ### 6. Session types for a channel
 
-A session type describes the interactions permitted by the session type from the provider endpoint's point of view; the type checker accounts for the client role when checking the other endpoint (Section 2). For the request/response example and the progression of the type continuation, see Section 3.
+A session type describes the interactions permitted on a channel from the provider endpoint's point of view; the type checker accounts for the client role when checking the other endpoint (Section 2). For the request/response example and the progression of the type continuation, see Section 3.
 
 A session type can also describe the transfer of a channel between processes. The sender gives the other process a channel it can use to communicate; the receiver gains access to that channel for the rest of its process. The implementation names the relevant session-type forms `Tensor` and `Lolli`. At a high level, these are the two complementary forms used to describe channel transfer together with the session type that remains after the transfer. Section 9 records the observed polarity assignments and checker coverage; Section 10 describes the typing interface.
 
