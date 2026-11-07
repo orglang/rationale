@@ -11,6 +11,9 @@ OrgLang uses three distinct approaches to designate entities or types:
 
 | Approach | Definition | Typical use |
 |---|---|---|
+| **Qualified name** | Designation by a qualified symbol. | Static language entities, including types referred to by variables. |
+| **Unique identifier** | Designation by a unique machine-oriented identifier. | Runtime entities such as executions and channels. |
+| **Content key** | Designation by a hash of expression content. | Expressions identified by their content. |
 
 A **Reference** is an extended form of unique-identifier-based designation, not a separate basic designation approach; see its entry below.
 
@@ -60,11 +63,8 @@ A **Reference** is an extended form of unique-identifier-based designation, not 
 
 | Term | Definition | Canonical reference |
 |---|---|---|
-| **Qualified name** | Designation by a qualified symbol. | Static language entities, including types referred to by variables. |
-| **Unique identifier** | Designation by a unique machine-oriented identifier. | Runtime entities such as executions and channels. |
 | **Identifier** | A unique machine-oriented designation of a runtime entity or resource; it is distinct from a syntactic symbol or placeholder. | [Computations and channels, §2](about-incarnations-and-channels/README.md#2-identifiers-and-placeholders) |
 | **Reference** | A designation of a runtime entity consisting of an identifier and optional additional components, such as a revision. A reference may omit the revision to designate the entity without pinning a particular state, or include one to designate a particular revision. | [Computations and channels, §2](about-incarnations-and-channels/README.md#2-identifiers-and-placeholders) |
-| **Content key** | A hash of an expression's content, used to identify that expression independently of where or when it occurs. | [Computations and channels, §3](about-incarnations-and-channels/README.md#3-channels-and-endpoints) |
 | **Placeholder replacement** | The syntactic operation of replacing free occurrences of a placeholder in a term with an identifier. It is written *P*[*a*/*x*] and is distinct from the runtime substitution that establishes a variable–channel association. | [Computations and channels, §6](about-incarnations-and-channels/README.md#6-placeholder-replacement-and-continuation-application) |
 | **Substitution** | An operation that establishes an association between a variable and a channel. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
 | **Binding** | An association between a variable and a channel recorded within an execution. Bindings have positive or negative polarity: a positive binding records the association, while a negative binding records its release. | [Processes and session types, §2](about-processes-and-session-types/README.md#2-core-concepts) |
