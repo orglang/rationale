@@ -32,7 +32,7 @@ A channel identifier, a local placeholder, and a computation identifier are dist
 
 A **positive binding** records that a channel is bound in an execution. A **negative binding** records the release of that channel by that execution. These are polarity distinctions for binding records; the precise rules for interpreting a history of positive and negative bindings remain open.
 
-A **transfer of channel ownership** changes the owning computation. It is represented by a negative binding in the source execution and a positive binding in the destination execution. The transfer is atomic: it is observed as one indivisible change from the source owner to the destination owner, never as an ownerless or multiply owned intermediate state. The channel's identity and type expression remain unchanged.
+A **transfer of channel ownership** changes the owning execution. It is represented by a negative binding in the source execution and a positive binding in the destination execution. The transfer is atomic: it is observed as one indivisible change from the source owner to the destination owner, never as an ownerless or multiply owned intermediate state. The channel's identity and type expression remain unchanged.
 
 ## Part II. Abstract communication model
 
